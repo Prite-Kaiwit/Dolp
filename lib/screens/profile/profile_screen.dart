@@ -1,0 +1,309 @@
+import 'package:flutter/material.dart';
+import '../../models/user.dart';
+import '../../theme/app_theme.dart';
+import '../../state/app_state.dart';
+import '../home/my_listings_screen.dart';
+import '../order/order_history_screen.dart';
+import '../admin/admin_dashboard_screen.dart';
+import '../auth/splash_onboarding_screen.dart';
+
+class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final appState = AppState();
+
+    return ListenableBuilder(
+      listenable: appState,
+      builder: (context, _) {
+        final user = appState.currentUser;
+        final isGuest = user.role == UserRole.guest;
+        final isAdmin = user.role == UserRole.admin;
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('โปรไฟล์ของฉัน'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.settings_outlined),
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('เปิดการตั้งค่าแอป')),
+                  );
+                },
+              ),
+            ],
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                // Profile Avatar & Identity Card
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.grayLine),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Stack(
+                        children: [
+                          CircleAvatar(
+                            radius: 42,
+                            backgroundColor: AppColors.pinkPale,
+                            backgroundImage: NetworkImage(user.avatarUrl),
+                            onBackgroundImageError: (_, _) {},
+                            child: Text(
+                              user.name.isNotEmpty ? user.name[0] : 'U',
+                              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.pinkPrimary),
+                            ),
+                          ),
+                          if (user.isVerified)
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: AppColors.greenPrimary,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.check, size: 16, color: Colors.white),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        user.name,
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.inkText),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        user.faculty,
+                        style: const TextStyle(fontSize: 13, color: AppColors.graySecondary),
+                      ),
+                      const SizedBox(height: 6),
+                      // University Verification Pill
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: user.isVerified ? AppColors.greenPale : AppColors.grayBg,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          user.isVerified ? '✓ ยืนยันตัวตนด้วยอีเมล มอ. แล้ว' : 'ยังไม่ยืนยันตัวตน',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: user.isVerified ? AppColors.greenDark : AppColors.graySecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Stats Row (Rating, Deals, Reviews)
+                if (!isGuest) ...[
+                  Row(
+                    children: [
+                      _buildStatBox('${user.rating} ★', 'คะแนนความน่าเชื่อถือ', AppColors.warning),
+                      const SizedBox(width: 10),
+                      _buildStatBox('${user.successfulDeals}', 'ทำรายการสำเร็จ', AppColors.greenPrimary),
+                      const SizedBox(width: 10),
+                      _buildStatBox('${user.reviewCount}', 'รีวิวจากผู้ใช้', AppColors.pinkPrimary),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                ],
+
+                // Role Switcher / Admin Mode Launcher
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isAdmin ? AppColors.greenPale : AppColors.pinkPale,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: isAdmin ? AppColors.greenLight : AppColors.pinkLight),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(isAdmin ? Icons.admin_panel_settings : Icons.school, color: isAdmin ? AppColors.greenDark : AppColors.pinkDark),
+                              const SizedBox(width: 8),
+                              Text(
+                                isAdmin ? 'โหมดผู้ดูแลระบบ (Admin Mode)' : 'โหมดนักศึกษา (Member Mode)',
+                                style: TextStyle(fontWeight: FontWeight.bold, color: isAdmin ? AppColors.greenDark : AppColors.pinkDark, fontSize: 13),
+                              ),
+                            ],
+                          ),
+                          Switch(
+                            value: isAdmin,
+                            activeThumbColor: AppColors.greenPrimary,
+                            onChanged: (val) {
+                              if (val) {
+                                appState.loginAsAdmin();
+                              } else {
+                                appState.loginAsMember();
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                      if (isAdmin) ...[
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.dashboard_customize_rounded, color: Colors.white, size: 18),
+                            label: const Text('เข้าสู่หน้า Admin Dashboard'),
+                            style: ElevatedButton.styleFrom(backgroundColor: AppColors.greenPrimary),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Menu Options
+                _buildMenuItem(
+                  icon: Icons.inventory_2_outlined,
+                  title: 'ประกาศของฉัน (My Listings)',
+                  subtitle: 'จัดการสินค้าที่กำลังขาย, ขายแล้ว, ซ่อน',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MyListingsScreen()),
+                    );
+                  },
+                ),
+                _buildMenuItem(
+                  icon: Icons.receipt_long_outlined,
+                  title: 'ประวัติคำสั่งซื้อ & Escrow',
+                  subtitle: 'ตรวจสอบสถานะการพักเงินและประวัติ',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const OrderHistoryScreen()),
+                    );
+                  },
+                ),
+                _buildMenuItem(
+                  icon: Icons.shield_outlined,
+                  title: 'ศูนย์ความปลอดภัยและระบบพักเงิน',
+                  subtitle: 'เรียนรู้เรื่อง Escrow และจุดนัดรับใน มอ.',
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('ข้อกำหนดและคู่มือความปลอดภัย มอ.Market')),
+                    );
+                  },
+                ),
+                _buildMenuItem(
+                  icon: Icons.help_outline_rounded,
+                  title: 'ช่วยเหลือ & ติดต่อทีมงาน มอ.',
+                  subtitle: 'FAQ และแจ้งปัญหาการใช้งาน',
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('ติดต่อศูนย์ช่วยเหลือ มอ.Market โทร 074-xxxxxx')),
+                    );
+                  },
+                ),
+                const SizedBox(height: 20),
+
+                // Logout Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      appState.loginAsGuest();
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (_) => const SplashOnboardingScreen()),
+                        (route) => false,
+                      );
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.error,
+                      side: const BorderSide(color: AppColors.error),
+                    ),
+                    child: const Text('ออกจากระบบ (Logout)'),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatBox(String value, String label, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+        decoration: BoxDecoration(
+          color: AppColors.grayBg,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.grayLine),
+        ),
+        child: Column(
+          children: [
+            Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
+            const SizedBox(height: 4),
+            Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 10, color: AppColors.graySecondary)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ListTile(
+        onTap: onTap,
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.pinkPale,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: AppColors.pinkPrimary, size: 22),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        subtitle: Text(subtitle, style: const TextStyle(fontSize: 11, color: AppColors.graySecondary)),
+        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.graySecondary),
+      ),
+    );
+  }
+}

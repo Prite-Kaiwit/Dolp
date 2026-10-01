@@ -1,0 +1,131 @@
+import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
+
+class CampusBanner extends StatelessWidget {
+  final VoidCallback onLearnMore;
+
+  const CampusBanner({super.key, required this.onLearnMore});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppColors.pinkPrimary, Color(0xFFFF758F)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.pinkPrimary.withValues(alpha: 0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          // Background decorative circle
+          Positioned(
+            right: -20,
+            bottom: -30,
+            child: Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.15),
+              ),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.greenPrimary,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.shield_rounded, color: Colors.white, size: 14),
+                        SizedBox(width: 4),
+                        Text(
+                          'MoorMarket Escrow',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  const Text(
+                    '🔒 ปลอดภัย 100%',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'ซื้อขายมั่นใจ พักเงินในระบบ\nนัดรับของที่จุดนัดรับใน มอ.',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  height: 1.3,
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'ผู้ขายได้รับเงินเมื่อผู้ซื้อกดยืนยันรับสินค้าเท่านั้น',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 12),
+              InkWell(
+                onTap: onLearnMore,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'ดูขั้นตอนการทำงาน',
+                        style: TextStyle(
+                          color: AppColors.pinkDark,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(width: 4),
+                      Icon(Icons.arrow_forward_ios_rounded, size: 10, color: AppColors.pinkDark),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
