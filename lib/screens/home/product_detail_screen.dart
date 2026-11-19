@@ -25,7 +25,9 @@ class ProductDetailScreen extends StatelessWidget {
             icon: const Icon(Icons.share_outlined),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('คัดลอกลิงก์ประกาศสินค้าเรียบร้อย')),
+                const SnackBar(
+                  content: Text('คัดลอกลิงก์ประกาศสินค้าเรียบร้อย'),
+                ),
               );
             },
           ),
@@ -60,7 +62,11 @@ class ProductDetailScreen extends StatelessWidget {
                     errorBuilder: (context, error, stackTrace) => Container(
                       color: AppColors.pinkPale,
                       child: const Center(
-                        child: Icon(Icons.image_not_supported, size: 48, color: AppColors.pinkPrimary),
+                        child: Icon(
+                          Icons.image_not_supported,
+                          size: 48,
+                          color: AppColors.pinkPrimary,
+                        ),
                       ),
                     ),
                   ),
@@ -117,7 +123,10 @@ class ProductDetailScreen extends StatelessWidget {
                           ),
                         ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.grayBg,
                           borderRadius: BorderRadius.circular(12),
@@ -125,7 +134,11 @@ class ProductDetailScreen extends StatelessWidget {
                         ),
                         child: Text(
                           product.condition,
-                          style: const TextStyle(fontSize: 12, color: AppColors.inkText, fontWeight: FontWeight.w600),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.inkText,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
@@ -154,7 +167,11 @@ class ProductDetailScreen extends StatelessWidget {
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.shield_rounded, color: AppColors.greenPrimary, size: 28),
+                        Icon(
+                          Icons.shield_rounded,
+                          color: AppColors.greenPrimary,
+                          size: 28,
+                        ),
                         SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -171,7 +188,10 @@ class ProductDetailScreen extends StatelessWidget {
                               SizedBox(height: 2),
                               Text(
                                 'เงินจะไม่ถูกโอนให้ผู้ขายจนกว่าคุณจะได้รับสินค้าและกดยืนยัน',
-                                style: TextStyle(fontSize: 11, color: AppColors.inkText),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.inkText,
+                                ),
                               ),
                             ],
                           ),
@@ -182,7 +202,8 @@ class ProductDetailScreen extends StatelessWidget {
                   const SizedBox(height: 20),
 
                   // Trade wishlist info if trade
-                  if (product.type == ListingType.trade && product.tradeFor.isNotEmpty) ...[
+                  if (product.type == ListingType.trade &&
+                      product.tradeFor.isNotEmpty) ...[
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
@@ -195,18 +216,29 @@ class ProductDetailScreen extends StatelessWidget {
                         children: [
                           const Row(
                             children: [
-                              Icon(Icons.swap_horiz_rounded, color: AppColors.info, size: 18),
+                              Icon(
+                                Icons.swap_horiz_rounded,
+                                color: AppColors.info,
+                                size: 18,
+                              ),
                               SizedBox(width: 6),
                               Text(
                                 'สิ่งที่ต้องการแลกเปลี่ยน:',
-                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.info),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.info,
+                                ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 4),
                           Text(
                             product.tradeFor,
-                            style: const TextStyle(fontSize: 13, color: AppColors.inkText),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.inkText,
+                            ),
                           ),
                         ],
                       ),
@@ -215,7 +247,14 @@ class ProductDetailScreen extends StatelessWidget {
                   ],
 
                   // Seller Info Card
-                  const Text('ข้อมูลผู้ขาย', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.inkText)),
+                  const Text(
+                    'ข้อมูลผู้ขาย',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.inkText,
+                    ),
+                  ),
                   const SizedBox(height: 10),
                   Container(
                     padding: const EdgeInsets.all(14),
@@ -230,8 +269,14 @@ class ProductDetailScreen extends StatelessWidget {
                           radius: 24,
                           backgroundColor: AppColors.pinkPale,
                           child: Text(
-                            product.sellerName.isNotEmpty ? product.sellerName[0] : 'U',
-                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.pinkPrimary),
+                            product.sellerName.isNotEmpty
+                                ? product.sellerName[0]
+                                : 'U',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.pinkPrimary,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -243,32 +288,54 @@ class ProductDetailScreen extends StatelessWidget {
                                 children: [
                                   Text(
                                     product.sellerName,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.inkText),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      color: AppColors.inkText,
+                                    ),
                                   ),
                                   const SizedBox(width: 4),
-                                  const Icon(Icons.check_circle_rounded, size: 14, color: AppColors.greenPrimary),
+                                  const Icon(
+                                    Icons.check_circle_rounded,
+                                    size: 14,
+                                    color: AppColors.greenPrimary,
+                                  ),
                                 ],
                               ),
                               Text(
-                                product.sellerFaculty,
-                                style: const TextStyle(fontSize: 12, color: AppColors.graySecondary),
+                                product.sellerAreaLabel,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.graySecondary,
+                                ),
                               ),
                               const SizedBox(height: 4),
                               Row(
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: AppColors.pinkPale,
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Row(
                                       children: [
-                                        const Icon(Icons.star_rounded, size: 12, color: AppColors.warning),
+                                        const Icon(
+                                          Icons.star_rounded,
+                                          size: 12,
+                                          color: AppColors.warning,
+                                        ),
                                         const SizedBox(width: 2),
                                         Text(
                                           '${product.sellerRating} (${product.sellerReviewCount} รีวิว)',
-                                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.inkText),
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.inkText,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -283,8 +350,15 @@ class ProductDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
 
-                  // Campus Pickup Location Info
-                  const Text('จุดนัดรับที่สะดวกในมหาวิทยาลัย', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.inkText)),
+                  // Pickup location information.
+                  const Text(
+                    'สถานที่นัดรับที่แนะนำ',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.inkText,
+                    ),
+                  ),
                   const SizedBox(height: 10),
                   Container(
                     padding: const EdgeInsets.all(14),
@@ -301,7 +375,11 @@ class ProductDetailScreen extends StatelessWidget {
                             color: AppColors.greenPale,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(Icons.location_on_rounded, color: AppColors.greenPrimary, size: 22),
+                          child: const Icon(
+                            Icons.location_on_rounded,
+                            color: AppColors.greenPrimary,
+                            size: 22,
+                          ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -310,11 +388,18 @@ class ProductDetailScreen extends StatelessWidget {
                             children: [
                               Text(
                                 product.pickupPoint,
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.inkText),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: AppColors.inkText,
+                                ),
                               ),
                               const Text(
-                                'นัดรับปลอดภัยในพื้นที่มหาวิทยาลัย ตรวจรับของก่อนกดยืนยัน',
-                                style: TextStyle(fontSize: 11, color: AppColors.graySecondary),
+                                'ตกลงสถานที่นัดรับกับผู้ขาย และตรวจสอบสินค้าก่อนชำระเงิน',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.graySecondary,
+                                ),
                               ),
                             ],
                           ),
@@ -325,11 +410,22 @@ class ProductDetailScreen extends StatelessWidget {
                   const SizedBox(height: 20),
 
                   // Description
-                  const Text('รายละเอียดเพิ่มเติม', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.inkText)),
+                  const Text(
+                    'รายละเอียดเพิ่มเติม',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.inkText,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     product.description,
-                    style: const TextStyle(fontSize: 14, color: AppColors.inkText, height: 1.5),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.inkText,
+                      height: 1.5,
+                    ),
                   ),
                   const SizedBox(height: 100), // Spacing for bottom bar
                 ],
@@ -364,7 +460,8 @@ class ProductDetailScreen extends StatelessWidget {
                       id: 'chat_${DateTime.now().millisecondsSinceEpoch}',
                       peerId: product.sellerId,
                       peerName: product.sellerName,
-                      peerAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+                      peerAvatar:
+                          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
                       productId: product.id,
                       productTitle: product.title,
                       productPrice: product.price,
@@ -375,7 +472,8 @@ class ProductDetailScreen extends StatelessWidget {
                         ChatMessage(
                           id: 'msg_0',
                           senderId: appState.currentUser.id,
-                          text: 'สวัสดีครับ สนใจสินค้า ${product.title} ครับ สะดวกนัดรับไหมครับ',
+                          text:
+                              'สวัสดีครับ สนใจสินค้า ${product.title} ครับ สะดวกนัดรับไหมครับ',
                           timestamp: DateTime.now(),
                           isMe: true,
                         ),
@@ -395,15 +493,31 @@ class ProductDetailScreen extends StatelessWidget {
                   );
                 },
                 style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   side: const BorderSide(color: AppColors.pinkPrimary),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
                 child: const Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.chat_bubble_outline_rounded, size: 20, color: AppColors.pinkPrimary),
-                    Text('แชท', style: TextStyle(fontSize: 11, color: AppColors.pinkPrimary, fontWeight: FontWeight.bold)),
+                    Icon(
+                      Icons.chat_bubble_outline_rounded,
+                      size: 20,
+                      color: AppColors.pinkPrimary,
+                    ),
+                    Text(
+                      'แชท',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.pinkPrimary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -421,15 +535,31 @@ class ProductDetailScreen extends StatelessWidget {
                   );
                 },
                 style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
                   side: const BorderSide(color: AppColors.grayLine),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
                 child: const Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.add_shopping_cart_rounded, size: 20, color: AppColors.inkText),
-                    Text('ใส่ตะกร้า', style: TextStyle(fontSize: 11, color: AppColors.inkText, fontWeight: FontWeight.bold)),
+                    Icon(
+                      Icons.add_shopping_cart_rounded,
+                      size: 20,
+                      color: AppColors.inkText,
+                    ),
+                    Text(
+                      'ใส่ตะกร้า',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.inkText,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -460,9 +590,12 @@ class ProductDetailScreen extends StatelessWidget {
                       product.type == ListingType.donate
                           ? 'ขอนัดรับฟรี'
                           : product.type == ListingType.trade
-                              ? 'ขอนัดแลกเปลี่ยน'
-                              : 'ซื้อเลย (Escrow)',
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                          ? 'ขอนัดแลกเปลี่ยน'
+                          : 'ซื้อเลย (Escrow)',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),

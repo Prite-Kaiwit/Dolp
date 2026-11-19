@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../constants/app_info.dart';
 import '../../theme/app_theme.dart';
 import 'login_screen.dart';
 import 'sign_up_screen.dart';
@@ -18,25 +19,27 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
 
   final List<Map<String, String>> _onboardingData = [
     {
-      'title': 'ยินดีต้อนรับสู่ มอ.มาร์เก็ต',
-      'subtitle': 'MoorMarket (MOU Market)',
-      'desc': 'แพลตฟอร์มตลาดออนไลน์ของชาวมหาวิทยาลัย ซื้อ-ขาย-แลกเปลี่ยน-บริจาค สินค้าอย่างมั่นใจในสังคมเดียวกัน',
-      'icon': '🏫',
-      'badge': 'สังคมมหาวิทยาลัยที่ไว้ใจได้',
+      'title': 'ยินดีต้อนรับสู่ $appName',
+      'subtitle': appTagline,
+      'desc': 'ตลาดซื้อ ขาย แลกเปลี่ยน และแบ่งปันสิ่งของในชุมชนใกล้คุณ',
+      'icon': '🏘️',
+      'badge': 'ตลาดชุมชนใกล้บ้าน',
     },
     {
-      'title': 'ปลอดภัยด้วยระบบพักเงิน Escrow',
-      'subtitle': 'ช้อปสบายใจ ไร้กังวลเรื่องโดนโกง',
-      'desc': 'เงินจะถูกพักไว้อย่างปลอดภัยในระบบ และจะโอนให้ผู้ขายเมื่อผู้ซื้อตรวจสอบและกดยืนยันรับสินค้าแล้วเท่านั้น',
-      'icon': '🔒',
-      'badge': 'Escrow Protected 100%',
+      'title': 'ซื้อขายอย่างระมัดระวัง',
+      'subtitle': 'พูดคุยและตกลงรายละเอียดก่อนนัดรับ',
+      'desc':
+          'ตรวจสอบสินค้า นัดพบในสถานที่ที่เหมาะสม และเลือกวิธีชำระเงินที่ตกลงร่วมกัน',
+      'icon': '🤝',
+      'badge': 'ใส่ใจทุกขั้นตอน',
     },
     {
-      'title': 'ส่งมอบสะดวก ณ จุดนัดรับใน มอ.',
-      'subtitle': 'Campus Pickup Points',
-      'desc': 'เลือกจุดนัดรับที่สะดวก เช่น โรงอาหารกลาง หอสมุด ลานกิจกรรม ตรวจสอบสินค้าจริงก่อนยืนยันรับ',
+      'title': 'ค้นหาสิ่งของใกล้ตัว',
+      'subtitle': 'นัดรับตามที่ตกลงกัน',
+      'desc':
+          'เลือกพื้นที่ใกล้คุณ พูดคุยกับผู้ขาย แล้วนัดรับที่บ้านหรือสถานที่ที่ทั้งสองฝ่ายสะดวก',
       'icon': '📍',
-      'badge': 'จุดนัดรับปลอดภัยภายในมหาวิทยาลัย',
+      'badge': 'ตลาดของคนในชุมชน',
     },
   ];
 
@@ -62,14 +65,17 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
                           color: AppColors.pinkPale,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Text('🛍️', style: TextStyle(fontSize: 20)),
+                        child: const Text(
+                          '🛍️',
+                          style: TextStyle(fontSize: 20),
+                        ),
                       ),
                       const SizedBox(width: 8),
                       const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'มอ.Market',
+                            appName,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -77,8 +83,11 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
                             ),
                           ),
                           Text(
-                            'MOU Market v1.0',
-                            style: TextStyle(fontSize: 11, color: AppColors.graySecondary),
+                            appTagline,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.graySecondary,
+                            ),
                           ),
                         ],
                       ),
@@ -89,7 +98,9 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
                       AppState().loginAsGuest();
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const MainNavigationScreen(),
+                        ),
                       );
                     },
                     child: const Text(
@@ -123,10 +134,14 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
                           width: 170,
                           height: 170,
                           decoration: BoxDecoration(
-                            color: index % 2 == 0 ? AppColors.pinkPale : AppColors.greenPale,
+                            color: index % 2 == 0
+                                ? AppColors.pinkPale
+                                : AppColors.greenPale,
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: index % 2 == 0 ? AppColors.pinkLight : AppColors.greenLight,
+                              color: index % 2 == 0
+                                  ? AppColors.pinkLight
+                                  : AppColors.greenLight,
                               width: 3,
                             ),
                           ),
@@ -141,15 +156,22 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
 
                         // Badge
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
-                            color: index % 2 == 0 ? AppColors.pinkPale : AppColors.greenPale,
+                            color: index % 2 == 0
+                                ? AppColors.pinkPale
+                                : AppColors.greenPale,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             item['badge']!,
                             style: TextStyle(
-                              color: index % 2 == 0 ? AppColors.pinkDark : AppColors.greenDark,
+                              color: index % 2 == 0
+                                  ? AppColors.pinkDark
+                                  : AppColors.greenDark,
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
                             ),
@@ -176,7 +198,9 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: index % 2 == 0 ? AppColors.pinkPrimary : AppColors.greenDark,
+                            color: index % 2 == 0
+                                ? AppColors.pinkPrimary
+                                : AppColors.greenDark,
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -208,7 +232,9 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
                   width: _currentPage == index ? 24 : 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: _currentPage == index ? AppColors.pinkPrimary : AppColors.grayLine,
+                    color: _currentPage == index
+                        ? AppColors.pinkPrimary
+                        : AppColors.grayLine,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -228,7 +254,9 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const SignUpScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const SignUpScreen(),
+                          ),
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -239,7 +267,10 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
                       ),
                       child: const Text(
                         'เริ่มต้นใช้งาน / สมัครสมาชิก',
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -251,11 +282,16 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const LoginScreen(),
+                          ),
                         );
                       },
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: AppColors.pinkPrimary, width: 1.5),
+                        side: const BorderSide(
+                          color: AppColors.pinkPrimary,
+                          width: 1.5,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),

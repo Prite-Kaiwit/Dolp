@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'constants/app_info.dart';
 import 'theme/app_theme.dart';
 import 'screens/auth/splash_onboarding_screen.dart';
 
@@ -13,7 +14,7 @@ class MoorMarketApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'มอ.Market - MOU Market',
+      title: appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       home: const SplashOnboardingScreen(),

@@ -22,11 +22,11 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
 
   final List<String> _categories = [
     'ทั้งหมด',
-    'หนังสือ & ชีทเรียน',
-    'อุปกรณ์การเรียน & เครื่องเขียน',
+    'หนังสือ',
+    'อุปกรณ์และเครื่องเขียน',
     'เสื้อผ้า & เครื่องแต่งกาย',
     'ไอที & อิเล็กทรอนิกส์',
-    'ของใช้หอพัก & เฟอร์นิเจอร์',
+    'ของใช้ในบ้าน & เฟอร์นิเจอร์',
     'ของสะสม & กีฬา',
   ];
 
@@ -34,11 +34,11 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
 
   final List<String> _zones = [
     'ทั้งหมด',
-    'โซนกลางมหาวิทยาลัย',
-    'โซนการเรียนรู้',
-    'โซนไอที',
-    'โซนหอพัก',
-    'โซนประตูมหาลัย',
+    'เขตเมือง',
+    'ท่าใหม่',
+    'ขลุง',
+    'แหลมสิงห์',
+    'นายายอาม',
   ];
 
   @override
@@ -46,9 +46,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
     final appState = AppState();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('ค้นหาและกรองสินค้า'),
-      ),
+      appBar: AppBar(title: const Text('ค้นหาและกรองสินค้า')),
       body: SafeArea(
         child: Column(
           children: [
@@ -82,16 +80,21 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                       labelStyle: TextStyle(
                         color: isSelected ? Colors.white : AppColors.inkText,
                         fontSize: 12,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                         side: BorderSide(
-                          color: isSelected ? AppColors.pinkPrimary : AppColors.grayLine,
+                          color: isSelected
+                              ? AppColors.pinkPrimary
+                              : AppColors.grayLine,
                         ),
                       ),
                       showCheckmark: false,
-                      onSelected: (_) => setState(() => _selectedCategory = cat),
+                      onSelected: (_) =>
+                          setState(() => _selectedCategory = cat),
                     ),
                   );
                 },
@@ -105,9 +108,15 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
               child: Row(
                 children: [
                   if (_selectedType != 'ทั้งหมด')
-                    _buildActiveBadge('ประเภท: $_selectedType', () => setState(() => _selectedType = 'ทั้งหมด')),
+                    _buildActiveBadge(
+                      'ประเภท: $_selectedType',
+                      () => setState(() => _selectedType = 'ทั้งหมด'),
+                    ),
                   if (_selectedZone != 'ทั้งหมด')
-                    _buildActiveBadge('จุดรับ: $_selectedZone', () => setState(() => _selectedZone = 'ทั้งหมด')),
+                    _buildActiveBadge(
+                      'จุดรับ: $_selectedZone',
+                      () => setState(() => _selectedZone = 'ทั้งหมด'),
+                    ),
                 ],
               ),
             ),
@@ -125,23 +134,36 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                     // Text Query
                     if (query.isNotEmpty) {
                       final matchTitle = p.title.toLowerCase().contains(query);
-                      final matchDesc = p.description.toLowerCase().contains(query);
+                      final matchDesc = p.description.toLowerCase().contains(
+                        query,
+                      );
                       final matchCat = p.category.toLowerCase().contains(query);
                       if (!matchTitle && !matchDesc && !matchCat) return false;
                     }
 
                     // Category
-                    if (_selectedCategory != 'ทั้งหมด' && p.category != _selectedCategory) {
+                    if (_selectedCategory != 'ทั้งหมด' &&
+                        p.category != _selectedCategory) {
                       return false;
                     }
 
                     // Type
-                    if (_selectedType == 'ขาย' && p.type != ListingType.sell) return false;
-                    if (_selectedType == 'แลกเปลี่ยน' && p.type != ListingType.trade) return false;
-                    if (_selectedType == 'บริจาค/ฟรี' && p.type != ListingType.donate) return false;
+                    if (_selectedType == 'ขาย' && p.type != ListingType.sell) {
+                      return false;
+                    }
+                    if (_selectedType == 'แลกเปลี่ยน' &&
+                        p.type != ListingType.trade) {
+                      return false;
+                    }
+                    if (_selectedType == 'บริจาค/ฟรี' &&
+                        p.type != ListingType.donate) {
+                      return false;
+                    }
 
                     // Price
-                    if (p.type == ListingType.sell && (p.price < _priceRange.start || p.price > _priceRange.end)) {
+                    if (p.type == ListingType.sell &&
+                        (p.price < _priceRange.start ||
+                            p.price > _priceRange.end)) {
                       return false;
                     }
 
@@ -153,16 +175,27 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.search_off_rounded, size: 56, color: AppColors.graySecondary),
+                          const Icon(
+                            Icons.search_off_rounded,
+                            size: 56,
+                            color: AppColors.graySecondary,
+                          ),
                           const SizedBox(height: 12),
                           const Text(
                             'ไม่พบสินค้าตามเงื่อนไขที่ค้นหา',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.inkText),
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.inkText,
+                            ),
                           ),
                           const SizedBox(height: 6),
                           const Text(
                             'ลองปรับคำค้นหาหรือเปลี่ยนตัวกรองดูนะครับ',
-                            style: TextStyle(fontSize: 13, color: AppColors.graySecondary),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.graySecondary,
+                            ),
                           ),
                           const SizedBox(height: 16),
                           ElevatedButton(
@@ -186,12 +219,13 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: GridView.builder(
                       itemCount: results.length,
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 0.65,
-                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                            childAspectRatio: 0.65,
+                          ),
                       itemBuilder: (context, index) {
                         final product = results[index];
                         return ProductCard(
@@ -200,7 +234,8 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => ProductDetailScreen(product: product),
+                                builder: (_) =>
+                                    ProductDetailScreen(product: product),
                               ),
                             );
                           },
@@ -228,7 +263,14 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(label, style: const TextStyle(fontSize: 11, color: AppColors.pinkDark, fontWeight: FontWeight.bold)),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppColors.pinkDark,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(width: 4),
           InkWell(
             onTap: onRemove,
@@ -260,7 +302,11 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                     children: [
                       const Text(
                         'ตัวกรองสินค้าขั้นสูง',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.inkText),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.inkText,
+                        ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.close),
@@ -271,7 +317,10 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                   const SizedBox(height: 16),
 
                   // Transaction Type
-                  const Text('ประเภทธุรกรรม', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  const Text(
+                    'ประเภทธุรกรรม',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
@@ -297,7 +346,10 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                   // Price Range
                   Text(
                     'ช่วงราคา (฿${_priceRange.start.round()} - ฿${_priceRange.end.round()})',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
                   RangeSlider(
                     values: _priceRange,
@@ -306,7 +358,10 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                     divisions: 20,
                     activeColor: AppColors.pinkPrimary,
                     inactiveColor: AppColors.grayLine,
-                    labels: RangeLabels('฿${_priceRange.start.round()}', '฿${_priceRange.end.round()}'),
+                    labels: RangeLabels(
+                      '฿${_priceRange.start.round()}',
+                      '฿${_priceRange.end.round()}',
+                    ),
                     onChanged: (values) {
                       setModalState(() => _priceRange = values);
                       setState(() {});
@@ -314,8 +369,11 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Campus Zone
-                  const Text('โซนจุดนัดรับใน มอ.', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  // Area filter.
+                  const Text(
+                    'โซนจุดนัดรับในพื้นที่',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,

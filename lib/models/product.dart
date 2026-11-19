@@ -29,7 +29,9 @@ class ProductModel {
   final List<String> images;
   final String sellerId;
   final String sellerName;
-  final String sellerFaculty;
+  final String sellerAreaLabel;
+  @Deprecated('Use sellerAreaLabel instead.')
+  final String sellerFaculty = '';
   final double sellerRating;
   final int sellerReviewCount;
   final ListingStatus status;
@@ -51,7 +53,7 @@ class ProductModel {
     this.images = const [],
     required this.sellerId,
     required this.sellerName,
-    required this.sellerFaculty,
+    required this.sellerAreaLabel,
     this.sellerRating = 4.8,
     this.sellerReviewCount = 12,
     this.status = ListingStatus.active,
@@ -74,7 +76,7 @@ class ProductModel {
     List<String>? images,
     String? sellerId,
     String? sellerName,
-    String? sellerFaculty,
+    String? sellerAreaLabel,
     double? sellerRating,
     int? sellerReviewCount,
     ListingStatus? status,
@@ -96,7 +98,7 @@ class ProductModel {
       images: images ?? this.images,
       sellerId: sellerId ?? this.sellerId,
       sellerName: sellerName ?? this.sellerName,
-      sellerFaculty: sellerFaculty ?? this.sellerFaculty,
+      sellerAreaLabel: sellerAreaLabel ?? this.sellerAreaLabel,
       sellerRating: sellerRating ?? this.sellerRating,
       sellerReviewCount: sellerReviewCount ?? this.sellerReviewCount,
       status: status ?? this.status,

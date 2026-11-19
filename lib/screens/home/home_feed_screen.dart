@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../constants/app_info.dart';
 import '../../theme/app_theme.dart';
 import '../../state/app_state.dart';
 import '../../models/product.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/custom_search_bar.dart';
-import '../../widgets/campus_banner.dart';
+import '../../widgets/info_banner.dart';
 import 'search_filter_screen.dart';
 import 'product_detail_screen.dart';
 import '../order/cart_screen.dart';
@@ -19,7 +20,12 @@ class HomeFeedScreen extends StatefulWidget {
 
 class _HomeFeedScreenState extends State<HomeFeedScreen> {
   String _selectedFilter = 'ทั้งหมด';
-  final List<String> _filters = ['ทั้งหมด', 'ขาย', 'แลกเปลี่ยน', 'บริจาค/ส่งต่อฟรี'];
+  final List<String> _filters = [
+    'ทั้งหมด',
+    'ขาย',
+    'แลกเปลี่ยน',
+    'บริจาค/ส่งต่อฟรี',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -31,12 +37,18 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
         final products = appState.products.where((p) {
           if (p.status != ListingStatus.active) return false;
           if (_selectedFilter == 'ขาย') return p.type == ListingType.sell;
-          if (_selectedFilter == 'แลกเปลี่ยน') return p.type == ListingType.trade;
-          if (_selectedFilter == 'บริจาค/ส่งต่อฟรี') return p.type == ListingType.donate;
+          if (_selectedFilter == 'แลกเปลี่ยน') {
+            return p.type == ListingType.trade;
+          }
+          if (_selectedFilter == 'บริจาค/ส่งต่อฟรี') {
+            return p.type == ListingType.donate;
+          }
           return true;
         }).toList();
 
-        final unreadNotifs = appState.notifications.where((n) => !(n['read'] as bool)).length;
+        final unreadNotifs = appState.notifications
+            .where((n) => !(n['read'] as bool))
+            .length;
 
         return Scaffold(
           appBar: AppBar(
@@ -57,8 +69,8 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                   children: [
                     Row(
                       children: [
-                        const Text(
-                          'มอ.Market',
+                        Text(
+                          appName,
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
@@ -67,13 +79,16 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                         ),
                         const SizedBox(width: 4),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.greenPale,
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Text(
-                            'Campus',
+                            'ชุมชนใกล้คุณ',
                             style: TextStyle(
                               color: AppColors.greenDark,
                               fontSize: 9,
@@ -84,8 +99,13 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                       ],
                     ),
                     Text(
-                      appState.isLoggedIn ? 'สวัสดี, ${appState.currentUser.name}' : 'ผู้เยี่ยมชม (Guest)',
-                      style: const TextStyle(fontSize: 11, color: AppColors.graySecondary),
+                      appState.isLoggedIn
+                          ? 'สวัสดี, ${appState.currentUser.name}'
+                          : 'ผู้เยี่ยมชม (Guest)',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.graySecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -96,11 +116,16 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
               Stack(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.notifications_outlined, color: AppColors.inkText),
+                    icon: const Icon(
+                      Icons.notifications_outlined,
+                      color: AppColors.inkText,
+                    ),
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const NotificationsScreen(),
+                        ),
                       );
                     },
                   ),
@@ -116,7 +141,11 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                         ),
                         child: Text(
                           '$unreadNotifs',
-                          style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -126,7 +155,10 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
               Stack(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.shopping_bag_outlined, color: AppColors.inkText),
+                    icon: const Icon(
+                      Icons.shopping_bag_outlined,
+                      color: AppColors.inkText,
+                    ),
                     onPressed: () {
                       Navigator.push(
                         context,
@@ -146,7 +178,11 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                         ),
                         child: Text(
                           '${appState.cartItems.length}',
-                          style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -172,36 +208,44 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const SearchFilterScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const SearchFilterScreen(),
+                        ),
                       );
                     },
                     onFilterTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const SearchFilterScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const SearchFilterScreen(),
+                        ),
                       );
                     },
                   ),
                   const SizedBox(height: 16),
 
-                  // Campus Banner (Escrow Feature)
-                  CampusBanner(
+                  // Community info banner.
+                  InfoBanner(
                     onLearnMore: () {
                       _showEscrowInfoSheet(context);
                     },
                   ),
                   const SizedBox(height: 18),
 
-                  // Campus Pickup Points Scroll
+                  // Suggested meeting points.
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Row(
                         children: [
-                          Icon(Icons.place_rounded, color: AppColors.greenPrimary, size: 18),
+                          Icon(
+                            Icons.place_rounded,
+                            color: AppColors.greenPrimary,
+                            size: 18,
+                          ),
                           SizedBox(width: 4),
                           Text(
-                            'จุดนัดรับปลอดภัยใน มอ.',
+                            'จุดนัดรับที่แนะนำในพื้นที่',
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
@@ -212,7 +256,10 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                       ),
                       Text(
                         '${appState.pickupPoints.length} จุด',
-                        style: const TextStyle(fontSize: 12, color: AppColors.graySecondary),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.graySecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -226,7 +273,10 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                         final p = appState.pickupPoints[index];
                         return Container(
                           margin: const EdgeInsets.only(right: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.greenPale,
                             borderRadius: BorderRadius.circular(20),
@@ -234,7 +284,11 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.check_circle_outline, size: 14, color: AppColors.greenPrimary),
+                              const Icon(
+                                Icons.check_circle_outline,
+                                size: 14,
+                                color: AppColors.greenPrimary,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 p.name,
@@ -269,18 +323,25 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                             selectedColor: AppColors.pinkPrimary,
                             backgroundColor: AppColors.grayBg,
                             labelStyle: TextStyle(
-                              color: isSelected ? Colors.white : AppColors.inkText,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              color: isSelected
+                                  ? Colors.white
+                                  : AppColors.inkText,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                               fontSize: 12,
                             ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                               side: BorderSide(
-                                color: isSelected ? AppColors.pinkPrimary : AppColors.grayLine,
+                                color: isSelected
+                                    ? AppColors.pinkPrimary
+                                    : AppColors.grayLine,
                               ),
                             ),
                             showCheckmark: false,
-                            onSelected: (_) => setState(() => _selectedFilter = filter),
+                            onSelected: (_) =>
+                                setState(() => _selectedFilter = filter),
                           ),
                         );
                       },
@@ -293,7 +354,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'สินค้าแนะนำใน มอ. (${products.length})',
+                        'ประกาศใกล้คุณ (${products.length})',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -304,7 +365,9 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const SearchFilterScreen()),
+                            MaterialPageRoute(
+                              builder: (_) => const SearchFilterScreen(),
+                            ),
                           );
                         },
                         child: const Text(
@@ -328,11 +391,18 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                       alignment: Alignment.center,
                       child: Column(
                         children: [
-                          const Icon(Icons.inbox_outlined, size: 48, color: AppColors.graySecondary),
+                          const Icon(
+                            Icons.inbox_outlined,
+                            size: 48,
+                            color: AppColors.graySecondary,
+                          ),
                           const SizedBox(height: 12),
                           Text(
                             'ไม่พบสินค้าในหมวด $_selectedFilter',
-                            style: const TextStyle(color: AppColors.graySecondary, fontSize: 14),
+                            style: const TextStyle(
+                              color: AppColors.graySecondary,
+                              fontSize: 14,
+                            ),
                           ),
                         ],
                       ),
@@ -341,12 +411,13 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                     GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 0.65,
-                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                            childAspectRatio: 0.65,
+                          ),
                       itemCount: products.length,
                       itemBuilder: (context, index) {
                         final product = products[index];
@@ -356,7 +427,8 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => ProductDetailScreen(product: product),
+                                builder: (_) =>
+                                    ProductDetailScreen(product: product),
                               ),
                             );
                           },
@@ -399,19 +471,43 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
               const SizedBox(height: 16),
               const Row(
                 children: [
-                  Icon(Icons.shield_rounded, color: AppColors.greenPrimary, size: 28),
+                  Icon(
+                    Icons.shield_rounded,
+                    color: AppColors.greenPrimary,
+                    size: 28,
+                  ),
                   SizedBox(width: 8),
                   Text(
                     'ระบบพักเงิน Escrow ทำงานอย่างไร?',
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.inkText),
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.inkText,
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              _buildStepItem('1', 'ผู้ซื้อชำระเงิน', 'เงินจะถูกพักไว้ในบัญชีกลางของระบบอย่างปลอดภัย'),
-              _buildStepItem('2', 'นัดหมายส่งมอบ', 'นัดรับสินค้า ณ จุดนัดรับภายในมหาวิทยาลัย (เช่น โรงอาหารกลาง)'),
-              _buildStepItem('3', 'ตรวจสอบสินค้า', 'ผู้ซื้อตรวจสภาพสินค้าจริง หากถูกต้องให้กดยืนยันรับสินค้า'),
-              _buildStepItem('4', 'โอนเงินให้ผู้ขาย', 'ระบบโอนเงินเข้าบัญชีผู้ขายทันที หรือเปิดข้อพิพาทหากมีปัญหา'),
+              _buildStepItem(
+                '1',
+                'ผู้ซื้อชำระเงิน',
+                'เงินจะถูกพักไว้ในบัญชีกลางของระบบอย่างปลอดภัย',
+              ),
+              _buildStepItem(
+                '2',
+                'นัดหมายส่งมอบ',
+                'ตกลงสถานที่นัดรับที่สะดวกสำหรับทั้งสองฝ่าย',
+              ),
+              _buildStepItem(
+                '3',
+                'ตรวจสอบสินค้า',
+                'ผู้ซื้อตรวจสภาพสินค้าจริง หากถูกต้องให้กดยืนยันรับสินค้า',
+              ),
+              _buildStepItem(
+                '4',
+                'โอนเงินให้ผู้ขาย',
+                'ระบบโอนเงินเข้าบัญชีผู้ขายทันที หรือเปิดข้อพิพาทหากมีปัญหา',
+              ),
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
@@ -436,15 +532,35 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
           CircleAvatar(
             radius: 12,
             backgroundColor: AppColors.pinkPale,
-            child: Text(number, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.pinkPrimary)),
+            child: Text(
+              number,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: AppColors.pinkPrimary,
+              ),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.inkText)),
-                Text(desc, style: const TextStyle(fontSize: 12, color: AppColors.graySecondary)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: AppColors.inkText,
+                  ),
+                ),
+                Text(
+                  desc,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.graySecondary,
+                  ),
+                ),
               ],
             ),
           ),

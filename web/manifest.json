@@ -1,11 +1,11 @@
 {
-    "name": "moor_market",
-    "short_name": "moor_market",
+    "name": "[APP_NAME]",
+    "short_name": "[APP_NAME]",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "ตลาดมือสองเพื่อชุมชนใกล้คุณ",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

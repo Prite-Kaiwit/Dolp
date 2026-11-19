@@ -20,7 +20,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   final List<String> _quickResponses = [
     'สินค้านี้ยังอยู่ไหมครับ?',
-    'สะดวกนัดรับที่โรงอาหารกลาง 1 ไหมครับ?',
+    'สะดวกนัดรับที่จุดสาธารณะในพื้นที่ไหมครับ?',
     'ของแท้ สภาพตามรูปเลยใช่ไหมครับ?',
     'ตกลงครับ เดี๋ยวชำระเงินผ่าน Escrow ให้ครับ',
   ];
@@ -56,7 +56,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               radius: 18,
               backgroundImage: NetworkImage(widget.conversation.peerAvatar),
               onBackgroundImageError: (_, _) {},
-              child: Text(widget.conversation.peerName.isNotEmpty ? widget.conversation.peerName[0] : 'U'),
+              child: Text(
+                widget.conversation.peerName.isNotEmpty
+                    ? widget.conversation.peerName[0]
+                    : 'U',
+              ),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -65,14 +69,27 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 children: [
                   Text(
                     widget.conversation.peerName,
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                   const Row(
                     children: [
-                      Icon(Icons.circle, color: AppColors.greenPrimary, size: 8),
+                      Icon(
+                        Icons.circle,
+                        color: AppColors.greenPrimary,
+                        size: 8,
+                      ),
                       SizedBox(width: 4),
-                      Text('ออนไลน์ (ยืนยันตัวตนแล้ว)', style: TextStyle(fontSize: 10, color: AppColors.graySecondary)),
+                      Text(
+                        'ออนไลน์ (ยืนยันตัวตนแล้ว)',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: AppColors.graySecondary,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -89,7 +106,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 color: AppColors.white,
-                border: const Border(bottom: BorderSide(color: AppColors.grayLine)),
+                border: const Border(
+                  bottom: BorderSide(color: AppColors.grayLine),
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.03),
@@ -107,7 +126,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                       width: 48,
                       height: 48,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => Container(color: AppColors.pinkPale, width: 48, height: 48),
+                      errorBuilder: (_, _, _) => Container(
+                        color: AppColors.pinkPale,
+                        width: 48,
+                        height: 48,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -119,11 +142,18 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                           widget.conversation.productTitle,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
                         ),
                         Text(
                           '฿${widget.conversation.productPrice.toStringAsFixed(0)}',
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.pinkPrimary, fontSize: 13),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.pinkPrimary,
+                            fontSize: 13,
+                          ),
                         ),
                       ],
                     ),
@@ -141,11 +171,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                           type: ListingType.sell,
                           category: 'ทั่วไป',
                           condition: 'สภาพดี',
-                          pickupPoint: 'โรงอาหารกลาง 1',
+                          pickupPoint: 'จุดสาธารณะตัวอย่าง เขตเมือง',
                           imageUrl: widget.conversation.productImageUrl,
                           sellerId: widget.conversation.peerId,
                           sellerName: widget.conversation.peerName,
-                          sellerFaculty: 'มอ.',
+                          sellerAreaLabel: 'อำเภอเมืองจันทบุรี',
                         ),
                       );
 
@@ -157,10 +187,19 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       backgroundColor: AppColors.greenPrimary,
                     ),
-                    child: const Text('สั่งซื้อ Escrow', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'สั่งซื้อ Escrow',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -200,7 +239,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: ActionChip(
-                      label: Text(_quickResponses[index], style: const TextStyle(fontSize: 11, color: AppColors.inkText)),
+                      label: Text(
+                        _quickResponses[index],
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.inkText,
+                        ),
+                      ),
                       backgroundColor: AppColors.grayBg,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -224,7 +269,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.add_photo_alternate_outlined, color: AppColors.graySecondary),
+                    icon: const Icon(
+                      Icons.add_photo_alternate_outlined,
+                      color: AppColors.graySecondary,
+                    ),
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('เลือกรูปภาพจำลอง')),
@@ -243,7 +291,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                         style: const TextStyle(fontSize: 14),
                         decoration: const InputDecoration(
                           hintText: 'พิมพ์ข้อความของคุณที่นี่...',
-                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
                           border: InputBorder.none,
                           enabledBorder: InputBorder.none,
                           focusedBorder: InputBorder.none,
@@ -264,7 +315,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                         color: AppColors.pinkPrimary,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+                      child: const Icon(
+                        Icons.send_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
                   ),
                 ],
@@ -282,7 +337,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe) ...[
@@ -290,7 +347,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               radius: 14,
               backgroundImage: NetworkImage(widget.conversation.peerAvatar),
               onBackgroundImageError: (_, _) {},
-              child: Text(widget.conversation.peerName[0], style: const TextStyle(fontSize: 10)),
+              child: Text(
+                widget.conversation.peerName[0],
+                style: const TextStyle(fontSize: 10),
+              ),
             ),
             const SizedBox(width: 8),
           ],

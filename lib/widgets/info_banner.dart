@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import '../constants/app_info.dart';
 import '../theme/app_theme.dart';
 
-class CampusBanner extends StatelessWidget {
+class InfoBanner extends StatelessWidget {
   final VoidCallback onLearnMore;
 
-  const CampusBanner({super.key, required this.onLearnMore});
+  const InfoBanner({super.key, required this.onLearnMore});
 
   @override
   Widget build(BuildContext context) {
@@ -47,18 +48,25 @@ class CampusBanner extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.greenPrimary,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(Icons.shield_rounded, color: Colors.white, size: 14),
+                        Icon(
+                          Icons.shield_rounded,
+                          color: Colors.white,
+                          size: 14,
+                        ),
                         SizedBox(width: 4),
                         Text(
-                          'MoorMarket Escrow',
-                          style: TextStyle(
+                          '$appName · Escrow',
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
@@ -69,7 +77,7 @@ class CampusBanner extends StatelessWidget {
                   ),
                   const Spacer(),
                   const Text(
-                    '🔒 ปลอดภัย 100%',
+                    'ซื้อขายอย่างระมัดระวัง',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 12,
@@ -80,7 +88,7 @@ class CampusBanner extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               const Text(
-                'ซื้อขายมั่นใจ พักเงินในระบบ\nนัดรับของที่จุดนัดรับใน มอ.',
+                'พูดคุยและตกลงรายละเอียด\nนัดรับในสถานที่ที่สะดวก',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -90,17 +98,17 @@ class CampusBanner extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               const Text(
-                'ผู้ขายได้รับเงินเมื่อผู้ซื้อกดยืนยันรับสินค้าเท่านั้น',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                ),
+                'ตรวจสอบสินค้าและตกลงวิธีชำระเงินกับผู้ขาย',
+                style: TextStyle(color: Colors.white70, fontSize: 12),
               ),
               const SizedBox(height: 12),
               InkWell(
                 onTap: onLearnMore,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
@@ -117,7 +125,11 @@ class CampusBanner extends StatelessWidget {
                         ),
                       ),
                       SizedBox(width: 4),
-                      Icon(Icons.arrow_forward_ios_rounded, size: 10, color: AppColors.pinkDark),
+                      Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 10,
+                        color: AppColors.pinkDark,
+                      ),
                     ],
                   ),
                 ),

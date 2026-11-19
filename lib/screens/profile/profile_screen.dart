@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../constants/app_info.dart';
 import '../../models/user.dart';
 import '../../theme/app_theme.dart';
 import '../../state/app_state.dart';
@@ -66,10 +67,14 @@ class ProfileScreen extends StatelessWidget {
                             onBackgroundImageError: (_, _) {},
                             child: Text(
                               user.name.isNotEmpty ? user.name[0] : 'U',
-                              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.pinkPrimary),
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.pinkPrimary,
+                              ),
                             ),
                           ),
-                          if (user.isVerified)
+                          if (user.phoneVerified)
                             Positioned(
                               bottom: 0,
                               right: 0,
@@ -79,7 +84,11 @@ class ProfileScreen extends StatelessWidget {
                                   color: AppColors.greenPrimary,
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.check, size: 16, color: Colors.white),
+                                child: const Icon(
+                                  Icons.check,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                         ],
@@ -87,27 +96,44 @@ class ProfileScreen extends StatelessWidget {
                       const SizedBox(height: 12),
                       Text(
                         user.name,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.inkText),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.inkText,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        user.faculty,
-                        style: const TextStyle(fontSize: 13, color: AppColors.graySecondary),
+                        user.homeLabel.isEmpty
+                            ? 'ยังไม่ได้ตั้งค่าพื้นที่'
+                            : user.homeLabel,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.graySecondary,
+                        ),
                       ),
                       const SizedBox(height: 6),
-                      // University Verification Pill
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
-                          color: user.isVerified ? AppColors.greenPale : AppColors.grayBg,
+                          color: user.phoneVerified
+                              ? AppColors.greenPale
+                              : AppColors.grayBg,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          user.isVerified ? '✓ ยืนยันตัวตนด้วยอีเมล มอ. แล้ว' : 'ยังไม่ยืนยันตัวตน',
+                          user.phoneVerified
+                              ? '✓ ยืนยันเบอร์โทรศัพท์แล้ว'
+                              : 'ยังไม่ยืนยันเบอร์โทรศัพท์',
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: user.isVerified ? AppColors.greenDark : AppColors.graySecondary,
+                            color: user.phoneVerified
+                                ? AppColors.greenDark
+                                : AppColors.graySecondary,
                           ),
                         ),
                       ),
@@ -120,73 +146,53 @@ class ProfileScreen extends StatelessWidget {
                 if (!isGuest) ...[
                   Row(
                     children: [
-                      _buildStatBox('${user.rating} ★', 'คะแนนความน่าเชื่อถือ', AppColors.warning),
+                      _buildStatBox(
+                        '${user.rating} ★',
+                        'คะแนนความน่าเชื่อถือ',
+                        AppColors.warning,
+                      ),
                       const SizedBox(width: 10),
-                      _buildStatBox('${user.successfulDeals}', 'ทำรายการสำเร็จ', AppColors.greenPrimary),
+                      _buildStatBox(
+                        '${user.successfulDeals}',
+                        'ทำรายการสำเร็จ',
+                        AppColors.greenPrimary,
+                      ),
                       const SizedBox(width: 10),
-                      _buildStatBox('${user.reviewCount}', 'รีวิวจากผู้ใช้', AppColors.pinkPrimary),
+                      _buildStatBox(
+                        '${user.reviewCount}',
+                        'รีวิวจากผู้ใช้',
+                        AppColors.pinkPrimary,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 20),
                 ],
 
-                // Role Switcher / Admin Mode Launcher
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: isAdmin ? AppColors.greenPale : AppColors.pinkPale,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: isAdmin ? AppColors.greenLight : AppColors.pinkLight),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(isAdmin ? Icons.admin_panel_settings : Icons.school, color: isAdmin ? AppColors.greenDark : AppColors.pinkDark),
-                              const SizedBox(width: 8),
-                              Text(
-                                isAdmin ? 'โหมดผู้ดูแลระบบ (Admin Mode)' : 'โหมดนักศึกษา (Member Mode)',
-                                style: TextStyle(fontWeight: FontWeight.bold, color: isAdmin ? AppColors.greenDark : AppColors.pinkDark, fontSize: 13),
-                              ),
-                            ],
-                          ),
-                          Switch(
-                            value: isAdmin,
-                            activeThumbColor: AppColors.greenPrimary,
-                            onChanged: (val) {
-                              if (val) {
-                                appState.loginAsAdmin();
-                              } else {
-                                appState.loginAsMember();
-                              }
-                            },
-                          ),
-                        ],
+                if (isAdmin) ...[
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(
+                        Icons.dashboard_customize_rounded,
+                        color: Colors.white,
+                        size: 18,
                       ),
-                      if (isAdmin) ...[
-                        const SizedBox(height: 10),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            icon: const Icon(Icons.dashboard_customize_rounded, color: Colors.white, size: 18),
-                            label: const Text('เข้าสู่หน้า Admin Dashboard'),
-                            style: ElevatedButton.styleFrom(backgroundColor: AppColors.greenPrimary),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
-                              );
-                            },
+                      label: const Text('เข้าสู่หน้า Admin Dashboard'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.greenPrimary,
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AdminDashboardScreen(),
                           ),
-                        ),
-                      ],
-                    ],
+                        );
+                      },
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
+                ],
 
                 // Menu Options
                 _buildMenuItem(
@@ -196,38 +202,46 @@ class ProfileScreen extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const MyListingsScreen()),
+                      MaterialPageRoute(
+                        builder: (_) => const MyListingsScreen(),
+                      ),
                     );
                   },
                 ),
                 _buildMenuItem(
                   icon: Icons.receipt_long_outlined,
-                  title: 'ประวัติคำสั่งซื้อ & Escrow',
-                  subtitle: 'ตรวจสอบสถานะการพักเงินและประวัติ',
+                  title: 'ประวัติการซื้อขาย',
+                  subtitle: 'ตรวจสอบสถานะออเดอร์และนัดรับ',
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const OrderHistoryScreen()),
+                      MaterialPageRoute(
+                        builder: (_) => const OrderHistoryScreen(),
+                      ),
                     );
                   },
                 ),
                 _buildMenuItem(
                   icon: Icons.shield_outlined,
-                  title: 'ศูนย์ความปลอดภัยและระบบพักเงิน',
-                  subtitle: 'เรียนรู้เรื่อง Escrow และจุดนัดรับใน มอ.',
+                  title: 'แนวทางซื้อขายอย่างระมัดระวัง',
+                  subtitle: 'ข้อแนะนำการพูดคุย นัดรับ และชำระเงิน',
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('ข้อกำหนดและคู่มือความปลอดภัย มอ.Market')),
+                      const SnackBar(
+                        content: Text(
+                          'ตรวจสอบสินค้าและนัดรับในสถานที่ที่เหมาะสม',
+                        ),
+                      ),
                     );
                   },
                 ),
                 _buildMenuItem(
                   icon: Icons.help_outline_rounded,
-                  title: 'ช่วยเหลือ & ติดต่อทีมงาน มอ.',
+                  title: 'ช่วยเหลือ & ติดต่อทีมงาน',
                   subtitle: 'FAQ และแจ้งปัญหาการใช้งาน',
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('ติดต่อศูนย์ช่วยเหลือ มอ.Market โทร 074-xxxxxx')),
+                      SnackBar(content: Text('ติดต่อศูนย์ช่วยเหลือ $appName')),
                     );
                   },
                 ),
@@ -242,7 +256,9 @@ class ProfileScreen extends StatelessWidget {
                       appState.loginAsGuest();
                       Navigator.pushAndRemoveUntil(
                         context,
-                        MaterialPageRoute(builder: (_) => const SplashOnboardingScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const SplashOnboardingScreen(),
+                        ),
                         (route) => false,
                       );
                     },
@@ -273,9 +289,23 @@ class ProfileScreen extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
             const SizedBox(height: 4),
-            Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 10, color: AppColors.graySecondary)),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 10,
+                color: AppColors.graySecondary,
+              ),
+            ),
           ],
         ),
       ),
@@ -300,9 +330,19 @@ class ProfileScreen extends StatelessWidget {
           ),
           child: Icon(icon, color: AppColors.pinkPrimary, size: 22),
         ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-        subtitle: Text(subtitle, style: const TextStyle(fontSize: 11, color: AppColors.graySecondary)),
-        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.graySecondary),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(fontSize: 11, color: AppColors.graySecondary),
+        ),
+        trailing: const Icon(
+          Icons.arrow_forward_ios_rounded,
+          size: 14,
+          color: AppColors.graySecondary,
+        ),
       ),
     );
   }

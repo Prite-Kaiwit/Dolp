@@ -17,7 +17,7 @@ class EscrowStatusScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('สถานะคำสั่งซื้อ & Escrow'),
+        title: const Text('สถานะคำสั่งซื้อ'),
         leading: IconButton(
           icon: const Icon(Icons.home_outlined),
           onPressed: () {
@@ -54,15 +54,15 @@ class EscrowStatusScreen extends StatelessWidget {
                       color: isDisputed
                           ? AppColors.error.withValues(alpha: 0.1)
                           : isCompleted
-                              ? AppColors.greenPale
-                              : AppColors.pinkPale,
+                          ? AppColors.greenPale
+                          : AppColors.pinkPale,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: isDisputed
                             ? AppColors.error
                             : isCompleted
-                                ? AppColors.greenPrimary
-                                : AppColors.pinkPrimary,
+                            ? AppColors.greenPrimary
+                            : AppColors.pinkPrimary,
                       ),
                     ),
                     child: Row(
@@ -71,13 +71,13 @@ class EscrowStatusScreen extends StatelessWidget {
                           isDisputed
                               ? Icons.warning_amber_rounded
                               : isCompleted
-                                  ? Icons.task_alt_rounded
-                                  : Icons.shield_rounded,
+                              ? Icons.task_alt_rounded
+                              : Icons.shield_rounded,
                           color: isDisputed
                               ? AppColors.error
                               : isCompleted
-                                  ? AppColors.greenPrimary
-                                  : AppColors.pinkPrimary,
+                              ? AppColors.greenPrimary
+                              : AppColors.pinkPrimary,
                           size: 32,
                         ),
                         const SizedBox(width: 14),
@@ -93,12 +93,18 @@ class EscrowStatusScreen extends StatelessWidget {
                                   color: isDisputed
                                       ? AppColors.error
                                       : isCompleted
-                                          ? AppColors.greenDark
-                                          : AppColors.pinkDark,
+                                      ? AppColors.greenDark
+                                      : AppColors.pinkDark,
                                 ),
                               ),
                               const SizedBox(height: 2),
-                              Text('รหัสคำสั่งซื้อ: ${order.id}', style: const TextStyle(fontSize: 12, color: AppColors.inkText)),
+                              Text(
+                                'รหัสคำสั่งซื้อ: ${order.id}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.inkText,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -108,20 +114,25 @@ class EscrowStatusScreen extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // 4-Step Escrow Timeline (UC-02)
-                  const Text('ไทม์ไลน์ระบบพักเงิน Escrow 4 ขั้นตอน', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const Text(
+                    'ไทม์ไลน์ระบบพักเงิน Escrow 4 ขั้นตอน',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
                   const SizedBox(height: 16),
 
                   _buildTimelineStep(
                     stepNumber: 1,
                     title: 'พักเงินในระบบ (Escrow Protected)',
-                    desc: 'ผู้ซื้อชำระเงินเรียบร้อยแล้ว เงินจะถูกคุ้มครองไว้ในบัญชีกลาง',
+                    desc:
+                        'ผู้ซื้อชำระเงินเรียบร้อยแล้ว เงินจะถูกคุ้มครองไว้ในบัญชีกลาง',
                     isDone: currentStep >= 1 || isCompleted,
                     isCurrent: currentStep == 1 && !isDisputed,
                   ),
                   _buildTimelineStep(
                     stepNumber: 2,
-                    title: 'นัดรับสินค้า ณ จุดนัดรับใน มอ.',
-                    desc: 'จุดนัดรับ: ${order.pickupPoint}\nเวลานัด: ${order.scheduledTime}',
+                    title: 'นัดรับสินค้า',
+                    desc:
+                        'จุดนัดรับ: ${order.pickupPoint}\nเวลานัด: ${order.scheduledTime}',
                     isDone: currentStep >= 2 || isCompleted,
                     isCurrent: currentStep == 2 && !isDisputed,
                   ),
@@ -135,7 +146,8 @@ class EscrowStatusScreen extends StatelessWidget {
                   _buildTimelineStep(
                     stepNumber: 4,
                     title: 'ปล่อยเงินโอนเข้าบัญชีผู้ขาย (สำเร็จ)',
-                    desc: 'ระบบปลดล็อกเงินและโอนเข้าบัญชีผู้ขาย ธุรกรรมเสร็จสมบูรณ์',
+                    desc:
+                        'ระบบปลดล็อกเงินและโอนเข้าบัญชีผู้ขาย ธุรกรรมเสร็จสมบูรณ์',
                     isDone: isCompleted,
                     isCurrent: isCompleted,
                     isLast: true,
@@ -161,7 +173,11 @@ class EscrowStatusScreen extends StatelessWidget {
                                 width: 56,
                                 height: 56,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, _, _) => Container(color: AppColors.pinkPale, width: 56, height: 56),
+                                errorBuilder: (_, _, _) => Container(
+                                  color: AppColors.pinkPale,
+                                  width: 56,
+                                  height: 56,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -169,10 +185,31 @@ class EscrowStatusScreen extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(order.productTitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                  Text(
+                                    order.productTitle,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
+                                  ),
                                   const SizedBox(height: 2),
-                                  Text('ยอดเงิน: ฿${order.productPrice.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.pinkPrimary, fontWeight: FontWeight.bold, fontSize: 13)),
-                                  Text('ผู้ขาย: ${order.sellerName}', style: const TextStyle(color: AppColors.graySecondary, fontSize: 11)),
+                                  Text(
+                                    'ยอดเงิน: ฿${order.productPrice.toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      color: AppColors.pinkPrimary,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  Text(
+                                    'ผู้ขาย: ${order.sellerName}',
+                                    style: const TextStyle(
+                                      color: AppColors.graySecondary,
+                                      fontSize: 11,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -183,10 +220,20 @@ class EscrowStatusScreen extends StatelessWidget {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(Icons.note_alt_outlined, size: 14, color: AppColors.graySecondary),
+                              const Icon(
+                                Icons.note_alt_outlined,
+                                size: 14,
+                                color: AppColors.graySecondary,
+                              ),
                               const SizedBox(width: 6),
                               Expanded(
-                                child: Text('โน้ต: ${order.note}', style: const TextStyle(fontSize: 12, color: AppColors.inkText)),
+                                child: Text(
+                                  'โน้ต: ${order.note}',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.inkText,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -203,8 +250,13 @@ class EscrowStatusScreen extends StatelessWidget {
                       width: double.infinity,
                       height: 52,
                       child: ElevatedButton.icon(
-                        icon: const Icon(Icons.check_circle_outline_rounded, color: Colors.white),
-                        label: const Text('ฉันได้รับและตรวจรับสินค้าเรียบร้อยแล้ว (ปล่อยเงิน)'),
+                        icon: const Icon(
+                          Icons.check_circle_outline_rounded,
+                          color: Colors.white,
+                        ),
+                        label: const Text(
+                          'ฉันได้รับและตรวจรับสินค้าเรียบร้อยแล้ว (ปล่อยเงิน)',
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.greenPrimary,
                         ),
@@ -220,8 +272,13 @@ class EscrowStatusScreen extends StatelessWidget {
                       width: double.infinity,
                       height: 48,
                       child: OutlinedButton.icon(
-                        icon: const Icon(Icons.warning_amber_rounded, color: AppColors.error),
-                        label: const Text('รายงานปัญหา / ขอระงับการจ่ายเงิน (Dispute)'),
+                        icon: const Icon(
+                          Icons.warning_amber_rounded,
+                          color: AppColors.error,
+                        ),
+                        label: const Text(
+                          'รายงานปัญหา / ขอระงับการจ่ายเงิน (Dispute)',
+                        ),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.error,
                           side: const BorderSide(color: AppColors.error),
@@ -245,9 +302,16 @@ class EscrowStatusScreen extends StatelessWidget {
                       width: double.infinity,
                       height: 52,
                       child: ElevatedButton.icon(
-                        icon: const Icon(Icons.star_rounded, color: Colors.white),
-                        label: const Text('ให้คะแนนและรีวิวผู้ขาย (Rate & Review)'),
-                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.pinkPrimary),
+                        icon: const Icon(
+                          Icons.star_rounded,
+                          color: Colors.white,
+                        ),
+                        label: const Text(
+                          'ให้คะแนนและรีวิวผู้ขาย (Rate & Review)',
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.pinkPrimary,
+                        ),
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -267,8 +331,12 @@ class EscrowStatusScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Text(
-                        'ข้อพิพาทนี้ถูกส่งไปยังเจ้าหน้าที่ Admin มหาวิทยาลัยแล้ว ระบบจะระงับการโอนเงินชั่วคราวเพื่อตรวจสอบหลักฐานความถูกต้อง',
-                        style: TextStyle(fontSize: 12, color: AppColors.graySecondary, height: 1.4),
+                        'รายงานนี้ส่งให้ทีมดูแลตรวจสอบข้อมูลและหลักฐานที่เกี่ยวข้องแล้ว',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.graySecondary,
+                          height: 1.4,
+                        ),
                       ),
                     ),
                   ],
@@ -292,7 +360,13 @@ class EscrowStatusScreen extends StatelessWidget {
   }) {
     Color circleColor = AppColors.grayLine;
     Color textColor = AppColors.graySecondary;
-    Widget icon = Text('$stepNumber', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.graySecondary));
+    Widget icon = Text(
+      '$stepNumber',
+      style: const TextStyle(
+        fontWeight: FontWeight.bold,
+        color: AppColors.graySecondary,
+      ),
+    );
 
     if (isDone) {
       circleColor = AppColors.greenPrimary;
@@ -301,7 +375,13 @@ class EscrowStatusScreen extends StatelessWidget {
     } else if (isCurrent) {
       circleColor = AppColors.pinkPrimary;
       textColor = AppColors.pinkDark;
-      icon = Text('$stepNumber', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white));
+      icon = Text(
+        '$stepNumber',
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      );
     }
 
     return IntrinsicHeight(
@@ -346,7 +426,11 @@ class EscrowStatusScreen extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     desc,
-                    style: const TextStyle(fontSize: 12, color: AppColors.graySecondary, height: 1.3),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.graySecondary,
+                      height: 1.3,
+                    ),
                   ),
                 ],
               ),
@@ -357,7 +441,11 @@ class EscrowStatusScreen extends StatelessWidget {
     );
   }
 
-  void _showConfirmReceiptDialog(BuildContext context, AppState appState, OrderModel order) {
+  void _showConfirmReceiptDialog(
+    BuildContext context,
+    AppState appState,
+    OrderModel order,
+  ) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -383,12 +471,16 @@ class EscrowStatusScreen extends StatelessWidget {
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('ยืนยันรับสินค้าสำเร็จ! ปล่อยเงินให้ผู้ขายเรียบร้อยแล้ว'),
+                  content: Text(
+                    'ยืนยันรับสินค้าสำเร็จ! ปล่อยเงินให้ผู้ขายเรียบร้อยแล้ว',
+                  ),
                   backgroundColor: AppColors.greenPrimary,
                 ),
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.greenPrimary),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.greenPrimary,
+            ),
             child: const Text('ยืนยันและปล่อยเงิน'),
           ),
         ],

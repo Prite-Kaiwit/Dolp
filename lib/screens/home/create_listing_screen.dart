@@ -17,17 +17,18 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
   final _descriptionController = TextEditingController();
 
   ListingType _listingType = ListingType.sell;
-  String _selectedCategory = 'หนังสือ & ชีทเรียน';
+  String _selectedCategory = 'หนังสือ';
   String _selectedCondition = 'สภาพดีมาก (95%)';
-  String _selectedPickupPoint = 'โรงอาหารกลาง 1 (Complex)';
-  String _selectedImagePreset = 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500';
+  String _selectedPickupPoint = 'จุดสาธารณะตัวอย่าง เขตเมือง';
+  String _selectedImagePreset =
+      'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500';
 
   final List<String> _categories = [
-    'หนังสือ & ชีทเรียน',
-    'อุปกรณ์การเรียน & เครื่องเขียน',
+    'หนังสือ',
+    'อุปกรณ์และเครื่องเขียน',
     'เสื้อผ้า & เครื่องแต่งกาย',
     'ไอที & อิเล็กทรอนิกส์',
-    'ของใช้หอพัก & เฟอร์นิเจอร์',
+    'ของใช้ในบ้าน & เฟอร์นิเจอร์',
     'ของสะสม & กีฬา',
   ];
 
@@ -39,19 +40,38 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
   ];
 
   final List<Map<String, String>> _imagePresets = [
-    {'name': 'หนังสือ', 'url': 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500'},
-    {'name': 'อุปกรณ์ไอที', 'url': 'https://images.unsplash.com/photo-1587145820266-a5951ee6f620?w=500'},
-    {'name': 'เสื้อผ้า', 'url': 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=500'},
-    {'name': 'ของใช้หอ', 'url': 'https://images.unsplash.com/photo-1538688525198-9b88f6f53126?w=500'},
-    {'name': 'เครื่องเขียน', 'url': 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=500'},
+    {
+      'name': 'หนังสือ',
+      'url': 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500',
+    },
+    {
+      'name': 'อุปกรณ์ไอที',
+      'url':
+          'https://images.unsplash.com/photo-1587145820266-a5951ee6f620?w=500',
+    },
+    {
+      'name': 'เสื้อผ้า',
+      'url':
+          'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=500',
+    },
+    {
+      'name': 'ของใช้หอ',
+      'url':
+          'https://images.unsplash.com/photo-1538688525198-9b88f6f53126?w=500',
+    },
+    {
+      'name': 'เครื่องเขียน',
+      'url':
+          'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=500',
+    },
   ];
 
   void _submitListing() {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('กรุณากรอกชื่อสินค้า')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('กรุณากรอกชื่อสินค้า')));
       return;
     }
 
@@ -75,7 +95,7 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
       imageUrl: _selectedImagePreset,
       sellerId: AppState().currentUser.id,
       sellerName: AppState().currentUser.name,
-      sellerFaculty: AppState().currentUser.faculty,
+      sellerAreaLabel: AppState().currentUser.homeLabel,
       sellerRating: AppState().currentUser.rating,
       sellerReviewCount: AppState().currentUser.reviewCount,
     );
@@ -97,9 +117,7 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
     final appState = AppState();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('ลงประกาศสินค้าใหม่'),
-      ),
+      appBar: AppBar(title: const Text('ลงประกาศสินค้าใหม่')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -107,21 +125,35 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Transaction Type Segment Selector (Sell / Trade / Donate)
-              const Text('ประเภทประกาศ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              const Text(
+                'ประเภทประกาศ',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
               const SizedBox(height: 8),
               Row(
                 children: [
                   _buildTypeTab('ขาย', ListingType.sell, AppColors.pinkPrimary),
                   const SizedBox(width: 8),
-                  _buildTypeTab('แลกเปลี่ยน', ListingType.trade, AppColors.info),
+                  _buildTypeTab(
+                    'แลกเปลี่ยน',
+                    ListingType.trade,
+                    AppColors.info,
+                  ),
                   const SizedBox(width: 8),
-                  _buildTypeTab('บริจาค / ฟรี', ListingType.donate, AppColors.greenPrimary),
+                  _buildTypeTab(
+                    'บริจาค / ฟรี',
+                    ListingType.donate,
+                    AppColors.greenPrimary,
+                  ),
                 ],
               ),
               const SizedBox(height: 20),
 
               // Image Selection / Upload preview
-              const Text('รูปภาพสินค้า (เลือกรูปจำลองตัวอย่าง)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              const Text(
+                'รูปภาพสินค้า (เลือกรูปจำลองตัวอย่าง)',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
               const SizedBox(height: 8),
               SizedBox(
                 height: 100,
@@ -132,14 +164,17 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
                     final item = _imagePresets[index];
                     final isSelected = _selectedImagePreset == item['url'];
                     return GestureDetector(
-                      onTap: () => setState(() => _selectedImagePreset = item['url']!),
+                      onTap: () =>
+                          setState(() => _selectedImagePreset = item['url']!),
                       child: Container(
                         margin: const EdgeInsets.only(right: 12),
                         width: 90,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                            color: isSelected ? AppColors.pinkPrimary : AppColors.grayLine,
+                            color: isSelected
+                                ? AppColors.pinkPrimary
+                                : AppColors.grayLine,
                             width: isSelected ? 3 : 1,
                           ),
                         ),
@@ -151,9 +186,15 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
                               Image.network(item['url']!, fit: BoxFit.cover),
                               if (isSelected)
                                 Container(
-                                  color: AppColors.pinkPrimary.withValues(alpha: 0.3),
+                                  color: AppColors.pinkPrimary.withValues(
+                                    alpha: 0.3,
+                                  ),
                                   child: const Center(
-                                    child: Icon(Icons.check_circle_rounded, color: Colors.white, size: 28),
+                                    child: Icon(
+                                      Icons.check_circle_rounded,
+                                      color: Colors.white,
+                                      size: 28,
+                                    ),
                                   ),
                                 ),
                               Positioned(
@@ -161,7 +202,9 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
                                 left: 4,
                                 right: 4,
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 2,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.black.withValues(alpha: 0.6),
                                     borderRadius: BorderRadius.circular(4),
@@ -169,7 +212,11 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
                                   child: Text(
                                     item['name']!,
                                     textAlign: TextAlign.center,
-                                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -184,12 +231,15 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
               const SizedBox(height: 20),
 
               // Title
-              const Text('ชื่อสินค้า', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              const Text(
+                'ชื่อสินค้า',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
               const SizedBox(height: 6),
               TextField(
                 controller: _titleController,
                 decoration: const InputDecoration(
-                  hintText: 'เช่น สรุปชีท ฟิสิกส์ 1, เสื้อช็อป ไซส์ L',
+                  hintText: 'เช่น หนังสืออ่านเล่น, โต๊ะพับ, เสื้อแจ็กเก็ต',
                 ),
               ),
               const SizedBox(height: 16),
@@ -197,8 +247,13 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
               // Price (if Sell or Trade)
               if (_listingType != ListingType.donate) ...[
                 Text(
-                  _listingType == ListingType.trade ? 'ราคาประเมิน (บาท)' : 'ราคาขาย (บาท)',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  _listingType == ListingType.trade
+                      ? 'ราคาประเมิน (บาท)'
+                      : 'ราคาขาย (บาท)',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                 ),
                 const SizedBox(height: 6),
                 TextField(
@@ -207,7 +262,10 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
                   decoration: const InputDecoration(
                     hintText: 'เช่น 150',
                     prefixText: '฿ ',
-                    prefixStyle: TextStyle(fontWeight: FontWeight.bold, color: AppColors.pinkPrimary),
+                    prefixStyle: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.pinkPrimary,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -215,19 +273,25 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
 
               // Wishlist for Trade
               if (_listingType == ListingType.trade) ...[
-                const Text('สิ่งที่อยากได้ในการแลกเปลี่ยน', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                const Text(
+                  'สิ่งที่อยากได้ในการแลกเปลี่ยน',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
                 const SizedBox(height: 6),
                 TextField(
                   controller: _tradeForController,
                   decoration: const InputDecoration(
-                    hintText: 'เช่น รับแลกกับเครื่องคิดเลข Casio หรือชีท Bio',
+                    hintText: 'เช่น รับแลกกับหนังสือหรืออุปกรณ์ทำสวน',
                   ),
                 ),
                 const SizedBox(height: 16),
               ],
 
               // Category Dropdown
-              const Text('หมวดหมู่สินค้า', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              const Text(
+                'หมวดหมู่สินค้า',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
               const SizedBox(height: 6),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -240,7 +304,17 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
                   child: DropdownButton<String>(
                     isExpanded: true,
                     value: _selectedCategory,
-                    items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 14)))).toList(),
+                    items: _categories
+                        .map(
+                          (c) => DropdownMenuItem(
+                            value: c,
+                            child: Text(
+                              c,
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ),
+                        )
+                        .toList(),
                     onChanged: (val) {
                       if (val != null) setState(() => _selectedCategory = val);
                     },
@@ -250,7 +324,10 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
               const SizedBox(height: 16),
 
               // Condition Dropdown
-              const Text('สภาพสินค้า', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              const Text(
+                'สภาพสินค้า',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
               const SizedBox(height: 6),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -263,7 +340,17 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
                   child: DropdownButton<String>(
                     isExpanded: true,
                     value: _selectedCondition,
-                    items: _conditions.map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 14)))).toList(),
+                    items: _conditions
+                        .map(
+                          (c) => DropdownMenuItem(
+                            value: c,
+                            child: Text(
+                              c,
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ),
+                        )
+                        .toList(),
                     onChanged: (val) {
                       if (val != null) setState(() => _selectedCondition = val);
                     },
@@ -272,8 +359,11 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Campus Pickup Point Selection
-              const Text('จุดนัดรับที่สะดวกในมหาวิทยาลัย', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              // Pickup preference selection.
+              const Text(
+                'จุดนัดรับที่แนะนำในพื้นที่',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
               const SizedBox(height: 6),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -286,9 +376,25 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
                   child: DropdownButton<String>(
                     isExpanded: true,
                     value: _selectedPickupPoint,
-                    items: appState.pickupPoints.map((p) => DropdownMenuItem(value: p.name, child: Text(p.name, style: const TextStyle(fontSize: 13, color: AppColors.greenDark, fontWeight: FontWeight.bold)))).toList(),
+                    items: appState.pickupPoints
+                        .map(
+                          (p) => DropdownMenuItem(
+                            value: p.name,
+                            child: Text(
+                              p.name,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.greenDark,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
                     onChanged: (val) {
-                      if (val != null) setState(() => _selectedPickupPoint = val);
+                      if (val != null) {
+                        setState(() => _selectedPickupPoint = val);
+                      }
                     },
                   ),
                 ),
@@ -296,13 +402,17 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
               const SizedBox(height: 16),
 
               // Description
-              const Text('รายละเอียดเพิ่มเติม', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              const Text(
+                'รายละเอียดเพิ่มเติม',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
               const SizedBox(height: 6),
               TextField(
                 controller: _descriptionController,
                 maxLines: 3,
                 decoration: InputDecoration(
-                  hintText: 'อธิบายรายละเอียด สภาพ ตำหนิ (ถ้ามี) เหตุผลที่ส่งต่อ',
+                  hintText:
+                      'อธิบายรายละเอียด สภาพ ตำหนิ (ถ้ามี) เหตุผลที่ส่งต่อ',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -316,7 +426,10 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
                 height: 52,
                 child: ElevatedButton(
                   onPressed: _submitListing,
-                  child: const Text('เผยแพร่ประกาศทันที', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    'เผยแพร่ประกาศทันที',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -337,7 +450,9 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
           decoration: BoxDecoration(
             color: isSelected ? activeColor : AppColors.grayBg,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: isSelected ? activeColor : AppColors.grayLine),
+            border: Border.all(
+              color: isSelected ? activeColor : AppColors.grayLine,
+            ),
           ),
           child: Center(
             child: Text(

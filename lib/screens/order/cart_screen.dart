@@ -18,7 +18,10 @@ class CartScreen extends StatelessWidget {
           if (appState.cartItems.isNotEmpty)
             TextButton(
               onPressed: () => appState.clearCart(),
-              child: const Text('ล้างตะกร้า', style: TextStyle(color: AppColors.error)),
+              child: const Text(
+                'ล้างตะกร้า',
+                style: TextStyle(color: AppColors.error),
+              ),
             ),
         ],
       ),
@@ -36,17 +39,28 @@ class CartScreen extends StatelessWidget {
                       color: AppColors.pinkPale,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.remove_shopping_cart_outlined, size: 56, color: AppColors.pinkPrimary),
+                    child: const Icon(
+                      Icons.remove_shopping_cart_outlined,
+                      size: 56,
+                      color: AppColors.pinkPrimary,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   const Text(
                     'ไม่มีสินค้าในตะกร้า',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.inkText),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.inkText,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    'เลือกดูสินค้ามือสองและของใช้ใน มอ. ได้ที่หน้าแรก',
-                    style: TextStyle(fontSize: 13, color: AppColors.graySecondary),
+                    'เลือกดูสินค้ามือสองและของใช้ใกล้คุณได้ที่หน้าแรก',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.graySecondary,
+                    ),
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
@@ -58,7 +72,10 @@ class CartScreen extends StatelessWidget {
             );
           }
 
-          final total = appState.cartItems.fold<double>(0, (sum, item) => sum + item.price);
+          final total = appState.cartItems.fold<double>(
+            0,
+            (sum, item) => sum + item.price,
+          );
 
           return Column(
             children: [
@@ -79,7 +96,10 @@ class CartScreen extends StatelessWidget {
                               child: SizedBox(
                                 width: 70,
                                 height: 70,
-                                child: Image.network(item.imageUrl, fit: BoxFit.cover),
+                                child: Image.network(
+                                  item.imageUrl,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -91,20 +111,38 @@ class CartScreen extends StatelessWidget {
                                     item.title,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    item.type == ListingType.donate ? 'ส่งต่อฟรี' : '฿${item.price.toStringAsFixed(0)}',
-                                    style: const TextStyle(color: AppColors.pinkPrimary, fontWeight: FontWeight.bold, fontSize: 14),
+                                    item.type == ListingType.donate
+                                        ? 'ส่งต่อฟรี'
+                                        : '฿${item.price.toStringAsFixed(0)}',
+                                    style: const TextStyle(
+                                      color: AppColors.pinkPrimary,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
                                   ),
                                   const SizedBox(height: 2),
-                                  Text('จุดรับ: ${item.pickupPoint}', style: const TextStyle(fontSize: 11, color: AppColors.graySecondary)),
+                                  Text(
+                                    'จุดรับ: ${item.pickupPoint}',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.graySecondary,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                color: AppColors.error,
+                              ),
                               onPressed: () => appState.removeFromCart(item.id),
                             ),
                           ],
@@ -134,19 +172,39 @@ class CartScreen extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('ยอดรวมทั้งหมด', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                          const Text(
+                            'ยอดรวมทั้งหมด',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           Text(
                             '฿${total.toStringAsFixed(2)}',
-                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.pinkPrimary),
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.pinkPrimary,
+                            ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 4),
                       const Row(
                         children: [
-                          Icon(Icons.shield_rounded, color: AppColors.greenPrimary, size: 14),
+                          Icon(
+                            Icons.shield_rounded,
+                            color: AppColors.greenPrimary,
+                            size: 14,
+                          ),
                           SizedBox(width: 4),
-                          Text('คุ้มครองด้วยระบบพักเงิน Escrow ทุกออเดอร์', style: TextStyle(fontSize: 11, color: AppColors.greenDark)),
+                          Text(
+                            'คุ้มครองด้วยระบบพักเงิน Escrow ทุกออเดอร์',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.greenDark,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -160,11 +218,18 @@ class CartScreen extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => PickupPointScreen(product: first),
+                                builder: (_) =>
+                                    PickupPointScreen(product: first),
                               ),
                             );
                           },
-                          child: const Text('ดำเนินการสั่งซื้อ (เลือกจุดนัดรับ)', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                          child: const Text(
+                            'ดำเนินการสั่งซื้อ (เลือกจุดนัดรับ)',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                     ],

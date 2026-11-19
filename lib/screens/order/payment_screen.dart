@@ -52,9 +52,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('ชำระเงิน & พักเงิน (Escrow)'),
-      ),
+      appBar: AppBar(title: const Text('ชำระเงิน & พักเงิน (Escrow)')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -71,7 +69,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.lock_clock_rounded, color: AppColors.greenPrimary, size: 28),
+                    Icon(
+                      Icons.lock_clock_rounded,
+                      color: AppColors.greenPrimary,
+                      size: 28,
+                    ),
                     SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -88,7 +90,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           SizedBox(height: 2),
                           Text(
                             'ผู้ขายจะได้รับเงินเมื่อคุณได้ตรวจรับสินค้าและกดยืนยันด้วยตนเองเท่านั้น',
-                            style: TextStyle(fontSize: 11, color: AppColors.inkText),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.inkText,
+                            ),
                           ),
                         ],
                       ),
@@ -109,31 +114,74 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('สรุปรายการคำสั่งซื้อ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    const Text(
+                      'สรุปรายการคำสั่งซื้อ',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Expanded(child: Text(widget.product.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13))),
-                        Text('฿${widget.product.price.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        Expanded(
+                          child: Text(
+                            widget.product.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        ),
+                        Text(
+                          '฿${widget.product.price.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 6),
                     const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('ค่าธรรมเนียมคุ้มครอง Escrow', style: TextStyle(fontSize: 12, color: AppColors.graySecondary)),
-                        Text('ฟรี (มหาวิทยาลัยสนับสนุน)', style: TextStyle(fontSize: 12, color: AppColors.greenPrimary, fontWeight: FontWeight.bold)),
+                        Text(
+                          'ค่าธรรมเนียมคุ้มครอง Escrow',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.graySecondary,
+                          ),
+                        ),
+                        Text(
+                          'ไม่มีค่าธรรมเนียมในตัวอย่างนี้',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.greenPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ],
                     ),
                     const Divider(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('ยอดชำระสุทธิ', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.inkText)),
+                        const Text(
+                          'ยอดชำระสุทธิ',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.inkText,
+                          ),
+                        ),
                         Text(
                           '฿${widget.product.price.toStringAsFixed(2)}',
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.pinkPrimary),
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.pinkPrimary,
+                          ),
                         ),
                       ],
                     ),
@@ -143,13 +191,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
               const SizedBox(height: 24),
 
               // Payment Method Choices
-              const Text('เลือกช่องทางชำระเงิน', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+              const Text(
+                'เลือกช่องทางชำระเงิน',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
               const SizedBox(height: 12),
 
               // PromptPay Option
               _buildPaymentOption(
                 title: 'พร้อมเพย์ (PromptPay QR Code)',
-                subtitle: 'สแกนจ่ายผ่านแอปธนาคารทุกธนาคาร ยอดเข้าสู่ Escrow อัตโนมัติ',
+                subtitle:
+                    'สแกนจ่ายผ่านแอปธนาคารทุกธนาคาร ยอดเข้าสู่ Escrow อัตโนมัติ',
                 icon: Icons.qr_code_scanner_rounded,
                 value: 'PromptPay',
               ),
@@ -157,8 +209,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
               // Mobile Banking Option
               _buildPaymentOption(
-                title: 'Mobile Banking (โอนผ่านบัญชีกลาง มอ.)',
-                subtitle: 'ธนาคารไทยพาณิชย์ / กสิกรไทย / กรุงไทย บัญชีกองทุนพัฒนานักศึกษา',
+                title: 'Mobile Banking (โอนผ่านบัญชีกลาง)',
+                subtitle: 'โอนผ่านแอปธนาคารเมื่อรับสินค้า',
                 icon: Icons.account_balance_rounded,
                 value: 'Mobile Banking',
               ),
@@ -180,18 +232,31 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFF103F64),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Text(
                               'PromptPay',
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Text('ม.อ. Market Escrow Hub', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                          const Text(
+                            'Market Escrow Hub',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -209,10 +274,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.qr_code_2_rounded, size: 110, color: Color(0xFF1E293B)),
+                              const Icon(
+                                Icons.qr_code_2_rounded,
+                                size: 110,
+                                color: Color(0xFF1E293B),
+                              ),
                               Text(
                                 '฿${widget.product.price.toStringAsFixed(2)}',
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.pinkPrimary),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: AppColors.pinkPrimary,
+                                ),
                               ),
                             ],
                           ),
@@ -221,7 +294,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       const SizedBox(height: 12),
                       const Text(
                         'บันทึกภาพ QR Code หรือเปิดแอปธนาคารเพื่อสแกน',
-                        style: TextStyle(fontSize: 11, color: AppColors.graySecondary),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.graySecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -242,7 +318,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             SizedBox(
                               width: 20,
                               height: 20,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
                             ),
                             SizedBox(width: 12),
                             Text('กำลังยืนยันการพักเงิน...'),
@@ -250,7 +329,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         )
                       : Text(
                           'ยืนยันชำระเงิน ฿${widget.product.price.toStringAsFixed(2)} (เข้า Escrow)',
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                 ),
               ),
@@ -274,7 +356,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.pinkPale.withValues(alpha: 0.5) : AppColors.white,
+          color: isSelected
+              ? AppColors.pinkPale.withValues(alpha: 0.5)
+              : AppColors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? AppColors.pinkPrimary : AppColors.grayLine,
@@ -284,12 +368,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
         child: Row(
           children: [
             Icon(
-              isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
-              color: isSelected ? AppColors.pinkPrimary : AppColors.graySecondary,
+              isSelected
+                  ? Icons.radio_button_checked_rounded
+                  : Icons.radio_button_off_rounded,
+              color: isSelected
+                  ? AppColors.pinkPrimary
+                  : AppColors.graySecondary,
               size: 20,
             ),
             const SizedBox(width: 12),
-            Icon(icon, color: isSelected ? AppColors.pinkPrimary : AppColors.inkText, size: 24),
+            Icon(
+              icon,
+              color: isSelected ? AppColors.pinkPrimary : AppColors.inkText,
+              size: 24,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -300,11 +392,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
-                      color: isSelected ? AppColors.pinkDark : AppColors.inkText,
+                      color: isSelected
+                          ? AppColors.pinkDark
+                          : AppColors.inkText,
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(subtitle, style: const TextStyle(fontSize: 11, color: AppColors.graySecondary)),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.graySecondary,
+                    ),
+                  ),
                 ],
               ),
             ),

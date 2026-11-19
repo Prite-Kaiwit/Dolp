@@ -6,11 +6,7 @@ class ReportScreen extends StatefulWidget {
   final String? orderId;
   final String? targetName;
 
-  const ReportScreen({
-    super.key,
-    this.orderId,
-    this.targetName,
-  });
+  const ReportScreen({super.key, this.orderId, this.targetName});
 
   @override
   State<ReportScreen> createState() => _ReportScreenState();
@@ -24,7 +20,7 @@ class _ReportScreenState extends State<ReportScreen> {
 
   final List<String> _reasons = [
     'สินค้าไม่ตรงกับที่ระบุ / ชำรุดเสียหาย',
-    'ไม่มาตามนัดหมาย ณ จุดนัดรับใน มอ.',
+    'ไม่มาตามนัดหมาย',
     'พยายามหลอกให้โอนเงินนอกระบบ Escrow',
     'สินค้าลอกเลียนแบบ / ของปลอม / ผิดกฎหมาย',
     'ใช้คำหยาบคาย / คุกคามผ่านช่องแชท',
@@ -34,7 +30,7 @@ class _ReportScreenState extends State<ReportScreen> {
   @override
   void initState() {
     super.initState();
-    _targetNameController.text = widget.targetName ?? 'ผู้ใช้ มอ.Market';
+    _targetNameController.text = widget.targetName ?? 'ผู้ใช้ในชุมชน';
   }
 
   void _submitReport() {
@@ -59,7 +55,9 @@ class _ReportScreenState extends State<ReportScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('ส่งรายงานปัญหาเรียบร้อยแล้ว! แอดมินจะตรวจสอบและระงับการโอนเงินทันที'),
+        content: Text(
+          'ส่งรายงานปัญหาเรียบร้อยแล้ว! แอดมินจะตรวจสอบและระงับการโอนเงินทันที',
+        ),
         backgroundColor: AppColors.error,
       ),
     );
@@ -70,9 +68,7 @@ class _ReportScreenState extends State<ReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('รายงานปัญหา & ข้อพิพาท'),
-      ),
+      appBar: AppBar(title: const Text('รายงานปัญหา & ข้อพิพาท')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -85,24 +81,37 @@ class _ReportScreenState extends State<ReportScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.error.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: AppColors.error.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.shield_outlined, color: AppColors.error, size: 28),
+                    Icon(
+                      Icons.shield_outlined,
+                      color: AppColors.error,
+                      size: 28,
+                    ),
                     SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'ศูนย์ความปลอดภัย มอ.Market (Trust & Safety)',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.error),
+                            'ศูนย์ดูแลความปลอดภัย (Trust & Safety)',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: AppColors.error,
+                            ),
                           ),
                           SizedBox(height: 2),
                           Text(
                             'หากเปิดข้อพิพาทเกี่ยวกับคำสั่งซื้อ ระบบจะระงับการปล่อยเงิน Escrow ชั่วคราวทันทีจนกว่าแอดมินจะตรวจสอบเสร็จสิ้น',
-                            style: TextStyle(fontSize: 11, color: AppColors.inkText),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.inkText,
+                            ),
                           ),
                         ],
                       ),
@@ -113,25 +122,38 @@ class _ReportScreenState extends State<ReportScreen> {
               const SizedBox(height: 20),
 
               // Target User
-              const Text('ผู้ใช้ที่ต้องการรายงาน', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              const Text(
+                'ผู้ใช้ที่ต้องการรายงาน',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
               const SizedBox(height: 6),
               TextField(
                 controller: _targetNameController,
                 decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.person_outline_rounded, color: AppColors.error),
+                  prefixIcon: Icon(
+                    Icons.person_outline_rounded,
+                    color: AppColors.error,
+                  ),
                 ),
               ),
               if (widget.orderId != null) ...[
                 const SizedBox(height: 12),
                 Text(
                   'เกี่ยวข้องกับคำสั่งซื้อ: ${widget.orderId}',
-                  style: const TextStyle(fontSize: 12, color: AppColors.graySecondary, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.graySecondary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
               const SizedBox(height: 20),
 
               // Reason Radio / Dropdown
-              const Text('เหตุผลในการรายงาน', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              const Text(
+                'เหตุผลในการรายงาน',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
               const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -144,7 +166,17 @@ class _ReportScreenState extends State<ReportScreen> {
                   child: DropdownButton<String>(
                     isExpanded: true,
                     value: _selectedReason,
-                    items: _reasons.map((r) => DropdownMenuItem(value: r, child: Text(r, style: const TextStyle(fontSize: 13)))).toList(),
+                    items: _reasons
+                        .map(
+                          (r) => DropdownMenuItem(
+                            value: r,
+                            child: Text(
+                              r,
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        )
+                        .toList(),
                     onChanged: (val) {
                       if (val != null) setState(() => _selectedReason = val);
                     },
@@ -154,13 +186,17 @@ class _ReportScreenState extends State<ReportScreen> {
               const SizedBox(height: 20),
 
               // Details
-              const Text('รายละเอียดข้อเท็จจริง', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              const Text(
+                'รายละเอียดข้อเท็จจริง',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
               const SizedBox(height: 6),
               TextField(
                 controller: _detailsController,
                 maxLines: 4,
                 decoration: InputDecoration(
-                  hintText: 'โปรดระบุรายละเอียด เช่น ความเสียหายของสินค้า, การไม่มาตามนัด, ข้อความชักชวนโอนนอกระบบ...',
+                  hintText:
+                      'โปรดระบุรายละเอียด เช่น ความเสียหายของสินค้า, การไม่มาตามนัด, ข้อความชักชวนโอนนอกระบบ...',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -169,7 +205,10 @@ class _ReportScreenState extends State<ReportScreen> {
               const SizedBox(height: 20),
 
               // Evidence attachment
-              const Text('แนบหลักฐาน (รูปถ่ายสินค้า / แคปหน้าจอแชท)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              const Text(
+                'แนบหลักฐาน (รูปถ่ายสินค้า / แคปหน้าจอแชท)',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
               const SizedBox(height: 8),
               InkWell(
                 onTap: () {
@@ -179,24 +218,38 @@ class _ReportScreenState extends State<ReportScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: _attachedScreenshot ? AppColors.greenPale : AppColors.grayBg,
+                    color: _attachedScreenshot
+                        ? AppColors.greenPale
+                        : AppColors.grayBg,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: _attachedScreenshot ? AppColors.greenPrimary : AppColors.grayLine),
+                    border: Border.all(
+                      color: _attachedScreenshot
+                          ? AppColors.greenPrimary
+                          : AppColors.grayLine,
+                    ),
                   ),
                   child: Row(
                     children: [
                       Icon(
-                        _attachedScreenshot ? Icons.check_circle_rounded : Icons.add_photo_alternate_outlined,
-                        color: _attachedScreenshot ? AppColors.greenPrimary : AppColors.graySecondary,
+                        _attachedScreenshot
+                            ? Icons.check_circle_rounded
+                            : Icons.add_photo_alternate_outlined,
+                        color: _attachedScreenshot
+                            ? AppColors.greenPrimary
+                            : AppColors.graySecondary,
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          _attachedScreenshot ? 'แนบภาพหลักฐานเรียบร้อย (screenshot_proof.jpg)' : 'แตะเพื่อแนบภาพหลักฐาน',
+                          _attachedScreenshot
+                              ? 'แนบภาพหลักฐานเรียบร้อย (screenshot_proof.jpg)'
+                              : 'แตะเพื่อแนบภาพหลักฐาน',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: _attachedScreenshot ? AppColors.greenDark : AppColors.graySecondary,
+                            color: _attachedScreenshot
+                                ? AppColors.greenDark
+                                : AppColors.graySecondary,
                           ),
                         ),
                       ),
@@ -215,7 +268,10 @@ class _ReportScreenState extends State<ReportScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.error,
                   ),
-                  child: const Text('ส่งรายงานให้ทีมงาน Admin ตรวจสอบ', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    'ส่งรายงานให้ทีมงาน Admin ตรวจสอบ',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),

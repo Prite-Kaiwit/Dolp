@@ -42,9 +42,7 @@ class _PickupPointScreenState extends State<PickupPointScreen> {
     final appState = AppState();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('เลือกจุดนัดรับใน มอ.'),
-      ),
+      appBar: AppBar(title: const Text('เลือกจุดนัดรับ')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -68,7 +66,11 @@ class _PickupPointScreenState extends State<PickupPointScreen> {
                         width: 60,
                         height: 60,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => Container(color: AppColors.pinkPale, width: 60, height: 60),
+                        errorBuilder: (_, _, _) => Container(
+                          color: AppColors.pinkPale,
+                          width: 60,
+                          height: 60,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -80,7 +82,10 @@ class _PickupPointScreenState extends State<PickupPointScreen> {
                             widget.product.title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -89,11 +94,19 @@ class _PickupPointScreenState extends State<PickupPointScreen> {
                                 : 'ยอดชำระ: ฿${widget.product.price.toStringAsFixed(2)}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: widget.product.type == ListingType.donate ? AppColors.greenDark : AppColors.pinkPrimary,
+                              color: widget.product.type == ListingType.donate
+                                  ? AppColors.greenDark
+                                  : AppColors.pinkPrimary,
                               fontSize: 13,
                             ),
                           ),
-                          Text('ผู้ขาย: ${widget.product.sellerName}', style: const TextStyle(fontSize: 11, color: AppColors.graySecondary)),
+                          Text(
+                            'ผู้ขาย: ${widget.product.sellerName}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.graySecondary,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -102,20 +115,28 @@ class _PickupPointScreenState extends State<PickupPointScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Campus Pickup Points Header
+              // Suggested meeting points header.
               const Row(
                 children: [
-                  Icon(Icons.place_rounded, color: AppColors.greenPrimary, size: 22),
+                  Icon(
+                    Icons.place_rounded,
+                    color: AppColors.greenPrimary,
+                    size: 22,
+                  ),
                   SizedBox(width: 6),
                   Text(
-                    'จุดนัดรับสินค้าภายในมหาวิทยาลัย',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.inkText),
+                    'จุดนัดรับสินค้า',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.inkText,
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 4),
               const Text(
-                'เลือกจุดนัดรับที่ปลอดภัย มีแสงสว่าง และผู้คนสัญจรตลอดเวลา',
+                'เลือกสถานที่สาธารณะที่สะดวก แล้วตกลงรายละเอียดกับผู้ขาย',
                 style: TextStyle(fontSize: 12, color: AppColors.graySecondary),
               ),
               const SizedBox(height: 14),
@@ -132,7 +153,9 @@ class _PickupPointScreenState extends State<PickupPointScreen> {
                       color: isSelected ? AppColors.greenPale : AppColors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isSelected ? AppColors.greenPrimary : AppColors.grayLine,
+                        color: isSelected
+                            ? AppColors.greenPrimary
+                            : AppColors.grayLine,
                         width: isSelected ? 1.5 : 1,
                       ),
                     ),
@@ -140,8 +163,12 @@ class _PickupPointScreenState extends State<PickupPointScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(
-                          isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
-                          color: isSelected ? AppColors.greenPrimary : AppColors.graySecondary,
+                          isSelected
+                              ? Icons.radio_button_checked_rounded
+                              : Icons.radio_button_off_rounded,
+                          color: isSelected
+                              ? AppColors.greenPrimary
+                              : AppColors.graySecondary,
                           size: 20,
                         ),
                         const SizedBox(width: 12),
@@ -156,19 +183,29 @@ class _PickupPointScreenState extends State<PickupPointScreen> {
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
-                                      color: isSelected ? AppColors.greenDark : AppColors.inkText,
+                                      color: isSelected
+                                          ? AppColors.greenDark
+                                          : AppColors.inkText,
                                     ),
                                   ),
                                   const SizedBox(width: 6),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: isSelected ? Colors.white : AppColors.grayBg,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : AppColors.grayBg,
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(
                                       point.zone,
-                                      style: const TextStyle(fontSize: 10, color: AppColors.graySecondary),
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        color: AppColors.graySecondary,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -176,16 +213,26 @@ class _PickupPointScreenState extends State<PickupPointScreen> {
                               const SizedBox(height: 4),
                               Text(
                                 point.description,
-                                style: const TextStyle(fontSize: 12, color: AppColors.graySecondary),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.graySecondary,
+                                ),
                               ),
                               const SizedBox(height: 4),
                               Row(
                                 children: [
-                                  const Icon(Icons.access_time_rounded, size: 12, color: AppColors.graySecondary),
+                                  const Icon(
+                                    Icons.access_time_rounded,
+                                    size: 12,
+                                    color: AppColors.graySecondary,
+                                  ),
                                   const SizedBox(width: 4),
                                   Text(
                                     'เวลาให้บริการ: ${point.openHours}',
-                                    style: const TextStyle(fontSize: 11, color: AppColors.graySecondary),
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.graySecondary,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -200,7 +247,10 @@ class _PickupPointScreenState extends State<PickupPointScreen> {
               const SizedBox(height: 16),
 
               // Time selection
-              const Text('ช่วงเวลาที่สะดวกนัดรับ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              const Text(
+                'ช่วงเวลาที่สะดวกนัดรับ',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
               const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -213,7 +263,17 @@ class _PickupPointScreenState extends State<PickupPointScreen> {
                   child: DropdownButton<String>(
                     isExpanded: true,
                     value: _selectedTimeSlot,
-                    items: _timeSlots.map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(fontSize: 13)))).toList(),
+                    items: _timeSlots
+                        .map(
+                          (t) => DropdownMenuItem(
+                            value: t,
+                            child: Text(
+                              t,
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        )
+                        .toList(),
                     onChanged: (val) {
                       if (val != null) setState(() => _selectedTimeSlot = val);
                     },
@@ -223,12 +283,16 @@ class _PickupPointScreenState extends State<PickupPointScreen> {
               const SizedBox(height: 16),
 
               // Note to seller
-              const Text('ข้อความถึงผู้ขาย (สถานที่นัดเจาะจง / เสื้อที่ใส่)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              const Text(
+                'ข้อความถึงผู้ขาย (สถานที่นัดเจาะจง / เสื้อที่ใส่)',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
               const SizedBox(height: 8),
               TextField(
                 controller: _noteController,
                 decoration: const InputDecoration(
-                  hintText: 'เช่น สวมเสื้อสีขาว รอที่โต๊ะม้าหินอ่อนฝั่งทิศเหนือ',
+                  hintText:
+                      'เช่น สวมเสื้อสีขาว รอที่โต๊ะม้าหินอ่อนฝั่งทิศเหนือ',
                 ),
               ),
               const SizedBox(height: 32),
@@ -254,8 +318,11 @@ class _PickupPointScreenState extends State<PickupPointScreen> {
                   child: Text(
                     widget.product.type == ListingType.donate
                         ? 'ยืนยันการนัดรับฟรี'
-                        : 'ถัดไป: ไปยังหน้าชำระเงิน Escrow',
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        : 'ถัดไป: สรุปการชำระเงิน',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
