@@ -1,3 +1,6 @@
+// Legacy order fields remain until the order-flow migration in phase 6.
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import '../../models/order.dart';
 import '../../theme/app_theme.dart';

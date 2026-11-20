@@ -1,11 +1,40 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import '../constants/app_info.dart';
 import '../models/user.dart';
 import '../models/product.dart';
+import '../models/geo_location.dart';
+import '../models/nearby_product.dart';
 import '../models/order.dart';
 import '../models/chat.dart';
 import '../models/pickup_point.dart';
 import '../models/report.dart';
+import '../utils/distance.dart';
+
+class ExactProductLocation {
+  final String exactAddress;
+  final double exactLat;
+  final double exactLng;
+
+  const ExactProductLocation({
+    required this.exactAddress,
+    required this.exactLat,
+    required this.exactLng,
+  });
+}
+
+class _PrivateProductLocation {
+  final String address;
+  final double exactLat;
+  final double exactLng;
+
+  const _PrivateProductLocation({
+    required this.address,
+    required this.exactLat,
+    required this.exactLng,
+  });
+}
 
 class _MockCredential {
   final String userId;
@@ -40,6 +69,17 @@ class AppState extends ChangeNotifier {
 
   // Products
   List<ProductModel> products = [];
+  final Map<String, _PrivateProductLocation> _exactLocationsByProductId = {};
+
+  GeoLocation get currentLocation {
+    final latitude = currentUser.homeLat;
+    final longitude = currentUser.homeLng;
+    if (latitude == null || longitude == null) return kDefaultCenter;
+    return GeoLocation(latitude, longitude);
+  }
+
+  bool get isLocationApproximate =>
+      currentUser.homeLat == null || currentUser.homeLng == null;
 
   // Orders (Escrow)
   List<OrderModel> orders = [];
@@ -57,6 +97,7 @@ class AppState extends ChangeNotifier {
   List<Map<String, dynamic>> notifications = [];
 
   void _initMockData() {
+    _exactLocationsByProductId.clear();
     users = [
       UserModel(
         id: 'user_01',
@@ -120,6 +161,8 @@ class AppState extends ChangeNotifier {
         name: 'จุดสาธารณะตัวอย่าง เขตเมือง',
         description: 'ตำแหน่งตัวอย่างสำหรับตกลงนัดรับในเขตเมือง',
         zone: 'เขตเมือง',
+        location: GeoLocation(12.6112, 102.1031),
+        type: SuggestedSpotType.mall,
         openHours: '07:30 - 20:00 น.',
       ),
       PickupPointModel(
@@ -127,6 +170,8 @@ class AppState extends ChangeNotifier {
         name: 'จุดสาธารณะตัวอย่าง ท่าใหม่',
         description: 'ตำแหน่งตัวอย่างสำหรับตกลงนัดรับในอำเภอท่าใหม่',
         zone: 'ท่าใหม่',
+        location: GeoLocation(12.6230, 101.9990),
+        type: SuggestedSpotType.convenienceStore,
         openHours: '08:00 - 21:00 น.',
       ),
       PickupPointModel(
@@ -134,6 +179,8 @@ class AppState extends ChangeNotifier {
         name: 'จุดสาธารณะตัวอย่าง ขลุง',
         description: 'ตำแหน่งตัวอย่างสำหรับตกลงนัดรับในอำเภอขลุง',
         zone: 'ขลุง',
+        location: GeoLocation(12.4600, 102.2200),
+        type: SuggestedSpotType.gasStation,
         openHours: '08:30 - 18:30 น.',
       ),
       PickupPointModel(
@@ -141,6 +188,8 @@ class AppState extends ChangeNotifier {
         name: 'จุดสาธารณะตัวอย่าง แหลมสิงห์',
         description: 'ตำแหน่งตัวอย่างสำหรับตกลงนัดรับในอำเภอแหลมสิงห์',
         zone: 'แหลมสิงห์',
+        location: GeoLocation(12.4810, 102.0720),
+        type: SuggestedSpotType.other,
         openHours: '08:00 - 22:00 น.',
       ),
       PickupPointModel(
@@ -148,12 +197,14 @@ class AppState extends ChangeNotifier {
         name: 'จุดสาธารณะตัวอย่าง นายายอาม',
         description: 'ตำแหน่งตัวอย่างสำหรับตกลงนัดรับในอำเภอนายายอาม',
         zone: 'นายายอาม',
+        location: GeoLocation(12.7800, 101.8300),
+        type: SuggestedSpotType.mall,
         openHours: '06:00 - 22:00 น.',
       ),
     ];
 
     products = [
-      ProductModel(
+      _seedProduct(
         id: 'prod_1',
         title: 'หนังสือ Calculus 1 ฉบับสรุปสอบ',
         description:
@@ -162,18 +213,20 @@ class AppState extends ChangeNotifier {
         type: ListingType.sell,
         category: 'หนังสือ',
         condition: 'สภาพดีมาก (95%)',
-        pickupPoint: 'จุดสาธารณะตัวอย่าง เขตเมือง',
         imageUrl:
             'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500',
         sellerId: 'user_02',
         sellerName: 'พีรภัทร ชาญวิทย์',
         sellerAreaLabel: 'อำเภอเมืองจันทบุรี',
+        locationLabel: 'อำเภอเมืองจันทบุรี',
+        exactLocation: _offsetFrom(kDefaultCenter, 0.3, 0),
+        pickupType: PickupType.suggestedSpot,
         sellerRating: 4.9,
         sellerReviewCount: 42,
         viewCount: 128,
         favoriteCount: 14,
       ),
-      ProductModel(
+      _seedProduct(
         id: 'prod_2',
         title: 'เครื่องคิดเลขวิทยาศาสตร์ Casio fx-991EX (ClassWiz)',
         description:
@@ -184,38 +237,42 @@ class AppState extends ChangeNotifier {
         type: ListingType.trade,
         category: 'อุปกรณ์และเครื่องเขียน',
         condition: 'สภาพดี (90%)',
-        pickupPoint: 'จุดสาธารณะตัวอย่าง ขลุง',
         imageUrl:
             'https://images.unsplash.com/photo-1587145820266-a5951ee6f620?w=500',
         sellerId: 'user_03',
         sellerName: 'ณัฐชา เกียรติสกุล',
-        sellerAreaLabel: 'อำเภอท่าใหม่',
+        sellerAreaLabel: 'อำเภอเมืองจันทบุรี',
+        locationLabel: 'อำเภอเมืองจันทบุรี',
+        exactLocation: _offsetFrom(kDefaultCenter, 1.2, 90),
+        pickupType: PickupType.agreedSpot,
         sellerRating: 5.0,
         sellerReviewCount: 18,
         viewCount: 94,
         favoriteCount: 19,
       ),
-      ProductModel(
+      _seedProduct(
         id: 'prod_3',
-        title: 'เสื้อกาวน์แลปวิทยาศาสตร์ ไซส์ M (ส่งต่อฟรี)',
+        title: 'เสื้อคลุมสีขาว ไซส์ M (ส่งต่อฟรี)',
         description:
-            'เรียนจบแลปแล้วไม่ได้ใช้ สภาพยังดีมาก ซักรีดสะอาด ส่งต่อให้น้องเฟรชชี่ที่จำเป็นต้องใช้ฟรี ไม่มีค่าใช้จ่ายครับ',
+            'ไม่ได้ใช้งานแล้ว สภาพยังดีมาก ซักรีดสะอาด ส่งต่อให้ผู้ที่ต้องการโดยไม่มีค่าใช้จ่าย',
         price: 0.0,
         type: ListingType.donate,
         category: 'เสื้อผ้า & เครื่องแต่งกาย',
         condition: 'สภาพดีมาก (95%)',
-        pickupPoint: 'จุดสาธารณะตัวอย่าง ท่าใหม่',
         imageUrl:
             'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=500',
         sellerId: 'user_04',
         sellerName: 'ธนกฤต มั่นคง',
-        sellerAreaLabel: 'อำเภอขลุง',
+        sellerAreaLabel: 'อำเภอเมืองจันทบุรี',
+        locationLabel: 'อำเภอเมืองจันทบุรี',
+        exactLocation: _offsetFrom(kDefaultCenter, 2.4, 180),
+        pickupType: PickupType.discussInChat,
         sellerRating: 4.8,
         sellerReviewCount: 29,
         viewCount: 210,
         favoriteCount: 35,
       ),
-      ProductModel(
+      _seedProduct(
         id: 'prod_4',
         title: 'โต๊ะญี่ปุ่นพับได้ ไม้แท้ สำหรับบ้าน',
         description:
@@ -224,18 +281,20 @@ class AppState extends ChangeNotifier {
         type: ListingType.sell,
         category: 'ของใช้ในบ้าน & เฟอร์นิเจอร์',
         condition: 'สภาพดี (85%)',
-        pickupPoint: 'จุดสาธารณะตัวอย่าง แหลมสิงห์',
         imageUrl:
             'https://images.unsplash.com/photo-1538688525198-9b88f6f53126?w=500',
         sellerId: 'user_05',
         sellerName: 'อภิสิทธิ์ วงศ์วิไล',
-        sellerAreaLabel: 'อำเภอแหลมสิงห์',
+        sellerAreaLabel: 'อำเภอเมืองจันทบุรี',
+        locationLabel: 'อำเภอเมืองจันทบุรี',
+        exactLocation: _offsetFrom(kDefaultCenter, 3.8, 270),
+        pickupType: PickupType.sellerHome,
         sellerRating: 4.7,
         sellerReviewCount: 15,
         viewCount: 88,
         favoriteCount: 8,
       ),
-      ProductModel(
+      _seedProduct(
         id: 'prod_5',
         title: 'iPad Sleeve ซองหนังใส่แท็บเล็ต 11 นิ้ว มีช่องใส่ปากกา',
         description:
@@ -244,18 +303,20 @@ class AppState extends ChangeNotifier {
         type: ListingType.sell,
         category: 'ไอที & อิเล็กทรอนิกส์',
         condition: 'ใหม่เอี่ยม (100%)',
-        pickupPoint: 'จุดสาธารณะตัวอย่าง เขตเมือง',
         imageUrl:
             'https://images.unsplash.com/photo-1544816155-12df9643f363?w=500',
         sellerId: 'user_06',
         sellerName: 'มนัสวี โสภณ',
-        sellerAreaLabel: 'อำเภอนายายอาม',
+        sellerAreaLabel: 'อำเภอเมืองจันทบุรี',
+        locationLabel: 'อำเภอเมืองจันทบุรี',
+        exactLocation: _offsetFrom(kDefaultCenter, 7.4, 45),
+        pickupType: PickupType.suggestedSpot,
         sellerRating: 4.9,
         sellerReviewCount: 22,
         viewCount: 145,
         favoriteCount: 27,
       ),
-      ProductModel(
+      _seedProduct(
         id: 'prod_6',
         title: 'ไม้แบดมินตัน Yonex Nanoray + ซองสะพาย',
         description:
@@ -265,16 +326,171 @@ class AppState extends ChangeNotifier {
         type: ListingType.trade,
         category: 'ของสะสม & กีฬา',
         condition: 'สภาพดี (85%)',
-        pickupPoint: 'จุดสาธารณะตัวอย่าง ท่าใหม่',
         imageUrl:
             'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=500',
         sellerId: 'user_07',
         sellerName: 'วรภัทร ชาญยุทธ',
-        sellerAreaLabel: 'อำเภอเมืองจันทบุรี',
+        sellerAreaLabel: 'อำเภอท่าใหม่',
+        locationLabel: 'อำเภอท่าใหม่',
+        exactLocation: _offsetFrom(GeoLocation(12.6230, 101.9990), 0.2, 100),
+        pickupType: PickupType.discussInChat,
         sellerRating: 4.8,
         sellerReviewCount: 11,
         viewCount: 65,
         favoriteCount: 5,
+      ),
+      _seedProduct(
+        id: 'prod_7',
+        title: 'โคมไฟตั้งโต๊ะปรับระดับได้',
+        description: 'โคมไฟ LED ใช้งานปกติ ปรับความสว่างได้ 3 ระดับ',
+        price: 250,
+        type: ListingType.sell,
+        category: 'ของใช้ในบ้าน & เฟอร์นิเจอร์',
+        condition: 'สภาพดีมาก',
+        imageUrl:
+            'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=500',
+        sellerId: 'user_03',
+        sellerName: 'ณัฐชา เกียรติสกุล',
+        sellerAreaLabel: 'อำเภอท่าใหม่',
+        locationLabel: 'อำเภอท่าใหม่',
+        exactLocation: _offsetFrom(GeoLocation(12.6230, 101.9990), 0.4, 95),
+        pickupType: PickupType.sellerHome,
+      ),
+      _seedProduct(
+        id: 'prod_8',
+        title: 'กระเป๋าผ้าแคนวาส',
+        description: 'กระเป๋าผ้าแข็งแรง สภาพดี มีช่องด้านใน',
+        price: 0,
+        type: ListingType.donate,
+        category: 'เสื้อผ้า & เครื่องแต่งกาย',
+        condition: 'สภาพดี',
+        imageUrl:
+            'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=500',
+        sellerId: 'user_04',
+        sellerName: 'ธนกฤต มั่นคง',
+        sellerAreaLabel: 'อำเภอท่าใหม่',
+        locationLabel: 'อำเภอท่าใหม่',
+        exactLocation: _offsetFrom(GeoLocation(12.6230, 101.9990), 0.6, 90),
+        pickupType: PickupType.agreedSpot,
+      ),
+      _seedProduct(
+        id: 'prod_9',
+        title: 'พัดลมตั้งโต๊ะ USB',
+        description: 'พัดลมขนาดเล็ก เสียงเบา ใช้ได้ทั้ง USB และแบตเตอรี่',
+        price: 190,
+        type: ListingType.sell,
+        category: 'ไอที & อิเล็กทรอนิกส์',
+        condition: 'สภาพดี',
+        imageUrl:
+            'https://images.unsplash.com/photo-1581276879432-15e50529f34b?w=500',
+        sellerId: 'user_05',
+        sellerName: 'อภิสิทธิ์ วงศ์วิไล',
+        sellerAreaLabel: 'อำเภอท่าใหม่',
+        locationLabel: 'อำเภอท่าใหม่',
+        exactLocation: _offsetFrom(GeoLocation(12.6230, 101.9990), 0.9, 110),
+        pickupType: PickupType.suggestedSpot,
+      ),
+      _seedProduct(
+        id: 'prod_10',
+        title: 'หนังสือทำอาหารไทย',
+        description: 'รวมเมนูอาหารไทยพร้อมภาพประกอบ สภาพดี',
+        price: 120,
+        type: ListingType.sell,
+        category: 'หนังสือ',
+        condition: 'สภาพดี',
+        imageUrl:
+            'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=500',
+        sellerId: 'user_06',
+        sellerName: 'มนัสวี โสภณ',
+        sellerAreaLabel: 'อำเภอท่าใหม่',
+        locationLabel: 'อำเภอท่าใหม่',
+        exactLocation: _offsetFrom(GeoLocation(12.6230, 101.9990), 1.2, 80),
+        pickupType: PickupType.discussInChat,
+      ),
+      _seedProduct(
+        id: 'prod_11',
+        title: 'ลูกฟุตบอลฝึกซ้อม',
+        description: 'ลูกฟุตบอลขนาดมาตรฐาน ใช้ซ้อมทั่วไป',
+        price: 320,
+        type: ListingType.sell,
+        category: 'ของสะสม & กีฬา',
+        condition: 'สภาพดี',
+        imageUrl:
+            'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=500',
+        sellerId: 'user_07',
+        sellerName: 'วรภัทร ชาญยุทธ',
+        sellerAreaLabel: 'อำเภอแหลมสิงห์',
+        locationLabel: 'อำเภอแหลมสิงห์',
+        exactLocation: _offsetFrom(GeoLocation(12.4810, 102.0720), 0.2, 340),
+        pickupType: PickupType.suggestedSpot,
+      ),
+      _seedProduct(
+        id: 'prod_12',
+        title: 'ชุดแก้วน้ำเซรามิก',
+        description: 'แก้วเซรามิก 2 ใบ ไม่มีรอยบิ่น',
+        price: 0,
+        type: ListingType.donate,
+        category: 'ของใช้ในบ้าน & เฟอร์นิเจอร์',
+        condition: 'สภาพดีมาก',
+        imageUrl:
+            'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=500',
+        sellerId: 'user_02',
+        sellerName: 'พีรภัทร ชาญวิทย์',
+        sellerAreaLabel: 'อำเภอแหลมสิงห์',
+        locationLabel: 'อำเภอแหลมสิงห์',
+        exactLocation: _offsetFrom(GeoLocation(12.4810, 102.0720), 0.4, 350),
+        pickupType: PickupType.agreedSpot,
+      ),
+      _seedProduct(
+        id: 'prod_13',
+        title: 'หูฟังมีสาย',
+        description: 'หูฟังพร้อมไมโครโฟน ใช้งานได้ปกติ',
+        price: 150,
+        type: ListingType.sell,
+        category: 'ไอที & อิเล็กทรอนิกส์',
+        condition: 'สภาพดี',
+        imageUrl:
+            'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500',
+        sellerId: 'user_03',
+        sellerName: 'ณัฐชา เกียรติสกุล',
+        sellerAreaLabel: 'อำเภอแหลมสิงห์',
+        locationLabel: 'อำเภอแหลมสิงห์',
+        exactLocation: _offsetFrom(GeoLocation(12.4810, 102.0720), 0.6, 0),
+        pickupType: PickupType.discussInChat,
+      ),
+      _seedProduct(
+        id: 'prod_14',
+        title: 'เสื้อแจ็กเก็ตมือสอง',
+        description: 'เสื้อแจ็กเก็ตสีพื้น ซิปใช้งานได้ทุกส่วน',
+        price: 280,
+        type: ListingType.sell,
+        category: 'เสื้อผ้า & เครื่องแต่งกาย',
+        condition: 'สภาพดี',
+        imageUrl:
+            'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500',
+        sellerId: 'user_04',
+        sellerName: 'ธนกฤต มั่นคง',
+        sellerAreaLabel: 'อำเภอแหลมสิงห์',
+        locationLabel: 'อำเภอแหลมสิงห์',
+        exactLocation: _offsetFrom(GeoLocation(12.4810, 102.0720), 0.8, 10),
+        pickupType: PickupType.sellerHome,
+      ),
+      _seedProduct(
+        id: 'prod_15',
+        title: 'หนังสือนิยายอ่านเพลิน',
+        description: 'นิยายอ่านจบแล้ว สภาพดี ส่งต่อให้อ่านฟรี',
+        price: 0,
+        type: ListingType.donate,
+        category: 'หนังสือ',
+        condition: 'สภาพดี',
+        imageUrl:
+            'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=500',
+        sellerId: 'user_05',
+        sellerName: 'อภิสิทธิ์ วงศ์วิไล',
+        sellerAreaLabel: 'อำเภอแหลมสิงห์',
+        locationLabel: 'อำเภอแหลมสิงห์',
+        exactLocation: _offsetFrom(GeoLocation(12.4810, 102.0720), 1, 330),
+        pickupType: PickupType.suggestedSpot,
       ),
     ];
 
@@ -438,6 +654,96 @@ class AppState extends ChangeNotifier {
     ];
   }
 
+  ProductModel _seedProduct({
+    required String id,
+    required String title,
+    required String description,
+    required double price,
+    required ListingType type,
+    required String category,
+    required String condition,
+    required String imageUrl,
+    required String sellerId,
+    required String sellerName,
+    required String sellerAreaLabel,
+    required String locationLabel,
+    required GeoLocation exactLocation,
+    required PickupType pickupType,
+    String tradeFor = '',
+    double sellerRating = 4.8,
+    int sellerReviewCount = 12,
+    int viewCount = 45,
+    int favoriteCount = 6,
+  }) {
+    final product = ProductModel(
+      id: id,
+      title: title,
+      description: description,
+      price: price,
+      tradeFor: tradeFor,
+      type: type,
+      category: category,
+      condition: condition,
+      publicLocation: obfuscate(exactLocation, id),
+      locationLabel: locationLabel,
+      pickupType: pickupType,
+      pickupPoint: _legacyPickupPointFor(locationLabel),
+      imageUrl: imageUrl,
+      sellerId: sellerId,
+      sellerName: sellerName,
+      sellerAreaLabel: sellerAreaLabel,
+      sellerRating: sellerRating,
+      sellerReviewCount: sellerReviewCount,
+      viewCount: viewCount,
+      favoriteCount: favoriteCount,
+    );
+    _exactLocationsByProductId[id] = _PrivateProductLocation(
+      address: 'ที่อยู่ตัวอย่าง $locationLabel',
+      exactLat: exactLocation.lat,
+      exactLng: exactLocation.lng,
+    );
+    return product;
+  }
+
+  String _legacyPickupPointFor(String locationLabel) {
+    if (locationLabel.contains('ท่าใหม่')) {
+      return 'จุดสาธารณะตัวอย่าง ท่าใหม่';
+    }
+    if (locationLabel.contains('แหลมสิงห์')) {
+      return 'จุดสาธารณะตัวอย่าง แหลมสิงห์';
+    }
+    return 'จุดสาธารณะตัวอย่าง เขตเมือง';
+  }
+
+  GeoLocation _offsetFrom(
+    GeoLocation origin,
+    double distanceKm,
+    double bearingDegrees,
+  ) {
+    const earthRadiusKm = 6371.0;
+    final angularDistance = distanceKm / earthRadiusKm;
+    final bearing = bearingDegrees * math.pi / 180;
+    final latitude = origin.lat * math.pi / 180;
+    final longitude = origin.lng * math.pi / 180;
+    final targetLatitude = math.asin(
+      math.sin(latitude) * math.cos(angularDistance) +
+          math.cos(latitude) * math.sin(angularDistance) * math.cos(bearing),
+    );
+    final targetLongitude =
+        longitude +
+        math.atan2(
+          math.sin(bearing) * math.sin(angularDistance) * math.cos(latitude),
+          math.cos(angularDistance) -
+              math.sin(latitude) * math.sin(targetLatitude),
+        );
+    final normalizedLongitude =
+        (targetLongitude + 3 * math.pi) % (2 * math.pi) - math.pi;
+    return GeoLocation(
+      targetLatitude * 180 / math.pi,
+      normalizedLongitude * 180 / math.pi,
+    );
+  }
+
   // Actions
   bool isPhoneRegistered(String phone) =>
       _credentialsByPhone.containsKey(phone);
@@ -509,8 +815,122 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addProduct(ProductModel product) {
+  List<NearbyProduct> productsNearby({
+    double radiusKm = kDefaultRadiusKm,
+    String? category,
+    ListingType? type,
+    num? minPrice,
+    num? maxPrice,
+    String? query,
+    SortBy sortBy = SortBy.nearest,
+  }) {
+    if (!radiusKm.isFinite || radiusKm < 0) {
+      throw ArgumentError.value(
+        radiusKm,
+        'radiusKm',
+        'Must be a finite non-negative value.',
+      );
+    }
+
+    final normalizedCategory = category?.trim();
+    final normalizedQuery = query?.trim().toLowerCase();
+    final blockedUserIds = _blockedUserIdsFor(currentUser.id);
+    final nearby = <NearbyProduct>[];
+    for (final product in products) {
+      if (product.status != ListingStatus.active ||
+          product.sellerId == currentUser.id ||
+          blockedUserIds.contains(product.sellerId)) {
+        continue;
+      }
+      if (normalizedCategory != null &&
+          normalizedCategory.isNotEmpty &&
+          product.category != normalizedCategory) {
+        continue;
+      }
+      if (type != null && product.type != type) continue;
+      if (product.type != ListingType.donate &&
+          ((minPrice != null && product.price < minPrice) ||
+              (maxPrice != null && product.price > maxPrice))) {
+        continue;
+      }
+      if (normalizedQuery != null &&
+          normalizedQuery.isNotEmpty &&
+          !product.title.toLowerCase().contains(normalizedQuery) &&
+          !product.description.toLowerCase().contains(normalizedQuery) &&
+          !product.category.toLowerCase().contains(normalizedQuery) &&
+          !product.locationLabel.toLowerCase().contains(normalizedQuery)) {
+        continue;
+      }
+
+      final distance = distanceKm(currentLocation, product.publicLocation);
+      if (distance <= radiusKm) {
+        nearby.add(NearbyProduct(product: product, distanceKm: distance));
+      }
+    }
+
+    switch (sortBy) {
+      case SortBy.nearest:
+        nearby.sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
+        break;
+      case SortBy.newest:
+        nearby.sort(
+          (a, b) => b.product.createdAt.compareTo(a.product.createdAt),
+        );
+        break;
+      case SortBy.priceAsc:
+        nearby.sort((a, b) => a.product.price.compareTo(b.product.price));
+        break;
+      case SortBy.priceDesc:
+        nearby.sort((a, b) => b.product.price.compareTo(a.product.price));
+        break;
+    }
+    return nearby;
+  }
+
+  ExactProductLocation? getExactLocationFor(
+    String productId,
+    String requesterUserId,
+  ) {
+    if (requesterUserId != currentUser.id) return null;
+    final productIndex = products.indexWhere(
+      (product) => product.id == productId,
+    );
+    if (productIndex == -1) return null;
+
+    final product = products[productIndex];
+    if (requesterUserId != product.sellerId &&
+        !_hasAcceptedMeetup(productId, requesterUserId)) {
+      return null;
+    }
+    final exact = _exactLocationsByProductId[productId];
+    if (exact == null) return null;
+    return ExactProductLocation(
+      exactAddress: exact.address,
+      exactLat: exact.exactLat,
+      exactLng: exact.exactLng,
+    );
+  }
+
+  Set<String> _blockedUserIdsFor(String userId) => const {};
+
+  bool _hasAcceptedMeetup(String productId, String requesterUserId) {
+    // Phase 5 will check accepted meetup agreements here.
+    return false;
+  }
+
+  void addProduct(
+    ProductModel product, {
+    GeoLocation? exactLocation,
+    String exactAddress = '',
+  }) {
     products.insert(0, product);
+    if (exactLocation != null) {
+      _exactLocationsByProductId[product.id] = _PrivateProductLocation(
+        address: exactAddress,
+        exactLat: exactLocation.lat,
+        exactLng: exactLocation.lng,
+      );
+    }
     notifyListeners();
   }
 
@@ -524,6 +944,7 @@ class AppState extends ChangeNotifier {
 
   void deleteProduct(String id) {
     products.removeWhere((p) => p.id == id);
+    _exactLocationsByProductId.remove(id);
     notifyListeners();
   }
 
@@ -564,6 +985,9 @@ class AppState extends ChangeNotifier {
       sellerName: product.sellerName,
       pickupPoint: pickupPoint,
       scheduledTime: scheduledTime,
+      pickupType: product.pickupType,
+      agreedPlaceLabel: pickupPoint,
+      pickupNote: note,
       paymentMethod: paymentMethod,
       status: OrderStatus.escrowHolding,
       note: note,

@@ -1,3 +1,6 @@
+// Keep showing the legacy pickup label until the nearby-feed UI is updated.
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../theme/app_theme.dart';
@@ -7,11 +10,7 @@ class ProductCard extends StatelessWidget {
   final ProductModel product;
   final VoidCallback onTap;
 
-  const ProductCard({
-    super.key,
-    required this.product,
-    required this.onTap,
-  });
+  const ProductCard({super.key, required this.product, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +36,9 @@ class ProductCard extends StatelessWidget {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(18),
+                  ),
                   child: AspectRatio(
                     aspectRatio: 1.1,
                     child: Image.network(
@@ -46,7 +47,10 @@ class ProductCard extends StatelessWidget {
                       errorBuilder: (context, error, stackTrace) => Container(
                         color: AppColors.pinkPale,
                         child: const Center(
-                          child: Icon(Icons.image_not_supported, color: AppColors.pinkLight),
+                          child: Icon(
+                            Icons.image_not_supported,
+                            color: AppColors.pinkLight,
+                          ),
                         ),
                       ),
                     ),
@@ -136,7 +140,11 @@ class ProductCard extends StatelessWidget {
                   // Pickup Point snippet
                   Row(
                     children: [
-                      const Icon(Icons.location_on_outlined, size: 12, color: AppColors.graySecondary),
+                      const Icon(
+                        Icons.location_on_outlined,
+                        size: 12,
+                        color: AppColors.graySecondary,
+                      ),
                       const SizedBox(width: 3),
                       Expanded(
                         child: Text(
@@ -157,14 +165,21 @@ class ProductCard extends StatelessWidget {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.pinkPale,
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.star_rounded, size: 12, color: AppColors.warning),
+                            const Icon(
+                              Icons.star_rounded,
+                              size: 12,
+                              color: AppColors.warning,
+                            ),
                             const SizedBox(width: 2),
                             Text(
                               product.sellerRating.toStringAsFixed(1),

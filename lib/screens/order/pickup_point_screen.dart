@@ -1,3 +1,7 @@
+// This screen still reads the legacy pickupPoint and zone fields pending
+// the meetup flow and suggested-spot UI migration.
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import '../../models/product.dart';
 import '../../models/pickup_point.dart';

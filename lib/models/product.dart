@@ -1,4 +1,11 @@
+// The legacy pickupPoint field remains until listing and order screens migrate.
+// ignore_for_file: deprecated_member_use
+
+import 'geo_location.dart';
+
 enum ListingType { sell, trade, donate }
+
+enum PickupType { sellerHome, agreedSpot, suggestedSpot, discussInChat }
 
 extension ListingTypeExtension on ListingType {
   String get label {
@@ -24,14 +31,16 @@ class ProductModel {
   final ListingType type;
   final String category;
   final String condition;
+  final GeoLocation publicLocation;
+  final String locationLabel;
+  final PickupType pickupType;
+  @Deprecated('Use locationLabel and pickupType; remove after phase 6.')
   final String pickupPoint;
   final String imageUrl;
   final List<String> images;
   final String sellerId;
   final String sellerName;
   final String sellerAreaLabel;
-  @Deprecated('Use sellerAreaLabel instead.')
-  final String sellerFaculty = '';
   final double sellerRating;
   final int sellerReviewCount;
   final ListingStatus status;
@@ -48,6 +57,9 @@ class ProductModel {
     required this.type,
     required this.category,
     required this.condition,
+    required this.publicLocation,
+    this.locationLabel = '',
+    this.pickupType = PickupType.discussInChat,
     required this.pickupPoint,
     required this.imageUrl,
     this.images = const [],
@@ -71,6 +83,9 @@ class ProductModel {
     ListingType? type,
     String? category,
     String? condition,
+    GeoLocation? publicLocation,
+    String? locationLabel,
+    PickupType? pickupType,
     String? pickupPoint,
     String? imageUrl,
     List<String>? images,
@@ -93,6 +108,9 @@ class ProductModel {
       type: type ?? this.type,
       category: category ?? this.category,
       condition: condition ?? this.condition,
+      publicLocation: publicLocation ?? this.publicLocation,
+      locationLabel: locationLabel ?? this.locationLabel,
+      pickupType: pickupType ?? this.pickupType,
       pickupPoint: pickupPoint ?? this.pickupPoint,
       imageUrl: imageUrl ?? this.imageUrl,
       images: images ?? this.images,

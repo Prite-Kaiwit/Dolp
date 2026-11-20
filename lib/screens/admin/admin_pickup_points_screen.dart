@@ -1,3 +1,7 @@
+// The legacy zone field remains until public suggested spots replace this
+// administrative screen in phase 7.
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import '../../models/pickup_point.dart';
 import '../../theme/app_theme.dart';

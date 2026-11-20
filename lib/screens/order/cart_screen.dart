@@ -1,3 +1,6 @@
+// Keep the legacy pickup display until the order-flow migration in phase 6.
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import '../../models/product.dart';
 import '../../theme/app_theme.dart';

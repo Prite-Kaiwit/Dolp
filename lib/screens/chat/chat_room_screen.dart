@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/chat.dart';
 import '../../models/product.dart';
+import '../../utils/distance.dart';
 import '../../theme/app_theme.dart';
 import '../../state/app_state.dart';
 import '../order/pickup_point_screen.dart';
@@ -171,6 +172,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                           type: ListingType.sell,
                           category: 'ทั่วไป',
                           condition: 'สภาพดี',
+                          publicLocation: obfuscate(
+                            appState.currentLocation,
+                            widget.conversation.productId,
+                          ),
+                          locationLabel: 'อำเภอเมืองจันทบุรี',
                           pickupPoint: 'จุดสาธารณะตัวอย่าง เขตเมือง',
                           imageUrl: widget.conversation.productImageUrl,
                           sellerId: widget.conversation.peerId,

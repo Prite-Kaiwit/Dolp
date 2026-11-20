@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/product.dart';
 import '../../theme/app_theme.dart';
 import '../../state/app_state.dart';
+import '../../utils/distance.dart';
 
 class CreateListingScreen extends StatefulWidget {
   const CreateListingScreen({super.key});
@@ -80,8 +81,11 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
       price = double.tryParse(_priceController.text.trim()) ?? 0.0;
     }
 
+    final appState = AppState();
+    final productId = 'prod_${DateTime.now().millisecondsSinceEpoch}';
+    final exactLocation = appState.currentLocation;
     final newProduct = ProductModel(
-      id: 'prod_${DateTime.now().millisecondsSinceEpoch}',
+      id: productId,
       title: title,
       description: _descriptionController.text.trim().isNotEmpty
           ? _descriptionController.text.trim()
@@ -91,16 +95,21 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
       type: _listingType,
       category: _selectedCategory,
       condition: _selectedCondition,
+      publicLocation: obfuscate(exactLocation, productId),
+      locationLabel: appState.currentUser.homeLabel.isEmpty
+          ? 'พื้นที่ใกล้คุณ'
+          : appState.currentUser.homeLabel,
+      pickupType: PickupType.discussInChat,
       pickupPoint: _selectedPickupPoint,
       imageUrl: _selectedImagePreset,
-      sellerId: AppState().currentUser.id,
-      sellerName: AppState().currentUser.name,
-      sellerAreaLabel: AppState().currentUser.homeLabel,
-      sellerRating: AppState().currentUser.rating,
-      sellerReviewCount: AppState().currentUser.reviewCount,
+      sellerId: appState.currentUser.id,
+      sellerName: appState.currentUser.name,
+      sellerAreaLabel: appState.currentUser.homeLabel,
+      sellerRating: appState.currentUser.rating,
+      sellerReviewCount: appState.currentUser.reviewCount,
     );
 
-    AppState().addProduct(newProduct);
+    appState.addProduct(newProduct, exactLocation: exactLocation);
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
