@@ -65,7 +65,7 @@ class InfoBanner extends StatelessWidget {
                         ),
                         SizedBox(width: 4),
                         Text(
-                          '$appName · Escrow',
+                          '$appName · ชุมชน',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 11,
@@ -88,7 +88,7 @@ class InfoBanner extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               const Text(
-                'พูดคุยและตกลงรายละเอียด\nนัดรับในสถานที่ที่สะดวก',
+                'นัดรับหน้างาน\nตกลงรายละเอียดกับผู้ขายโดยตรง',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -98,7 +98,7 @@ class InfoBanner extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               const Text(
-                'ตรวจสอบสินค้าและตกลงวิธีชำระเงินกับผู้ขาย',
+                'เลือกจุดนัดรับที่เหมาะสม และซื้อขายอย่างระมัดระวัง',
                 style: TextStyle(color: Colors.white70, fontSize: 12),
               ),
               const SizedBox(height: 12),

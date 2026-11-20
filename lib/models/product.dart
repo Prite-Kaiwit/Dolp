@@ -7,6 +7,21 @@ enum ListingType { sell, trade, donate }
 
 enum PickupType { sellerHome, agreedSpot, suggestedSpot, discussInChat }
 
+extension PickupTypeExtension on PickupType {
+  String get label {
+    switch (this) {
+      case PickupType.sellerHome:
+        return 'บ้านผู้ขาย';
+      case PickupType.agreedSpot:
+        return 'จุดที่ตกลงกัน';
+      case PickupType.suggestedSpot:
+        return 'จุดแนะนำสาธารณะ';
+      case PickupType.discussInChat:
+        return 'ตกลงกันในแชท';
+    }
+  }
+}
+
 extension ListingTypeExtension on ListingType {
   String get label {
     switch (this) {

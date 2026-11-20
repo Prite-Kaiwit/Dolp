@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_theme.dart';
-import '../../state/app_state.dart';
+
+import '../../constants/app_info.dart';
+import '../../models/nearby_product.dart';
 import '../../models/product.dart';
-import '../../widgets/product_card.dart';
+import '../../state/app_state.dart';
+import '../../theme/app_theme.dart';
 import '../../widgets/custom_search_bar.dart';
+import '../../widgets/product_card.dart';
 import 'product_detail_screen.dart';
 
 class SearchFilterScreen extends StatefulWidget {
@@ -14,14 +17,10 @@ class SearchFilterScreen extends StatefulWidget {
 }
 
 class _SearchFilterScreenState extends State<SearchFilterScreen> {
-  final TextEditingController _searchController = TextEditingController();
-  String _selectedCategory = 'ทั้งหมด';
-  String _selectedType = 'ทั้งหมด';
-  String _selectedZone = 'ทั้งหมด';
-  RangeValues _priceRange = const RangeValues(0, 1000);
-
-  final List<String> _categories = [
-    'ทั้งหมด',
+  static const _all = 'ทั้งหมด';
+  static const _fullPriceRange = RangeValues(0, 1000000);
+  static const _categories = [
+    _all,
     'หนังสือ',
     'อุปกรณ์และเครื่องเขียน',
     'เสื้อผ้า & เครื่องแต่งกาย',
@@ -29,17 +28,20 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
     'ของใช้ในบ้าน & เฟอร์นิเจอร์',
     'ของสะสม & กีฬา',
   ];
+  static const _types = [_all, 'ขาย', 'แลกเปลี่ยน', 'บริจาค/ฟรี'];
 
-  final List<String> _types = ['ทั้งหมด', 'ขาย', 'แลกเปลี่ยน', 'บริจาค/ฟรี'];
+  final TextEditingController _searchController = TextEditingController();
+  String _selectedCategory = _all;
+  String _selectedType = _all;
+  double _radiusKm = kDefaultRadiusKm;
+  RangeValues _priceRange = _fullPriceRange;
+  SortBy _sortBy = SortBy.nearest;
 
-  final List<String> _zones = [
-    'ทั้งหมด',
-    'เขตเมือง',
-    'ท่าใหม่',
-    'ขลุง',
-    'แหลมสิงห์',
-    'นายายอาม',
-  ];
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,170 +52,113 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Search Input Bar
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: CustomSearchBar(
                 controller: _searchController,
                 onChanged: (_) => setState(() {}),
-                onFilterTap: () => _openFilterModal(context),
+                onFilterTap: _openFilterModal,
               ),
             ),
-
-            // Horizontal Categories Quick Chips
             SizedBox(
               height: 38,
-              child: ListView.builder(
+              child: ListView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _categories.length,
-                itemBuilder: (context, index) {
-                  final cat = _categories[index];
-                  final isSelected = _selectedCategory == cat;
+                children: _categories.map((category) {
+                  final selected = _selectedCategory == category;
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: FilterChip(
-                      label: Text(cat),
-                      selected: isSelected,
+                      label: Text(category),
+                      selected: selected,
                       selectedColor: AppColors.pinkPrimary,
                       backgroundColor: AppColors.grayBg,
                       labelStyle: TextStyle(
-                        color: isSelected ? Colors.white : AppColors.inkText,
+                        color: selected ? Colors.white : AppColors.inkText,
                         fontSize: 12,
-                        fontWeight: isSelected
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        side: BorderSide(
-                          color: isSelected
-                              ? AppColors.pinkPrimary
-                              : AppColors.grayLine,
-                        ),
                       ),
                       showCheckmark: false,
                       onSelected: (_) =>
-                          setState(() => _selectedCategory = cat),
+                          setState(() => _selectedCategory = category),
                     ),
                   );
-                },
+                }).toList(),
               ),
             ),
             const SizedBox(height: 8),
-
-            // Active Filters Summary Bar
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Row(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
                 children: [
-                  if (_selectedType != 'ทั้งหมด')
-                    _buildActiveBadge(
-                      'ประเภท: $_selectedType',
-                      () => setState(() => _selectedType = 'ทั้งหมด'),
-                    ),
-                  if (_selectedZone != 'ทั้งหมด')
-                    _buildActiveBadge(
-                      'จุดรับ: $_selectedZone',
-                      () => setState(() => _selectedZone = 'ทั้งหมด'),
-                    ),
+                  Row(
+                    children: [
+                      const Text(
+                        'เรียงตาม',
+                        style: TextStyle(
+                          color: AppColors.graySecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      DropdownButton<SortBy>(
+                        value: _sortBy,
+                        isDense: true,
+                        underline: const SizedBox.shrink(),
+                        items: const [
+                          DropdownMenuItem(
+                            value: SortBy.nearest,
+                            child: Text('ใกล้สุด'),
+                          ),
+                          DropdownMenuItem(
+                            value: SortBy.newest,
+                            child: Text('ใหม่สุด'),
+                          ),
+                          DropdownMenuItem(
+                            value: SortBy.priceAsc,
+                            child: Text('ราคาต่ำ-สูง'),
+                          ),
+                          DropdownMenuItem(
+                            value: SortBy.priceDesc,
+                            child: Text('ราคาสูง-ต่ำ'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          if (value != null) setState(() => _sortBy = value);
+                        },
+                      ),
+                      const Spacer(),
+                      TextButton.icon(
+                        onPressed: _openFilterModal,
+                        icon: const Icon(Icons.tune_rounded, size: 18),
+                        label: const Text('ตัวกรอง'),
+                      ),
+                    ],
+                  ),
+                  _buildActiveFilters(),
                 ],
               ),
             ),
-            const Divider(),
-
-            // Search Results Grid
+            const Divider(height: 16),
             Expanded(
               child: ListenableBuilder(
                 listenable: appState,
                 builder: (context, _) {
-                  final query = _searchController.text.trim().toLowerCase();
-                  final results = appState.products.where((p) {
-                    if (p.status != ListingStatus.active) return false;
+                  final results = appState.productsNearby(
+                    radiusKm: _radiusKm,
+                    category: _selectedCategory == _all
+                        ? null
+                        : _selectedCategory,
+                    type: _listingTypeFor(_selectedType),
+                    minPrice: _priceRange.start > 0 ? _priceRange.start : null,
+                    maxPrice: _priceRange.end < _fullPriceRange.end
+                        ? _priceRange.end
+                        : null,
+                    query: _searchController.text,
+                    sortBy: _sortBy,
+                  );
 
-                    // Text Query
-                    if (query.isNotEmpty) {
-                      final matchTitle = p.title.toLowerCase().contains(query);
-                      final matchDesc = p.description.toLowerCase().contains(
-                        query,
-                      );
-                      final matchCat = p.category.toLowerCase().contains(query);
-                      if (!matchTitle && !matchDesc && !matchCat) return false;
-                    }
-
-                    // Category
-                    if (_selectedCategory != 'ทั้งหมด' &&
-                        p.category != _selectedCategory) {
-                      return false;
-                    }
-
-                    // Type
-                    if (_selectedType == 'ขาย' && p.type != ListingType.sell) {
-                      return false;
-                    }
-                    if (_selectedType == 'แลกเปลี่ยน' &&
-                        p.type != ListingType.trade) {
-                      return false;
-                    }
-                    if (_selectedType == 'บริจาค/ฟรี' &&
-                        p.type != ListingType.donate) {
-                      return false;
-                    }
-
-                    // Price
-                    if (p.type == ListingType.sell &&
-                        (p.price < _priceRange.start ||
-                            p.price > _priceRange.end)) {
-                      return false;
-                    }
-
-                    return true;
-                  }).toList();
-
-                  if (results.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.search_off_rounded,
-                            size: 56,
-                            color: AppColors.graySecondary,
-                          ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            'ไม่พบสินค้าตามเงื่อนไขที่ค้นหา',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.inkText,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          const Text(
-                            'ลองปรับคำค้นหาหรือเปลี่ยนตัวกรองดูนะครับ',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AppColors.graySecondary,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                _searchController.clear();
-                                _selectedCategory = 'ทั้งหมด';
-                                _selectedType = 'ทั้งหมด';
-                                _selectedZone = 'ทั้งหมด';
-                                _priceRange = const RangeValues(0, 1000);
-                              });
-                            },
-                            child: const Text('ล้างตัวกรองทั้งหมด'),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
+                  if (results.isEmpty) return _buildEmptyState();
 
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -227,18 +172,18 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                             childAspectRatio: 0.65,
                           ),
                       itemBuilder: (context, index) {
-                        final product = results[index];
+                        final nearby = results[index];
                         return ProductCard(
-                          product: product,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    ProductDetailScreen(product: product),
+                          nearbyProduct: nearby,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => ProductDetailScreen(
+                                product: nearby.product,
+                                nearbyDistanceKm: nearby.distanceKm,
                               ),
-                            );
-                          },
+                            ),
+                          ),
                         );
                       },
                     ),
@@ -252,165 +197,247 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
     );
   }
 
+  Widget _buildActiveFilters() {
+    final filters = <Widget>[];
+    if (_radiusKm != kDefaultRadiusKm) {
+      filters.add(
+        _buildActiveBadge(
+          'รัศมี ${_radiusKm.toInt()} กม.',
+          () => setState(() => _radiusKm = kDefaultRadiusKm),
+        ),
+      );
+    }
+    if (_selectedCategory != _all) {
+      filters.add(
+        _buildActiveBadge(
+          _selectedCategory,
+          () => setState(() => _selectedCategory = _all),
+        ),
+      );
+    }
+    if (_selectedType != _all) {
+      filters.add(
+        _buildActiveBadge(
+          'ประเภท: $_selectedType',
+          () => setState(() => _selectedType = _all),
+        ),
+      );
+    }
+    if (_priceRange != _fullPriceRange) {
+      filters.add(
+        _buildActiveBadge(
+          '฿${_priceRange.start.round()}–฿${_priceRange.end.round()}',
+          () => setState(() => _priceRange = _fullPriceRange),
+        ),
+      );
+    }
+    if (filters.isEmpty) return const SizedBox.shrink();
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Wrap(spacing: 6, runSpacing: 4, children: filters),
+    );
+  }
+
   Widget _buildActiveBadge(String label, VoidCallback onRemove) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.pinkPale,
-        borderRadius: BorderRadius.circular(16),
+    return InputChip(
+      label: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 11,
+          color: AppColors.pinkDark,
+          fontWeight: FontWeight.w600,
+        ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 11,
-              color: AppColors.pinkDark,
-              fontWeight: FontWeight.bold,
+      onDeleted: onRemove,
+      deleteIconColor: AppColors.pinkDark,
+      backgroundColor: AppColors.pinkPale,
+      visualDensity: VisualDensity.compact,
+      side: BorderSide.none,
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.search_off_rounded,
+              size: 52,
+              color: AppColors.graySecondary,
             ),
-          ),
-          const SizedBox(width: 4),
-          InkWell(
-            onTap: onRemove,
-            child: const Icon(Icons.close, size: 14, color: AppColors.pinkDark),
-          ),
-        ],
+            const SizedBox(height: 12),
+            const Text(
+              'ไม่พบสินค้าตามเงื่อนไขที่ค้นหา',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.inkText,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'ลองปรับคำค้นหาหรือเปลี่ยนตัวกรองดูนะครับ',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: AppColors.graySecondary),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _resetFilters,
+              child: const Text('ล้างตัวกรองทั้งหมด'),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  void _openFilterModal(BuildContext context) {
-    showModalBottomSheet(
+  void _openFilterModal() {
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setModalState) => SizedBox(
+          height: MediaQuery.sizeOf(context).height * 0.8,
+          child: ListView(
+            padding: const EdgeInsets.all(24),
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'ตัวกรองสินค้าขั้นสูง',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.inkText,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Transaction Type
                   const Text(
-                    'ประเภทธุรกรรม',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    children: _types.map((type) {
-                      final isSelected = _selectedType == type;
-                      return ChoiceChip(
-                        label: Text(type),
-                        selected: isSelected,
-                        selectedColor: AppColors.pinkPrimary,
-                        labelStyle: TextStyle(
-                          color: isSelected ? Colors.white : AppColors.inkText,
-                          fontSize: 12,
-                        ),
-                        onSelected: (_) {
-                          setModalState(() => _selectedType = type);
-                          setState(() {});
-                        },
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Price Range
-                  Text(
-                    'ช่วงราคา (฿${_priceRange.start.round()} - ฿${_priceRange.end.round()})',
-                    style: const TextStyle(
+                    'ตัวกรองสินค้า',
+                    style: TextStyle(
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                      color: AppColors.inkText,
                     ),
                   ),
-                  RangeSlider(
-                    values: _priceRange,
-                    min: 0,
-                    max: 2000,
-                    divisions: 20,
-                    activeColor: AppColors.pinkPrimary,
-                    inactiveColor: AppColors.grayLine,
-                    labels: RangeLabels(
-                      '฿${_priceRange.start.round()}',
-                      '฿${_priceRange.end.round()}',
-                    ),
-                    onChanged: (values) {
-                      setModalState(() => _priceRange = values);
-                      setState(() {});
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Area filter.
-                  const Text(
-                    'โซนจุดนัดรับในพื้นที่',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    children: _zones.map((zone) {
-                      final isSelected = _selectedZone == zone;
-                      return ChoiceChip(
-                        label: Text(zone),
-                        selected: isSelected,
-                        selectedColor: AppColors.greenPrimary,
-                        labelStyle: TextStyle(
-                          color: isSelected ? Colors.white : AppColors.inkText,
-                          fontSize: 12,
-                        ),
-                        onSelected: (_) {
-                          setModalState(() => _selectedZone = zone);
-                          setState(() {});
-                        },
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Buttons
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('ใช้ตัวกรองนี้'),
-                    ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(sheetContext),
                   ),
                 ],
               ),
-            );
-          },
-        );
-      },
+              const SizedBox(height: 12),
+              const Text(
+                'รัศมีค้นหา',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              Slider(
+                value: _radiusKm,
+                min: 1,
+                max: 20,
+                divisions: 19,
+                label: '${_radiusKm.toInt()} กม.',
+                activeColor: AppColors.pinkPrimary,
+                onChanged: (value) {
+                  setModalState(() => _radiusKm = value);
+                  setState(() {});
+                },
+              ),
+              Text(
+                '${_radiusKm.toInt()} กม.',
+                style: const TextStyle(color: AppColors.graySecondary),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'ประเภทธุรกรรม',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: _types.map((type) {
+                  final selected = _selectedType == type;
+                  return ChoiceChip(
+                    label: Text(type),
+                    selected: selected,
+                    selectedColor: AppColors.pinkPrimary,
+                    labelStyle: TextStyle(
+                      color: selected ? Colors.white : AppColors.inkText,
+                      fontSize: 12,
+                    ),
+                    onSelected: (_) {
+                      setModalState(() => _selectedType = type);
+                      setState(() {});
+                    },
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'ช่วงราคา (฿${_priceRange.start.round()} - ฿${_priceRange.end.round()})',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              RangeSlider(
+                values: _priceRange,
+                min: _fullPriceRange.start,
+                max: _fullPriceRange.end,
+                divisions: 100,
+                activeColor: AppColors.pinkPrimary,
+                inactiveColor: AppColors.grayLine,
+                labels: RangeLabels(
+                  '฿${_priceRange.start.round()}',
+                  '฿${_priceRange.end.round()}',
+                ),
+                onChanged: (values) {
+                  setModalState(() => _priceRange = values);
+                  setState(() {});
+                },
+              ),
+              const SizedBox(height: 20),
+              OutlinedButton(
+                onPressed: () {
+                  _resetFilters();
+                  setModalState(() {});
+                },
+                child: const Text('ล้างตัวกรองทั้งหมด'),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(sheetContext),
+                  child: const Text('ใช้ตัวกรองนี้'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
+  }
+
+  void _resetFilters() {
+    setState(() {
+      _searchController.clear();
+      _selectedCategory = _all;
+      _selectedType = _all;
+      _radiusKm = kDefaultRadiusKm;
+      _priceRange = _fullPriceRange;
+      _sortBy = SortBy.nearest;
+    });
+  }
+
+  ListingType? _listingTypeFor(String type) {
+    switch (type) {
+      case 'ขาย':
+        return ListingType.sell;
+      case 'แลกเปลี่ยน':
+        return ListingType.trade;
+      case 'บริจาค/ฟรี':
+        return ListingType.donate;
+      default:
+        return null;
+    }
   }
 }

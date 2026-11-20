@@ -16,7 +16,7 @@ class CustomSearchBar extends StatelessWidget {
     this.onFilterTap,
     this.onTap,
     this.readOnly = false,
-    this.hintText = 'ค้นหาหนังสือ, เสื้อช็อป, เครื่องคิดเลข...',
+    this.hintText = 'ค้นหาสินค้าใกล้คุณ...',
   });
 
   @override
@@ -38,10 +38,20 @@ class CustomSearchBar extends StatelessWidget {
               onChanged: onChanged,
               style: const TextStyle(fontSize: 14, color: AppColors.inkText),
               decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 hintText: hintText,
-                hintStyle: const TextStyle(fontSize: 13, color: AppColors.graySecondary),
-                prefixIcon: const Icon(Icons.search_rounded, color: AppColors.pinkPrimary, size: 20),
+                hintStyle: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.graySecondary,
+                ),
+                prefixIcon: const Icon(
+                  Icons.search_rounded,
+                  color: AppColors.pinkPrimary,
+                  size: 20,
+                ),
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,

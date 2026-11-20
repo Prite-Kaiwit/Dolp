@@ -2,17 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../constants/community_areas.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../main_navigation_screen.dart';
-
-class _DemoArea {
-  final String label;
-  final double latitude;
-  final double longitude;
-
-  const _DemoArea(this.label, this.latitude, this.longitude);
-}
 
 class LocationPermissionScreen extends StatefulWidget {
   const LocationPermissionScreen({super.key});
@@ -23,15 +16,7 @@ class LocationPermissionScreen extends StatefulWidget {
 }
 
 class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
-  static const _demoAreas = [
-    _DemoArea('อำเภอเมืองจันทบุรี', 12.6112, 102.1031),
-    _DemoArea('อำเภอท่าใหม่', 12.6230, 101.9990),
-    _DemoArea('อำเภอขลุง', 12.4600, 102.2200),
-    _DemoArea('อำเภอแหลมสิงห์', 12.4810, 102.0720),
-    _DemoArea('อำเภอนายายอาม', 12.7800, 101.8300),
-  ];
-
-  _DemoArea? _selectedArea;
+  CommunityArea? _selectedArea;
   bool _isLoading = false;
   String? _locationError;
 
@@ -158,13 +143,13 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            RadioGroup<_DemoArea>(
+            RadioGroup<CommunityArea>(
               groupValue: _selectedArea,
               onChanged: (value) => setState(() => _selectedArea = value),
               child: Column(
-                children: _demoAreas
+                children: kDemoCommunityAreas
                     .map(
-                      (area) => RadioListTile<_DemoArea>(
+                      (area) => RadioListTile<CommunityArea>(
                         value: area,
                         title: Text(area.label),
                         activeColor: AppColors.pinkPrimary,
@@ -180,8 +165,8 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
                 onPressed: _selectedArea == null
                     ? null
                     : () => _saveArea(
-                        _selectedArea!.latitude,
-                        _selectedArea!.longitude,
+                        _selectedArea!.location.lat,
+                        _selectedArea!.location.lng,
                         _selectedArea!.label,
                       ),
                 child: const Text('บันทึกพื้นที่'),

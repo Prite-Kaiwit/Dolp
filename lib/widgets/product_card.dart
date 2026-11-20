@@ -1,16 +1,21 @@
-// Keep showing the legacy pickup label until the nearby-feed UI is updated.
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
+import '../models/nearby_product.dart';
 import '../models/product.dart';
 import '../theme/app_theme.dart';
+import '../utils/distance.dart';
 import 'escrow_badge.dart';
 
 class ProductCard extends StatelessWidget {
-  final ProductModel product;
+  final NearbyProduct nearbyProduct;
   final VoidCallback onTap;
 
-  const ProductCard({super.key, required this.product, required this.onTap});
+  const ProductCard({
+    super.key,
+    required this.nearbyProduct,
+    required this.onTap,
+  });
+
+  ProductModel get product => nearbyProduct.product;
 
   @override
   Widget build(BuildContext context) {
@@ -64,23 +69,6 @@ class ProductCard extends StatelessWidget {
                     label: product.type.label,
                     isTrade: product.type == ListingType.trade,
                     isDonate: product.type == ListingType.donate,
-                  ),
-                ),
-                // Escrow mini indicator top right
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.9),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.security_rounded,
-                      size: 14,
-                      color: AppColors.greenPrimary,
-                    ),
                   ),
                 ),
               ],
@@ -137,18 +125,27 @@ class ProductCard extends StatelessWidget {
 
                   const SizedBox(height: 6),
 
-                  // Pickup Point snippet
+                  // Approximate distance and broad area only.
                   Row(
                     children: [
                       const Icon(
                         Icons.location_on_outlined,
                         size: 12,
-                        color: AppColors.graySecondary,
+                        color: AppColors.pinkPrimary,
                       ),
                       const SizedBox(width: 3),
+                      Text(
+                        formatDistance(nearbyProduct.distanceKm),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: AppColors.pinkDark,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          product.pickupPoint,
+                          product.locationLabel,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(

@@ -1,24 +1,31 @@
-// Keep the legacy pickup display until the listing/location UI migration.
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import '../../models/product.dart';
 import '../../models/chat.dart';
 import '../../theme/app_theme.dart';
 import '../../state/app_state.dart';
 import '../../widgets/escrow_badge.dart';
+import '../../widgets/nearby_products_map.dart';
+import '../../utils/distance.dart';
 import '../chat/chat_room_screen.dart';
 import '../order/pickup_point_screen.dart';
 import '../review_safety/report_screen.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final ProductModel product;
+  final double? nearbyDistanceKm;
 
-  const ProductDetailScreen({super.key, required this.product});
+  const ProductDetailScreen({
+    super.key,
+    required this.product,
+    this.nearbyDistanceKm,
+  });
 
   @override
   Widget build(BuildContext context) {
     final appState = AppState();
+    final productDistance =
+        nearbyDistanceKm ??
+        distanceKm(appState.currentLocation, product.publicLocation);
 
     return Scaffold(
       appBar: AppBar(
@@ -160,7 +167,7 @@ class ProductDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // Escrow Guarantee Card
+                  // No payment or transaction guarantees are implied.
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
@@ -181,16 +188,16 @@ class ProductDetailScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'สินค้านี้คุ้มครองด้วยระบบพักเงิน Escrow',
+                                'ซื้อขายอย่างระมัดระวัง',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
-                                  color: AppColors.greenDark,
+                                  color: AppColors.inkText,
                                 ),
                               ),
                               SizedBox(height: 2),
                               Text(
-                                'เงินจะไม่ถูกโอนให้ผู้ขายจนกว่าคุณจะได้รับสินค้าและกดยืนยัน',
+                                'ตกลงรายละเอียดและตรวจสอบสินค้าก่อนชำระเงิน',
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: AppColors.inkText,
@@ -353,9 +360,50 @@ class ProductDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
 
-                  // Pickup location information.
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.near_me_outlined,
+                        color: AppColors.pinkPrimary,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        formatDistance(productDistance),
+                        style: const TextStyle(
+                          color: AppColors.pinkDark,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
                   const Text(
-                    'สถานที่นัดรับที่แนะนำ',
+                    'ตำแหน่งสินค้าโดยประมาณ',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.inkText,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    product.locationLabel,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.graySecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: PublicLocationPreview(
+                      publicLocation: product.publicLocation,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'รูปแบบการนัดรับ',
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -390,7 +438,7 @@ class ProductDetailScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                product.pickupPoint,
+                                product.pickupType.label,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
@@ -398,7 +446,7 @@ class ProductDetailScreen extends StatelessWidget {
                                 ),
                               ),
                               const Text(
-                                'ตกลงสถานที่นัดรับกับผู้ขาย และตรวจสอบสินค้าก่อนชำระเงิน',
+                                'ตำแหน่งในแผนที่เป็นจุดประมาณ ที่อยู่จริงต้องตกลงและแชร์ในแชท',
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: AppColors.graySecondary,
@@ -568,7 +616,7 @@ class ProductDetailScreen extends StatelessWidget {
               ),
               const SizedBox(width: 8),
 
-              // Buy Now / Escrow Checkout
+              // Local handoff flow; payment remains between the users.
               Expanded(
                 child: SizedBox(
                   height: 48,
@@ -594,7 +642,7 @@ class ProductDetailScreen extends StatelessWidget {
                           ? 'ขอนัดรับฟรี'
                           : product.type == ListingType.trade
                           ? 'ขอนัดแลกเปลี่ยน'
-                          : 'ซื้อเลย (Escrow)',
+                          : 'ขอนัดซื้อ',
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,

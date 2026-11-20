@@ -8,14 +8,6 @@ class UserModel {
   final double? homeLat;
   final double? homeLng;
   final String homeLabel;
-  @Deprecated('Use phone instead.')
-  final String email = '';
-  @Deprecated('No longer used; community accounts do not have student IDs.')
-  final String studentId = '';
-  @Deprecated('Use homeLabel instead.')
-  final String faculty = '';
-  @Deprecated('Use phoneVerified instead.')
-  final bool isVerified = false;
   final String avatarUrl;
   final double rating;
   final int reviewCount;
