@@ -1,4 +1,8 @@
+import 'package:flutter/foundation.dart';
+
 import 'product_image_data.dart';
+
+enum ChatMessageType { text, image, meetupProposal, addressShare, system }
 
 class ChatMessage {
   final String id;
@@ -7,6 +11,10 @@ class ChatMessage {
   final DateTime timestamp;
   final bool isMe;
   final bool isSystemPrompt;
+  final ChatMessageType type;
+  final ProductImageData? image;
+  final String? meetupId;
+  final String? recipientId;
 
   ChatMessage({
     required this.id,
@@ -15,7 +23,14 @@ class ChatMessage {
     required this.timestamp,
     required this.isMe,
     this.isSystemPrompt = false,
-  });
+    this.type = ChatMessageType.text,
+    this.image,
+    this.meetupId,
+    this.recipientId,
+  }) : assert(type != ChatMessageType.image || image != null),
+       assert(type != ChatMessageType.meetupProposal || meetupId != null);
+
+  Uint8List? get imageBytes => image?.bytes;
 }
 
 class ChatConversation {
@@ -28,9 +43,12 @@ class ChatConversation {
   final double productPrice;
   final String productImageUrl;
   final ProductImageData? productImage;
+  final String buyerId;
+  final String sellerId;
   final String lastMessage;
   final DateTime lastMessageTime;
   final int unreadCount;
+  final Map<String, int> unreadByUser;
   final List<ChatMessage> messages;
 
   ChatConversation({
@@ -43,9 +61,12 @@ class ChatConversation {
     required this.productPrice,
     required this.productImageUrl,
     this.productImage,
+    this.buyerId = '',
+    this.sellerId = '',
     required this.lastMessage,
     required this.lastMessageTime,
     this.unreadCount = 0,
+    this.unreadByUser = const {},
     required this.messages,
   });
 
@@ -59,9 +80,12 @@ class ChatConversation {
     double? productPrice,
     String? productImageUrl,
     ProductImageData? productImage,
+    String? buyerId,
+    String? sellerId,
     String? lastMessage,
     DateTime? lastMessageTime,
     int? unreadCount,
+    Map<String, int>? unreadByUser,
     List<ChatMessage>? messages,
   }) {
     return ChatConversation(
@@ -74,9 +98,12 @@ class ChatConversation {
       productPrice: productPrice ?? this.productPrice,
       productImageUrl: productImageUrl ?? this.productImageUrl,
       productImage: productImage ?? this.productImage,
+      buyerId: buyerId ?? this.buyerId,
+      sellerId: sellerId ?? this.sellerId,
       lastMessage: lastMessage ?? this.lastMessage,
       lastMessageTime: lastMessageTime ?? this.lastMessageTime,
       unreadCount: unreadCount ?? this.unreadCount,
+      unreadByUser: unreadByUser ?? this.unreadByUser,
       messages: messages ?? this.messages,
     );
   }

@@ -6,7 +6,7 @@ import 'geo_location.dart';
 
 enum SuggestedSpotType { gasStation, mall, convenienceStore, other }
 
-class PickupPointModel {
+class SuggestedSpot {
   final String id;
   final String name;
   final String description;
@@ -19,18 +19,18 @@ class PickupPointModel {
   final bool isActive;
   final String openHours;
 
-  PickupPointModel({
+  SuggestedSpot({
     required this.id,
     required this.name,
     required this.description,
-    required this.zone,
+    this.zone = '',
     GeoLocation? location,
     this.type = SuggestedSpotType.other,
     this.isActive = true,
     this.openHours = '08:00 - 20:00 น.',
   }) : location = location ?? kDefaultCenter;
 
-  PickupPointModel copyWith({
+  SuggestedSpot copyWith({
     String? id,
     String? name,
     String? description,
@@ -40,7 +40,7 @@ class PickupPointModel {
     bool? isActive,
     String? openHours,
   }) {
-    return PickupPointModel(
+    return SuggestedSpot(
       id: id ?? this.id,
       name: name ?? this.name,
       description: description ?? this.description,
@@ -52,3 +52,5 @@ class PickupPointModel {
     );
   }
 }
+
+typedef PickupPointModel = SuggestedSpot;

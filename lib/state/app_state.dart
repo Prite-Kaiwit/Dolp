@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
+import '../constants/chat_limits.dart';
 import '../constants/app_info.dart';
 import '../models/user.dart';
 import '../models/product.dart';
@@ -9,6 +11,7 @@ import '../models/geo_location.dart';
 import '../models/nearby_product.dart';
 import '../models/order.dart';
 import '../models/chat.dart';
+import '../models/meetup_agreement.dart';
 import '../models/pickup_point.dart';
 import '../models/report.dart';
 import '../utils/distance.dart';
@@ -87,9 +90,11 @@ class AppState extends ChangeNotifier {
 
   // Chats
   List<ChatConversation> conversations = [];
+  List<MeetupAgreement> meetupAgreements = [];
+  int _chatSequence = 0;
 
   // Suggested public meeting points.
-  List<PickupPointModel> pickupPoints = [];
+  List<SuggestedSpot> pickupPoints = [];
 
   // Reports (Trust & Safety / Admin)
   List<ReportModel> reports = [];
@@ -99,6 +104,7 @@ class AppState extends ChangeNotifier {
 
   void _initMockData() {
     _exactLocationsByProductId.clear();
+    meetupAgreements.clear();
     users = [
       UserModel(
         id: 'user_01',
@@ -157,46 +163,46 @@ class AppState extends ChangeNotifier {
     currentUser = users.first;
 
     pickupPoints = [
-      PickupPointModel(
+      SuggestedSpot(
         id: 'p1',
-        name: 'จุดสาธารณะตัวอย่าง เขตเมือง',
-        description: 'ตำแหน่งตัวอย่างสำหรับตกลงนัดรับในเขตเมือง',
+        name: 'ห้างในย่านเมืองจันทบุรี',
+        description: 'พื้นที่สาธารณะสำหรับตกลงนัดรับในย่านเมือง',
         zone: 'เขตเมือง',
         location: GeoLocation(12.6112, 102.1031),
         type: SuggestedSpotType.mall,
         openHours: '07:30 - 20:00 น.',
       ),
-      PickupPointModel(
+      SuggestedSpot(
         id: 'p2',
-        name: 'จุดสาธารณะตัวอย่าง ท่าใหม่',
-        description: 'ตำแหน่งตัวอย่างสำหรับตกลงนัดรับในอำเภอท่าใหม่',
+        name: 'ร้านสะดวกซื้อในย่านท่าใหม่',
+        description: 'พื้นที่สาธารณะสำหรับตกลงนัดรับในย่านท่าใหม่',
         zone: 'ท่าใหม่',
         location: GeoLocation(12.6230, 101.9990),
         type: SuggestedSpotType.convenienceStore,
         openHours: '08:00 - 21:00 น.',
       ),
-      PickupPointModel(
+      SuggestedSpot(
         id: 'p3',
-        name: 'จุดสาธารณะตัวอย่าง ขลุง',
-        description: 'ตำแหน่งตัวอย่างสำหรับตกลงนัดรับในอำเภอขลุง',
+        name: 'ปั๊มน้ำมันในย่านขลุง',
+        description: 'พื้นที่สาธารณะสำหรับตกลงนัดรับในย่านขลุง',
         zone: 'ขลุง',
         location: GeoLocation(12.4600, 102.2200),
         type: SuggestedSpotType.gasStation,
         openHours: '08:30 - 18:30 น.',
       ),
-      PickupPointModel(
+      SuggestedSpot(
         id: 'p4',
-        name: 'จุดสาธารณะตัวอย่าง แหลมสิงห์',
-        description: 'ตำแหน่งตัวอย่างสำหรับตกลงนัดรับในอำเภอแหลมสิงห์',
+        name: 'ลานสาธารณะในย่านแหลมสิงห์',
+        description: 'พื้นที่สาธารณะสำหรับตกลงนัดรับในย่านแหลมสิงห์',
         zone: 'แหลมสิงห์',
         location: GeoLocation(12.4810, 102.0720),
         type: SuggestedSpotType.other,
         openHours: '08:00 - 22:00 น.',
       ),
-      PickupPointModel(
+      SuggestedSpot(
         id: 'p5',
-        name: 'จุดสาธารณะตัวอย่าง นายายอาม',
-        description: 'ตำแหน่งตัวอย่างสำหรับตกลงนัดรับในอำเภอนายายอาม',
+        name: 'ห้างในย่านนายายอาม',
+        description: 'พื้นที่สาธารณะสำหรับตกลงนัดรับในย่านนายายอาม',
         zone: 'นายายอาม',
         location: GeoLocation(12.7800, 101.8300),
         type: SuggestedSpotType.mall,
@@ -545,9 +551,12 @@ class AppState extends ChangeNotifier {
         productPrice: 180.0,
         productImageUrl:
             'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500',
-        lastMessage: 'ผมชำระเงินผ่านระบบ Escrow แล้วครับ เจอกันที่คอมเพล็กซ์นะ',
+        buyerId: 'user_01',
+        sellerId: 'user_02',
+        lastMessage: 'ตกลงครับ เจอกันที่จุดสาธารณะในเขตเมืองนะครับ',
         lastMessageTime: DateTime.now().subtract(const Duration(minutes: 12)),
         unreadCount: 1,
+        unreadByUser: const {'user_01': 1, 'user_02': 0},
         messages: [
           ChatMessage(
             id: 'm1',
@@ -569,7 +578,7 @@ class AppState extends ChangeNotifier {
           ChatMessage(
             id: 'm3',
             senderId: 'user_01',
-            text: 'ผมชำระเงินผ่านระบบ Escrow แล้วครับ เจอกันที่คอมเพล็กซ์นะ',
+            text: 'ตกลงครับ เจอกันที่จุดสาธารณะในเขตเมืองนะครับ',
             timestamp: DateTime.now().subtract(const Duration(minutes: 12)),
             isMe: true,
           ),
@@ -586,6 +595,8 @@ class AppState extends ChangeNotifier {
         productPrice: 650.0,
         productImageUrl:
             'https://images.unsplash.com/photo-1587145820266-a5951ee6f620?w=500',
+        buyerId: 'user_01',
+        sellerId: 'user_03',
         lastMessage: 'มีหนังสือ Data Structures แลกได้ไหมคะ',
         lastMessageTime: DateTime.now().subtract(const Duration(hours: 5)),
         unreadCount: 0,
@@ -915,8 +926,20 @@ class AppState extends ChangeNotifier {
   Set<String> _blockedUserIdsFor(String userId) => const {};
 
   bool _hasAcceptedMeetup(String productId, String requesterUserId) {
-    // Phase 5 will check accepted meetup agreements here.
-    return false;
+    final product = products.where((item) => item.id == productId).firstOrNull;
+    if (product == null) return false;
+    return meetupAgreements.any((agreement) {
+      if (agreement.productId != productId ||
+          agreement.status != MeetupStatus.accepted) {
+        return false;
+      }
+      final conversation = conversations
+          .where((item) => item.id == agreement.conversationId)
+          .firstOrNull;
+      return conversation != null &&
+          conversation.buyerId == requesterUserId &&
+          conversation.sellerId == product.sellerId;
+    });
   }
 
   ProductModel addListing({
@@ -1256,7 +1279,7 @@ class AppState extends ChangeNotifier {
   }
 
   // Pickup Points Management (FR-11)
-  void addPickupPoint(PickupPointModel point) {
+  void addPickupPoint(SuggestedSpot point) {
     pickupPoints.add(point);
     notifyListeners();
   }
@@ -1276,26 +1299,382 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Chat message sending (FR-03)
-  void sendChatMessage(String conversationId, String text) {
-    final index = conversations.indexWhere((c) => c.id == conversationId);
-    if (index != -1) {
-      final conv = conversations[index];
-      final newMsg = ChatMessage(
-        id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
-        senderId: currentUser.id,
-        text: text,
-        timestamp: DateTime.now(),
-        isMe: true,
-      );
-      final updatedMessages = List<ChatMessage>.from(conv.messages)
-        ..add(newMsg);
-      conversations[index] = conv.copyWith(
-        messages: updatedMessages,
-        lastMessage: text,
-        lastMessageTime: DateTime.now(),
-      );
-      notifyListeners();
-    }
+  ChatConversation? openConversationForProduct(String productId) {
+    if (!isLoggedIn) return null;
+    final product = products.where((item) => item.id == productId).firstOrNull;
+    if (product == null || product.sellerId == currentUser.id) return null;
+
+    final existing = conversations.where(
+      (conversation) =>
+          conversation.productId == productId &&
+          conversation.buyerId == currentUser.id &&
+          conversation.sellerId == product.sellerId,
+    );
+    if (existing.isNotEmpty) return existing.first;
+
+    final seller = users.firstWhere(
+      (user) => user.id == product.sellerId,
+      orElse: () => UserModel(id: product.sellerId, name: product.sellerName),
+    );
+    final now = DateTime.now();
+    final conversation = ChatConversation(
+      id: _nextChatId('chat'),
+      peerId: seller.id,
+      peerName: seller.name,
+      peerAvatar: seller.avatarUrl,
+      buyerId: currentUser.id,
+      sellerId: seller.id,
+      productId: product.id,
+      productTitle: product.title,
+      productPrice: product.price,
+      productImageUrl: product.imageUrl,
+      productImage: product.coverImage,
+      lastMessage: 'อย่าโอนเงินก่อนเห็นสินค้า และนัดในที่สาธารณะถ้าเป็นไปได้',
+      lastMessageTime: now,
+      unreadByUser: {currentUser.id: 0, seller.id: 0},
+      messages: [
+        ChatMessage(
+          id: _nextChatId('msg'),
+          senderId: 'system',
+          text: 'อย่าโอนเงินก่อนเห็นสินค้า และนัดในที่สาธารณะถ้าเป็นไปได้',
+          timestamp: now,
+          isMe: false,
+          isSystemPrompt: true,
+          type: ChatMessageType.system,
+        ),
+      ],
+    );
+    conversations.insert(0, conversation);
+    notifyListeners();
+    return conversation;
   }
+
+  int unreadCountFor(ChatConversation conversation, String userId) =>
+      conversation.buyerId != userId && conversation.sellerId != userId
+      ? 0
+      : conversation.unreadByUser[userId] ??
+            (conversation.buyerId == userId ? conversation.unreadCount : 0);
+
+  List<ChatConversation> get conversationsForCurrentUser => isLoggedIn
+      ? conversations.where(_isConversationParticipant).toList()
+      : const [];
+
+  UserModel? conversationPeer(ChatConversation conversation) {
+    final peerId = currentUser.id == conversation.buyerId
+        ? conversation.sellerId
+        : conversation.buyerId;
+    return users.where((user) => user.id == peerId).firstOrNull;
+  }
+
+  void markConversationRead(String conversationId) {
+    final index = conversations.indexWhere((item) => item.id == conversationId);
+    if (index == -1 || !_isConversationParticipant(conversations[index])) {
+      return;
+    }
+    final conversation = conversations[index];
+    final unread = Map<String, int>.of(conversation.unreadByUser)
+      ..[currentUser.id] = 0;
+    conversations[index] = conversation.copyWith(
+      unreadCount: currentUser.id == conversation.buyerId
+          ? 0
+          : conversation.unreadCount,
+      unreadByUser: unread,
+    );
+    notifyListeners();
+  }
+
+  void ensureConversationSafetyMessage(String conversationId) {
+    final conversation = conversations
+        .where((item) => item.id == conversationId)
+        .firstOrNull;
+    if (conversation == null ||
+        !_isConversationParticipant(conversation) ||
+        conversation.messages.any(
+          (message) => message.type == ChatMessageType.system,
+        )) {
+      return;
+    }
+    final messages = List<ChatMessage>.of(conversation.messages)
+      ..insert(
+        0,
+        ChatMessage(
+          id: 'safety_${conversation.id}',
+          senderId: 'system',
+          text: 'อย่าโอนเงินก่อนเห็นสินค้า และนัดในที่สาธารณะถ้าเป็นไปได้',
+          timestamp: conversation.messages.isEmpty
+              ? DateTime.now()
+              : conversation.messages.first.timestamp,
+          isMe: false,
+          isSystemPrompt: true,
+          type: ChatMessageType.system,
+        ),
+      );
+    final index = conversations.indexWhere((item) => item.id == conversationId);
+    conversations[index] = conversation.copyWith(messages: messages);
+    notifyListeners();
+  }
+
+  String? sendTextMessage(String conversationId, String text) {
+    if (!isLoggedIn) return 'เข้าสู่ระบบก่อนส่งข้อความ';
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return 'กรุณาพิมพ์ข้อความ';
+    if (trimmed.length > kMaxChatMessageLength) {
+      return 'ข้อความต้องไม่เกิน $kMaxChatMessageLength ตัวอักษร';
+    }
+    final conversation = _participantConversation(conversationId);
+    if (conversation == null) return 'ไม่พบบทสนทนาหรือคุณไม่มีสิทธิ์ส่งข้อความ';
+    _appendChatMessage(conversation, ChatMessageType.text, trimmed);
+    return null;
+  }
+
+  String? sendImageMessage(String conversationId, Uint8List bytes) {
+    if (!isLoggedIn) return 'เข้าสู่ระบบก่อนส่งรูปภาพ';
+    if (bytes.isEmpty) return 'ไม่พบข้อมูลรูปภาพ';
+    if (bytes.lengthInBytes > kMaxChatImageBytes) {
+      return 'รูปภาพต้องมีขนาดไม่เกิน 5 MB';
+    }
+    final conversation = _participantConversation(conversationId);
+    if (conversation == null) return 'ไม่พบบทสนทนาหรือคุณไม่มีสิทธิ์ส่งรูปภาพ';
+    _appendChatMessage(
+      conversation,
+      ChatMessageType.image,
+      'ส่งรูปภาพ',
+      image: ProductImageData.memory(bytes),
+    );
+    return null;
+  }
+
+  String? proposeMeetup({
+    required String conversationId,
+    required PickupType pickupType,
+    required String placeLabel,
+    required DateTime scheduledAt,
+    String note = '',
+    GeoLocation? spotLocation,
+  }) {
+    if (!isLoggedIn) return 'เข้าสู่ระบบก่อนเสนอนัดรับ';
+    final conversation = _participantConversation(conversationId);
+    if (conversation == null) return 'ไม่พบบทสนทนาหรือคุณไม่มีสิทธิ์เสนอนัด';
+    if (pickupType == PickupType.discussInChat) {
+      return 'กรุณาเลือกวิธีนัดรับ';
+    }
+    final now = DateTime.now();
+    if (!scheduledAt.isAfter(now) ||
+        scheduledAt.isAfter(
+          now.add(const Duration(days: kMeetupMaxDaysAhead)),
+        )) {
+      return 'วันนัดต้องอยู่ภายใน $kMeetupMaxDaysAhead วันข้างหน้า';
+    }
+    final product = products
+        .where((item) => item.id == conversation.productId)
+        .firstOrNull;
+    if (product == null) return 'ไม่พบประกาศสินค้านี้';
+    final label = pickupType == PickupType.sellerHome
+        ? 'บ้านผู้ขาย (ย่าน ${product.locationLabel})'
+        : placeLabel.trim();
+    if (label.isEmpty) return 'กรุณาระบุสถานที่นัดรับ';
+    if (label.length > kPlaceLabelMaxLength) {
+      return 'ชื่อสถานที่ต้องไม่เกิน $kPlaceLabelMaxLength ตัวอักษร';
+    }
+    if (pickupType == PickupType.agreedSpot && spotLocation == null) {
+      return 'กรุณาเลือกพิกัดของจุดที่ตกลงกัน';
+    }
+    if (note.trim().length > kMeetupNoteMaxLength) {
+      return 'หมายเหตุต้องไม่เกิน $kMeetupNoteMaxLength ตัวอักษร';
+    }
+    final agreementId = _nextChatId('meetup');
+    // Supersede only pending agreements; shared address messages remain history and are not resent.
+    for (var index = 0; index < meetupAgreements.length; index++) {
+      final old = meetupAgreements[index];
+      if (old.conversationId == conversationId &&
+          old.status == MeetupStatus.proposed) {
+        meetupAgreements[index] = MeetupAgreement(
+          id: old.id,
+          conversationId: old.conversationId,
+          productId: old.productId,
+          proposerId: old.proposerId,
+          responderId: old.responderId,
+          pickupType: old.pickupType,
+          placeLabel: old.placeLabel,
+          spotLocation: old.spotLocation,
+          scheduledAt: old.scheduledAt,
+          note: old.note,
+          status: MeetupStatus.superseded,
+          createdAt: old.createdAt,
+          respondedAt: now,
+        );
+      }
+    }
+    final agreement = MeetupAgreement(
+      id: agreementId,
+      conversationId: conversationId,
+      productId: conversation.productId,
+      proposerId: currentUser.id,
+      responderId: currentUser.id == conversation.buyerId
+          ? conversation.sellerId
+          : conversation.buyerId,
+      pickupType: pickupType,
+      placeLabel: label,
+      spotLocation: pickupType == PickupType.sellerHome ? null : spotLocation,
+      scheduledAt: scheduledAt,
+      note: note.trim(),
+      status: MeetupStatus.proposed,
+      createdAt: now,
+    );
+    meetupAgreements.add(agreement);
+    _appendChatMessage(
+      conversation,
+      ChatMessageType.meetupProposal,
+      'ข้อเสนอนัดรับ',
+      meetupId: agreementId,
+    );
+    return null;
+  }
+
+  String? respondMeetup(String meetupId, {required bool accept}) {
+    if (!isLoggedIn) return 'เข้าสู่ระบบก่อนตอบรับนัด';
+    final index = meetupAgreements.indexWhere((item) => item.id == meetupId);
+    if (index == -1) return 'ไม่พบข้อเสนอนัดรับ';
+    final agreement = meetupAgreements[index];
+    if (!_isConversationParticipantById(agreement.conversationId)) {
+      return 'คุณไม่มีสิทธิ์ตอบข้อเสนอนี้';
+    }
+    if (agreement.status != MeetupStatus.proposed) {
+      return 'ข้อเสนอนี้ถูกตอบหรือเปลี่ยนไปแล้ว';
+    }
+    if (agreement.proposerId == currentUser.id) {
+      return 'ผู้เสนอนัดไม่สามารถตอบข้อเสนอของตัวเองได้';
+    }
+    if (agreement.responderId != currentUser.id) {
+      return 'เฉพาะผู้รับข้อเสนอเท่านั้นที่ตอบได้';
+    }
+    meetupAgreements[index] = MeetupAgreement(
+      id: agreement.id,
+      conversationId: agreement.conversationId,
+      productId: agreement.productId,
+      proposerId: agreement.proposerId,
+      responderId: agreement.responderId,
+      pickupType: agreement.pickupType,
+      placeLabel: agreement.placeLabel,
+      spotLocation: agreement.pickupType == PickupType.sellerHome
+          ? null
+          : agreement.spotLocation,
+      scheduledAt: agreement.scheduledAt,
+      note: agreement.note,
+      status: accept ? MeetupStatus.accepted : MeetupStatus.declined,
+      createdAt: agreement.createdAt,
+      respondedAt: DateTime.now(),
+    );
+    final conversation = _participantConversation(agreement.conversationId)!;
+    _appendChatMessage(
+      conversation,
+      ChatMessageType.system,
+      accept ? 'ตกลงนัดรับแล้ว' : 'ปฏิเสธข้อเสนอนัดรับ',
+    );
+    return null;
+  }
+
+  MeetupAgreement? activeAgreementFor(String conversationId) {
+    final accepted = meetupAgreements.where(
+      (item) =>
+          item.conversationId == conversationId &&
+          item.status == MeetupStatus.accepted,
+    );
+    if (accepted.isEmpty) return null;
+    return accepted.reduce(
+      (a, b) => a.respondedAt!.isAfter(b.respondedAt!) ? a : b,
+    );
+  }
+
+  String? shareExactAddress(String conversationId) {
+    if (!isLoggedIn) return 'เข้าสู่ระบบก่อนส่งที่อยู่';
+    final conversation = _participantConversation(conversationId);
+    if (conversation == null) return 'ไม่พบบทสนทนาหรือคุณไม่มีสิทธิ์ส่งที่อยู่';
+    final product = products
+        .where((item) => item.id == conversation.productId)
+        .firstOrNull;
+    if (product == null || product.sellerId != currentUser.id) {
+      return 'เฉพาะเจ้าของประกาศเท่านั้นที่ส่งที่อยู่จริงได้';
+    }
+    final agreement = activeAgreementFor(conversationId);
+    if (agreement == null) return 'ต้องมีนัดรับที่ตกลงแล้วก่อนส่งที่อยู่จริง';
+    final privateLocation = _exactLocationsByProductId[product.id];
+    if (privateLocation == null || privateLocation.address.trim().isEmpty) {
+      return 'ผู้ขายยังไม่ได้บันทึกที่อยู่ กรุณาพิมพ์ที่อยู่ในแชทด้วยตนเอง';
+    }
+    final recipientId = agreement.proposerId == currentUser.id
+        ? agreement.responderId
+        : agreement.proposerId;
+    _appendChatMessage(
+      conversation,
+      ChatMessageType.addressShare,
+      privateLocation.address,
+      recipientId: recipientId,
+    );
+    return null;
+  }
+
+  ChatConversation? _participantConversation(String conversationId) {
+    if (!_isConversationParticipantById(conversationId)) return null;
+    return conversations.firstWhere((item) => item.id == conversationId);
+  }
+
+  bool _isConversationParticipantById(String conversationId) {
+    final conversation = conversations
+        .where((item) => item.id == conversationId)
+        .firstOrNull;
+    return conversation != null && _isConversationParticipant(conversation);
+  }
+
+  bool _isConversationParticipant(ChatConversation conversation) =>
+      currentUser.id == conversation.buyerId ||
+      currentUser.id == conversation.sellerId;
+
+  void _appendChatMessage(
+    ChatConversation conversation,
+    ChatMessageType type,
+    String text, {
+    ProductImageData? image,
+    String? meetupId,
+    String? recipientId,
+  }) {
+    final index = conversations.indexWhere(
+      (item) => item.id == conversation.id,
+    );
+    final now = DateTime.now();
+    final message = ChatMessage(
+      id: _nextChatId('msg'),
+      senderId: currentUser.id,
+      text: text,
+      timestamp: now,
+      isMe: true,
+      type: type,
+      image: image,
+      meetupId: meetupId,
+      recipientId: recipientId,
+    );
+    final messages = List<ChatMessage>.of(conversation.messages)..add(message);
+    final recipient =
+        recipientId ??
+        (currentUser.id == conversation.buyerId
+            ? conversation.sellerId
+            : conversation.buyerId);
+    final unread = Map<String, int>.of(conversation.unreadByUser);
+    unread[recipient] = (unread[recipient] ?? 0) + 1;
+    conversations[index] = conversation.copyWith(
+      messages: messages,
+      lastMessage: type == ChatMessageType.image
+          ? 'ส่งรูปภาพ'
+          : type == ChatMessageType.meetupProposal
+          ? 'ข้อเสนอนัดรับ'
+          : text,
+      lastMessageTime: now,
+      unreadCount: conversation.unreadCount + 1,
+      unreadByUser: unread,
+    );
+    notifyListeners();
+  }
+
+  String _nextChatId(String prefix) =>
+      '${prefix}_${DateTime.now().microsecondsSinceEpoch}_${_chatSequence++}';
 }

@@ -17,6 +17,9 @@ class LocationPicker extends StatefulWidget {
   final GeoLocation? initialLocation;
   final String initialLocationLabel;
   final String initialExactAddress;
+  final bool showExactAddressField;
+  final bool showPrivacyNotice;
+  final String locationLabelTitle;
   final ValueChanged<LocationSelection> onChanged;
 
   const LocationPicker({
@@ -24,6 +27,9 @@ class LocationPicker extends StatefulWidget {
     this.initialLocation,
     this.initialLocationLabel = '',
     this.initialExactAddress = '',
+    this.showExactAddressField = true,
+    this.showPrivacyNotice = true,
+    this.locationLabelTitle = 'ย่านโดยประมาณ',
     required this.onChanged,
   });
 
@@ -229,7 +235,7 @@ class _LocationPickerState extends State<LocationPicker> {
           controller: _locationLabelController,
           maxLength: kMaxLocationLabelLength,
           decoration: InputDecoration(
-            labelText: 'ย่านโดยประมาณ',
+            labelText: widget.locationLabelTitle,
             hintText: 'เช่น ต.ท่าช้าง',
             helperText: 'ระบุย่านกว้าง ๆ เท่านั้น ไม่ต้องกรอกบ้านเลขที่',
             errorText: _locationErrorLabel,
@@ -237,26 +243,32 @@ class _LocationPickerState extends State<LocationPicker> {
           ),
         ),
         const SizedBox(height: 4),
-        TextField(
-          key: const ValueKey('listing-exact-address'),
-          controller: _exactAddressController,
-          maxLength: kMaxExactAddressLength,
-          maxLines: 2,
-          decoration: InputDecoration(
-            labelText: 'ที่อยู่หรือจุดสังเกต (ไม่บังคับ)',
-            helperText: 'เห็นเฉพาะคุณ และคู่ที่ตกลงนัดแล้ว',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+        if (widget.showExactAddressField)
+          TextField(
+            key: const ValueKey('listing-exact-address'),
+            controller: _exactAddressController,
+            maxLength: kMaxExactAddressLength,
+            maxLines: 2,
+            decoration: InputDecoration(
+              labelText: 'ที่อยู่หรือจุดสังเกต (ไม่บังคับ)',
+              helperText: 'เห็นเฉพาะคุณ และคู่ที่ตกลงนัดแล้ว',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
           ),
-        ),
-        Text(
-          selected == null
-              ? 'กรุณาเลือกจุดบนแผนที่หรือย่านตัวอย่าง'
-              : 'ผู้ซื้อจะเห็นแค่ตำแหน่งโดยประมาณ ที่อยู่จริงบอกในแชทเมื่อตกลงกัน',
-          style: TextStyle(
-            fontSize: 12,
-            color: selected == null ? AppColors.error : AppColors.graySecondary,
+        if (widget.showPrivacyNotice)
+          Text(
+            selected == null
+                ? 'กรุณาเลือกจุดบนแผนที่หรือย่านตัวอย่าง'
+                : 'ผู้ซื้อจะเห็นแค่ตำแหน่งโดยประมาณ ที่อยู่จริงบอกในแชทเมื่อตกลงกัน',
+            style: TextStyle(
+              fontSize: 12,
+              color: selected == null
+                  ? AppColors.error
+                  : AppColors.graySecondary,
+            ),
           ),
-        ),
       ],
     );
   }

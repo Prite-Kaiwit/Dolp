@@ -11,13 +11,12 @@ class ChatListScreen extends StatelessWidget {
     final appState = AppState();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('ข้อความแชท'),
-      ),
+      appBar: AppBar(title: const Text('ข้อความแชท')),
       body: ListenableBuilder(
         listenable: appState,
         builder: (context, _) {
-          if (appState.conversations.isEmpty) {
+          final conversations = appState.conversationsForCurrentUser;
+          if (conversations.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -28,17 +27,28 @@ class ChatListScreen extends StatelessWidget {
                       color: AppColors.pinkPale,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.chat_bubble_outline_rounded, size: 48, color: AppColors.pinkPrimary),
+                    child: const Icon(
+                      Icons.chat_bubble_outline_rounded,
+                      size: 48,
+                      color: AppColors.pinkPrimary,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   const Text(
                     'ยังไม่มีการสนทนา',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.inkText),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.inkText,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   const Text(
                     'กดปุ่ม "แชท" จากหน้ารายละเอียดสินค้าเพื่อสอบถามผู้ขาย',
-                    style: TextStyle(fontSize: 13, color: AppColors.graySecondary),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.graySecondary,
+                    ),
                   ),
                 ],
               ),
@@ -46,12 +56,20 @@ class ChatListScreen extends StatelessWidget {
           }
 
           return ListView.separated(
-            itemCount: appState.conversations.length,
+            itemCount: conversations.length,
             separatorBuilder: (_, _) => const Divider(height: 1, indent: 76),
             itemBuilder: (context, index) {
-              final conv = appState.conversations[index];
+              final conv = conversations[index];
+              final peer = appState.conversationPeer(conv);
+              final unread = appState.unreadCountFor(
+                conv,
+                appState.currentUser.id,
+              );
               return ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 onTap: () {
                   Navigator.push(
                     context,
@@ -64,10 +82,14 @@ class ChatListScreen extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 26,
-                      backgroundImage: NetworkImage(conv.peerAvatar),
+                      backgroundImage: NetworkImage(
+                        peer?.avatarUrl ?? conv.peerAvatar,
+                      ),
                       onBackgroundImageError: (_, _) {},
                       child: Text(
-                        conv.peerName.isNotEmpty ? conv.peerName[0] : 'U',
+                        (peer?.name ?? conv.peerName).isNotEmpty
+                            ? (peer?.name ?? conv.peerName)[0]
+                            : 'U',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -83,7 +105,11 @@ class ChatListScreen extends StatelessWidget {
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 2),
                         ),
-                        child: const Icon(Icons.shopping_bag, size: 10, color: Colors.white),
+                        child: const Icon(
+                          Icons.shopping_bag,
+                          size: 10,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ],
@@ -93,14 +119,20 @@ class ChatListScreen extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        conv.peerName,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        peer?.name ?? conv.peerName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     Text(
                       _formatTime(conv.lastMessageTime),
-                      style: const TextStyle(fontSize: 11, color: AppColors.graySecondary),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.graySecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -111,14 +143,21 @@ class ChatListScreen extends StatelessWidget {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 1,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.pinkPale,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             conv.productTitle,
-                            style: const TextStyle(fontSize: 10, color: AppColors.pinkDark, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: AppColors.pinkDark,
+                              fontWeight: FontWeight.bold,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -126,7 +165,11 @@ class ChatListScreen extends StatelessWidget {
                         const SizedBox(width: 6),
                         Text(
                           '฿${conv.productPrice.toStringAsFixed(0)}',
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.inkText),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.inkText,
+                          ),
                         ),
                       ],
                     ),
@@ -137,13 +180,17 @@ class ChatListScreen extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 13,
-                        color: conv.unreadCount > 0 ? AppColors.inkText : AppColors.graySecondary,
-                        fontWeight: conv.unreadCount > 0 ? FontWeight.bold : FontWeight.normal,
+                        color: unread > 0
+                            ? AppColors.inkText
+                            : AppColors.graySecondary,
+                        fontWeight: unread > 0
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                       ),
                     ),
                   ],
                 ),
-                trailing: conv.unreadCount > 0
+                trailing: unread > 0
                     ? Container(
                         padding: const EdgeInsets.all(6),
                         decoration: const BoxDecoration(
@@ -151,8 +198,12 @@ class ChatListScreen extends StatelessWidget {
                           shape: BoxShape.circle,
                         ),
                         child: Text(
-                          '${conv.unreadCount}',
-                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                          '$unread',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       )
                     : null,

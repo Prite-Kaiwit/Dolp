@@ -1,5 +1,3 @@
-// This screen still reads the legacy pickupPoint and zone fields pending
-// the meetup flow and suggested-spot UI migration.
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
@@ -21,7 +19,7 @@ class PickupPointScreen extends StatefulWidget {
 
 class _PickupPointScreenState extends State<PickupPointScreen> {
   late PickupPointModel _selectedPoint;
-  String _selectedTimeSlot = 'วันนี้ 17:00 - 18:00 น.';
+  String _selectedTimeSlot = 'วันนี้ 17:00 - 18:00 น. (หลังเลิกเรียน)';
   final TextEditingController _noteController = TextEditingController();
 
   final List<String> _timeSlots = [
@@ -185,26 +183,6 @@ class _PickupPointScreenState extends State<PickupPointScreen> {
                                       color: isSelected
                                           ? AppColors.greenDark
                                           : AppColors.inkText,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? Colors.white
-                                          : AppColors.grayBg,
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      point.zone,
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        color: AppColors.graySecondary,
-                                      ),
                                     ),
                                   ),
                                 ],

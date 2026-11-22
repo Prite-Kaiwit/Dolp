@@ -40,7 +40,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     return ListenableBuilder(
       listenable: appState,
       builder: (context, _) {
-        final unreadChat = appState.conversations.fold<int>(0, (sum, c) => sum + c.unreadCount);
+        final unreadChat = appState.conversationsForCurrentUser.fold<int>(
+          0,
+          (sum, conversation) =>
+              sum +
+              appState.unreadCountFor(conversation, appState.currentUser.id),
+        );
 
         return Scaffold(
           body: IndexedStack(
@@ -64,14 +69,26 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildNavItem(0, Icons.home_rounded, Icons.home_outlined, 'หน้าแรก'),
-                    _buildNavItem(1, Icons.search_rounded, Icons.search, 'ค้นหา'),
+                    _buildNavItem(
+                      0,
+                      Icons.home_rounded,
+                      Icons.home_outlined,
+                      'หน้าแรก',
+                    ),
+                    _buildNavItem(
+                      1,
+                      Icons.search_rounded,
+                      Icons.search,
+                      'ค้นหา',
+                    ),
                     // Center Floating Add Listing Button
                     GestureDetector(
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const CreateListingScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const CreateListingScreen(),
+                          ),
                         );
                       },
                       child: Container(
@@ -86,17 +103,34 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.pinkPrimary.withValues(alpha: 0.4),
+                              color: AppColors.pinkPrimary.withValues(
+                                alpha: 0.4,
+                              ),
                               blurRadius: 8,
                               offset: const Offset(0, 3),
                             ),
                           ],
                         ),
-                        child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
+                        child: const Icon(
+                          Icons.add_rounded,
+                          color: Colors.white,
+                          size: 28,
+                        ),
                       ),
                     ),
-                    _buildNavItem(3, Icons.chat_bubble_rounded, Icons.chat_bubble_outline_rounded, 'แชท', badgeCount: unreadChat),
-                    _buildNavItem(4, Icons.person_rounded, Icons.person_outline_rounded, 'โปรไฟล์'),
+                    _buildNavItem(
+                      3,
+                      Icons.chat_bubble_rounded,
+                      Icons.chat_bubble_outline_rounded,
+                      'แชท',
+                      badgeCount: unreadChat,
+                    ),
+                    _buildNavItem(
+                      4,
+                      Icons.person_rounded,
+                      Icons.person_outline_rounded,
+                      'โปรไฟล์',
+                    ),
                   ],
                 ),
               ),
@@ -107,7 +141,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData activeIcon, IconData inactiveIcon, String label, {int badgeCount = 0}) {
+  Widget _buildNavItem(
+    int index,
+    IconData activeIcon,
+    IconData inactiveIcon,
+    String label, {
+    int badgeCount = 0,
+  }) {
     final isSelected = _currentIndex == index;
 
     return InkWell(
@@ -123,7 +163,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               children: [
                 Icon(
                   isSelected ? activeIcon : inactiveIcon,
-                  color: isSelected ? AppColors.pinkPrimary : AppColors.graySecondary,
+                  color: isSelected
+                      ? AppColors.pinkPrimary
+                      : AppColors.graySecondary,
                   size: 24,
                 ),
                 if (badgeCount > 0)
@@ -138,7 +180,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       ),
                       child: Text(
                         '$badgeCount',
-                        style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -150,7 +196,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? AppColors.pinkPrimary : AppColors.graySecondary,
+                color: isSelected
+                    ? AppColors.pinkPrimary
+                    : AppColors.graySecondary,
               ),
             ),
           ],

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../models/product.dart';
-import '../../models/chat.dart';
 import '../../theme/app_theme.dart';
 import '../../state/app_state.dart';
 import '../../widgets/escrow_badge.dart';
@@ -8,6 +7,7 @@ import '../../widgets/nearby_products_map.dart';
 import '../../widgets/product_image.dart';
 import '../../utils/distance.dart';
 import '../chat/chat_room_screen.dart';
+import '../auth/login_screen.dart';
 import '../order/pickup_point_screen.dart';
 import '../review_safety/report_screen.dart';
 
@@ -496,78 +496,68 @@ class ProductDetailScreen extends StatelessWidget {
           child: Row(
             children: [
               // Chat with Seller Button
-              OutlinedButton(
-                onPressed: () {
-                  // Find or create conversation
-                  final conv = appState.conversations.firstWhere(
-                    (c) => c.productId == product.id,
-                    orElse: () => ChatConversation(
-                      id: 'chat_${DateTime.now().millisecondsSinceEpoch}',
-                      peerId: product.sellerId,
-                      peerName: product.sellerName,
-                      peerAvatar:
-                          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
-                      productId: product.id,
-                      productTitle: product.title,
-                      productPrice: product.price,
-                      productImageUrl: product.imageUrl,
-                      productImage: product.coverImage,
-                      lastMessage: 'สวัสดีครับ สนใจสินค้านี้ครับ',
-                      lastMessageTime: DateTime.now(),
-                      messages: [
-                        ChatMessage(
-                          id: 'msg_0',
-                          senderId: appState.currentUser.id,
-                          text:
-                              'สวัสดีครับ สนใจสินค้า ${product.title} ครับ สะดวกนัดรับไหมครับ',
-                          timestamp: DateTime.now(),
-                          isMe: true,
+              if (appState.currentUser.id != product.sellerId) ...[
+                OutlinedButton(
+                  onPressed: () {
+                    if (!appState.isLoggedIn) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) => const LoginScreen(),
                         ),
-                      ],
-                    ),
-                  );
-
-                  if (!appState.conversations.any((c) => c.id == conv.id)) {
-                    appState.conversations.insert(0, conv);
-                  }
-
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ChatRoomScreen(conversation: conv),
-                    ),
-                  );
-                },
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  side: const BorderSide(color: AppColors.pinkPrimary),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: const Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.chat_bubble_outline_rounded,
-                      size: 20,
-                      color: AppColors.pinkPrimary,
-                    ),
-                    Text(
-                      'แชท',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.pinkPrimary,
-                        fontWeight: FontWeight.bold,
+                      );
+                      return;
+                    }
+                    final conversation = appState.openConversationForProduct(
+                      product.id,
+                    );
+                    if (conversation == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('ไม่สามารถเริ่มบทสนทนานี้ได้'),
+                        ),
+                      );
+                      return;
+                    }
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) =>
+                            ChatRoomScreen(conversation: conversation),
                       ),
+                    );
+                  },
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
                     ),
-                  ],
+                    side: const BorderSide(color: AppColors.pinkPrimary),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.chat_bubble_outline_rounded,
+                        size: 20,
+                        color: AppColors.pinkPrimary,
+                      ),
+                      Text(
+                        'แชทกับผู้ขาย',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.pinkPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
+                const SizedBox(width: 8),
+              ],
 
               // Add to cart button
               OutlinedButton(
