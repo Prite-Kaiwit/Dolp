@@ -293,6 +293,7 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
                 key: const ValueKey('listing-category'),
+                isExpanded: true,
                 initialValue: _selectedCategory,
                 decoration: InputDecoration(
                   hintText: 'เลือกหมวดหมู่',
@@ -304,7 +305,11 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
                     .map(
                       (category) => DropdownMenuItem(
                         value: category,
-                        child: Text(category),
+                        child: Text(
+                          category,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     )
                     .toList(),
@@ -316,12 +321,17 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
               _buildSectionTitle('สภาพสินค้า'),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 initialValue: _selectedCondition,
                 items: _conditions
                     .map(
                       (condition) => DropdownMenuItem(
                         value: condition,
-                        child: Text(condition),
+                        child: Text(
+                          condition,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     )
                     .toList(),

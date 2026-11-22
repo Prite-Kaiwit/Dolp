@@ -284,13 +284,14 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 0.65,
-                        ),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: productCardGridAspectRatio(
+                        MediaQuery.textScalerOf(context),
+                      ),
+                    ),
                     itemCount: products.length,
                     itemBuilder: (context, index) {
                       final nearby = products[index];

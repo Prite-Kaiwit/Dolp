@@ -6,6 +6,9 @@ import '../utils/distance.dart';
 import 'order_status_badge.dart';
 import 'product_image.dart';
 
+double productCardGridAspectRatio(TextScaler textScaler) =>
+    textScaler.scale(1) > 1.3 ? 0.44 : 0.46;
+
 class ProductCard extends StatelessWidget {
   final NearbyProduct nearbyProduct;
   final VoidCallback onTap;
@@ -46,7 +49,7 @@ class ProductCard extends StatelessWidget {
                     top: Radius.circular(18),
                   ),
                   child: AspectRatio(
-                    aspectRatio: 1.1,
+                    aspectRatio: 1.5,
                     child: ProductImage.forProduct(product),
                   ),
                 ),
@@ -96,6 +99,8 @@ class ProductCard extends StatelessWidget {
                   else if (product.type == ListingType.trade)
                     Text(
                       'แลกเปลี่ยน / ฿${product.price.toStringAsFixed(0)}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
@@ -105,6 +110,8 @@ class ProductCard extends StatelessWidget {
                   else
                     Text(
                       '฿${product.price.toStringAsFixed(0)}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
@@ -115,32 +122,40 @@ class ProductCard extends StatelessWidget {
                   const SizedBox(height: 6),
 
                   // Approximate distance and broad area only.
-                  Row(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        size: 12,
-                        color: AppColors.oceanBlue,
-                      ),
-                      const SizedBox(width: 3),
-                      Text(
-                        formatDistance(nearbyProduct.distanceKm),
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: AppColors.deepNavy,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          product.locationLabel,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.graySecondary,
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.location_on_outlined,
+                            size: 12,
+                            color: AppColors.oceanBlue,
                           ),
+                          const SizedBox(width: 3),
+                          Expanded(
+                            child: Text(
+                              formatDistance(
+                                nearbyProduct.distanceKm,
+                              ).replaceFirst('ห่าง ', ''),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: AppColors.deepNavy,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        product.locationLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.graySecondary,
                         ),
                       ),
                     ],
@@ -179,11 +194,16 @@ class ProductCard extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      Text(
-                        '${product.favoriteCount} ชื่นชอบ',
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: AppColors.graySecondary,
+                      Flexible(
+                        child: Text(
+                          '${product.favoriteCount} ชื่นชอบ',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.end,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: AppColors.graySecondary,
+                          ),
                         ),
                       ),
                     ],

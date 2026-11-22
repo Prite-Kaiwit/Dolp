@@ -115,7 +115,7 @@ class AdminDashboardScreen extends StatelessWidget {
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 1.4,
+                childAspectRatio: 0.9,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
@@ -200,12 +200,21 @@ class AdminDashboardScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                Expanded(child: Text(title, style: const TextStyle(fontSize: 12))),
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ),
                 Icon(icon, size: 19, color: color),
               ],
             ),
             Text(
               value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,

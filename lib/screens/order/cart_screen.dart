@@ -188,8 +188,8 @@ class CartScreen extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            Wrap(
+                              alignment: WrapAlignment.spaceBetween,
                               children: [
                                 const Text('ยอดรวมผู้ขายนี้'),
                                 Text(
@@ -232,8 +232,8 @@ class CartScreen extends StatelessWidget {
                 top: false,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Wrap(
+                    alignment: WrapAlignment.spaceBetween,
                     children: [
                       const Text(
                         'ยอดรวมในตะกร้า',

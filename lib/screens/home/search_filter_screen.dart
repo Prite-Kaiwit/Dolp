@@ -164,13 +164,14 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: GridView.builder(
                       itemCount: results.length,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                            childAspectRatio: 0.65,
-                          ),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        childAspectRatio: productCardGridAspectRatio(
+                          MediaQuery.textScalerOf(context),
+                        ),
+                      ),
                       itemBuilder: (context, index) {
                         final nearby = results[index];
                         return ProductCard(

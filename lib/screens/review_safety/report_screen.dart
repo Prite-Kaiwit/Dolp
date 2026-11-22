@@ -126,11 +126,16 @@ class _ReportScreenState extends State<ReportScreen> {
             const SizedBox(height: 8),
             DropdownButtonFormField<ReportReason>(
               initialValue: _selectedReason,
+              isExpanded: true,
               items: ReportReason.values
                   .map(
                     (reason) => DropdownMenuItem(
                       value: reason,
-                      child: Text(reason.label),
+                      child: Text(
+                        reason.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   )
                   .toList(),
