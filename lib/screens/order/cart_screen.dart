@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import '../../models/product.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/product_image.dart';
 import '../../state/app_state.dart';
 import 'pickup_point_screen.dart';
 
@@ -99,10 +100,7 @@ class CartScreen extends StatelessWidget {
                               child: SizedBox(
                                 width: 70,
                                 height: 70,
-                                child: Image.network(
-                                  item.imageUrl,
-                                  fit: BoxFit.cover,
-                                ),
+                                child: ProductImage.forProduct(item),
                               ),
                             ),
                             const SizedBox(width: 12),

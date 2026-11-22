@@ -1,0 +1,12 @@
+const int kMaxListingTitleLength = 100;
+const int kMaxListingDescriptionLength = 1000;
+const int kMaxTradeRequestLength = 200;
+const int kMaxListingImages = 5;
+const int kMinListingImages = 1;
+const int kMaxLocationLabelLength = 80;
+const int kMaxExactAddressLength = 200;
+const int kListingImageMaxWidth = 1280;
+const int kListingImageQuality = 80;
+const double kMaxListingPrice = 1000000;
+const int kMaxListingPriceDecimalPlaces = 2;
+const double kLocationPreviewRadiusMeters = 500;

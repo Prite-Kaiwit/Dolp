@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../constants/app_info.dart';
 import '../models/user.dart';
 import '../models/product.dart';
+import '../models/product_image_data.dart';
 import '../models/geo_location.dart';
 import '../models/nearby_product.dart';
 import '../models/order.dart';
@@ -918,6 +919,139 @@ class AppState extends ChangeNotifier {
     return false;
   }
 
+  ProductModel addListing({
+    required String title,
+    required String description,
+    required double price,
+    required String tradeFor,
+    required ListingType type,
+    required String category,
+    required String condition,
+    required GeoLocation exactLocation,
+    required String locationLabel,
+    required String exactAddress,
+    required PickupType pickupType,
+    required String imageUrl,
+    required List<ProductImageData> productImages,
+  }) {
+    if (!isLoggedIn) {
+      throw StateError('กรุณาเข้าสู่ระบบก่อนลงประกาศ');
+    }
+
+    final id = 'prod_${DateTime.now().microsecondsSinceEpoch}';
+    final product = ProductModel(
+      id: id,
+      title: title.trim(),
+      description: description.trim(),
+      price: price,
+      tradeFor: tradeFor.trim(),
+      type: type,
+      category: category,
+      condition: condition,
+      publicLocation: obfuscate(exactLocation, id),
+      locationLabel: locationLabel.trim(),
+      pickupType: pickupType,
+      pickupPoint: '',
+      imageUrl: imageUrl,
+      productImages: List.unmodifiable(productImages),
+      sellerId: currentUser.id,
+      sellerName: currentUser.name,
+      sellerAreaLabel: locationLabel.trim().isNotEmpty
+          ? locationLabel.trim()
+          : currentUser.homeLabel,
+      sellerRating: currentUser.rating,
+      sellerReviewCount: currentUser.reviewCount,
+    );
+
+    products.insert(0, product);
+    _exactLocationsByProductId[id] = _PrivateProductLocation(
+      address: exactAddress.trim(),
+      exactLat: exactLocation.lat,
+      exactLng: exactLocation.lng,
+    );
+    notifyListeners();
+    return product;
+  }
+
+  ProductModel updateListing({
+    required String id,
+    required String title,
+    required String description,
+    required double price,
+    required String tradeFor,
+    required ListingType type,
+    required String category,
+    required String condition,
+    required GeoLocation exactLocation,
+    required String locationLabel,
+    required String exactAddress,
+    required PickupType pickupType,
+    required String imageUrl,
+    required List<ProductImageData> productImages,
+  }) {
+    final index = _ownedListingIndex(id);
+    final previous = products[index];
+    final updated = previous.copyWith(
+      title: title.trim(),
+      description: description.trim(),
+      price: price,
+      tradeFor: tradeFor.trim(),
+      type: type,
+      category: category,
+      condition: condition,
+      publicLocation: obfuscate(exactLocation, id),
+      locationLabel: locationLabel.trim(),
+      pickupType: pickupType,
+      imageUrl: imageUrl,
+      productImages: List.unmodifiable(productImages),
+      sellerAreaLabel: locationLabel.trim().isNotEmpty
+          ? locationLabel.trim()
+          : currentUser.homeLabel,
+    );
+    products[index] = updated;
+    _exactLocationsByProductId[id] = _PrivateProductLocation(
+      address: exactAddress.trim(),
+      exactLat: exactLocation.lat,
+      exactLng: exactLocation.lng,
+    );
+    notifyListeners();
+    return updated;
+  }
+
+  void setListingStatus(String id, ListingStatus newStatus) {
+    final index = _ownedListingIndex(id);
+    products[index] = products[index].copyWith(status: newStatus);
+    notifyListeners();
+  }
+
+  String? deleteListing(String id) {
+    final index = _ownedListingIndex(id);
+    final hasUnfinishedOrder = orders.any(
+      (order) =>
+          order.productId == id &&
+          order.status != OrderStatus.completed &&
+          order.status != OrderStatus.cancelled,
+    );
+    if (hasUnfinishedOrder) {
+      return 'ลบประกาศไม่ได้ เนื่องจากยังมีออเดอร์ที่ดำเนินการไม่เสร็จ';
+    }
+
+    products.removeAt(index);
+    _exactLocationsByProductId.remove(id);
+    notifyListeners();
+    return null;
+  }
+
+  int _ownedListingIndex(String id) {
+    if (!isLoggedIn) throw StateError('กรุณาเข้าสู่ระบบก่อนจัดการประกาศ');
+    final index = products.indexWhere((product) => product.id == id);
+    if (index == -1) throw StateError('ไม่พบประกาศนี้');
+    if (products[index].sellerId != currentUser.id) {
+      throw StateError('ไม่มีสิทธิ์จัดการประกาศนี้');
+    }
+    return index;
+  }
+
   void addProduct(
     ProductModel product, {
     GeoLocation? exactLocation,
@@ -979,6 +1113,7 @@ class AppState extends ChangeNotifier {
       productTitle: product.title,
       productPrice: product.price,
       productImageUrl: product.imageUrl,
+      productImage: product.coverImage,
       buyerId: currentUser.id,
       buyerName: currentUser.name,
       sellerId: product.sellerId,

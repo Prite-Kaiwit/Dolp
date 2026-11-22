@@ -1,3 +1,5 @@
+import 'product_image_data.dart';
+
 class ChatMessage {
   final String id;
   final String senderId;
@@ -25,6 +27,7 @@ class ChatConversation {
   final String productTitle;
   final double productPrice;
   final String productImageUrl;
+  final ProductImageData? productImage;
   final String lastMessage;
   final DateTime lastMessageTime;
   final int unreadCount;
@@ -39,6 +42,7 @@ class ChatConversation {
     required this.productTitle,
     required this.productPrice,
     required this.productImageUrl,
+    this.productImage,
     required this.lastMessage,
     required this.lastMessageTime,
     this.unreadCount = 0,
@@ -54,6 +58,7 @@ class ChatConversation {
     String? productTitle,
     double? productPrice,
     String? productImageUrl,
+    ProductImageData? productImage,
     String? lastMessage,
     DateTime? lastMessageTime,
     int? unreadCount,
@@ -68,6 +73,7 @@ class ChatConversation {
       productTitle: productTitle ?? this.productTitle,
       productPrice: productPrice ?? this.productPrice,
       productImageUrl: productImageUrl ?? this.productImageUrl,
+      productImage: productImage ?? this.productImage,
       lastMessage: lastMessage ?? this.lastMessage,
       lastMessageTime: lastMessageTime ?? this.lastMessageTime,
       unreadCount: unreadCount ?? this.unreadCount,

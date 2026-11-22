@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../models/product.dart';
 import '../../models/pickup_point.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/product_image.dart';
 import '../../state/app_state.dart';
 import 'payment_screen.dart';
 
@@ -65,16 +66,10 @@ class _PickupPointScreenState extends State<PickupPointScreen> {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: Image.network(
-                        widget.product.imageUrl,
+                      child: SizedBox(
                         width: 60,
                         height: 60,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => Container(
-                          color: AppColors.pinkPale,
-                          width: 60,
-                          height: 60,
-                        ),
+                        child: ProductImage.forProduct(widget.product),
                       ),
                     ),
                     const SizedBox(width: 12),

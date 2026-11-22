@@ -1,11 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+
+import '../../constants/listing_limits.dart';
+import '../../models/geo_location.dart';
 import '../../models/product.dart';
-import '../../theme/app_theme.dart';
+import '../../models/product_image_data.dart';
 import '../../state/app_state.dart';
-import '../../utils/distance.dart';
+import '../../theme/app_theme.dart';
+import '../../utils/listing_validation.dart';
+import '../../widgets/location_picker.dart';
+import '../../widgets/product_image.dart';
+import '../auth/login_screen.dart';
+
+typedef ListingImagePickHandler =
+    Future<List<XFile>?> Function(ImageSource source, {required int limit});
 
 class CreateListingScreen extends StatefulWidget {
-  const CreateListingScreen({super.key});
+  final String? productId;
+  final ListingImagePickHandler? pickImages;
+
+  const CreateListingScreen({super.key, this.productId, this.pickImages});
 
   @override
   State<CreateListingScreen> createState() => _CreateListingScreenState();
@@ -16,15 +31,8 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
   final _priceController = TextEditingController();
   final _tradeForController = TextEditingController();
   final _descriptionController = TextEditingController();
-
-  ListingType _listingType = ListingType.sell;
-  String _selectedCategory = 'หนังสือ';
-  String _selectedCondition = 'สภาพดีมาก (95%)';
-  String _selectedPickupPoint = 'จุดสาธารณะตัวอย่าง เขตเมือง';
-  String _selectedImagePreset =
-      'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500';
-
-  final List<String> _categories = [
+  final _imagePicker = ImagePicker();
+  final _categories = const [
     'หนังสือ',
     'อุปกรณ์และเครื่องเขียน',
     'เสื้อผ้า & เครื่องแต่งกาย',
@@ -32,412 +40,355 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
     'ของใช้ในบ้าน & เฟอร์นิเจอร์',
     'ของสะสม & กีฬา',
   ];
-
-  final List<String> _conditions = [
+  final _conditions = const [
     'ใหม่เอี่ยม (100% ยังไม่แกะกล่อง)',
     'สภาพดีมาก (95%)',
     'สภาพดี (85-90%)',
     'สภาพใช้งานทั่วไป (70-80%)',
   ];
 
-  final List<Map<String, String>> _imagePresets = [
-    {
-      'name': 'หนังสือ',
-      'url': 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500',
-    },
-    {
-      'name': 'อุปกรณ์ไอที',
-      'url':
-          'https://images.unsplash.com/photo-1587145820266-a5951ee6f620?w=500',
-    },
-    {
-      'name': 'เสื้อผ้า',
-      'url':
-          'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=500',
-    },
-    {
-      'name': 'ของใช้หอ',
-      'url':
-          'https://images.unsplash.com/photo-1538688525198-9b88f6f53126?w=500',
-    },
-    {
-      'name': 'เครื่องเขียน',
-      'url':
-          'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=500',
-    },
-  ];
+  ProductModel? _editingProduct;
+  String? _accessError;
+  String? _selectedCategory;
+  String _selectedCondition = 'สภาพดีมาก (95%)';
+  ListingType _listingType = ListingType.sell;
+  PickupType _pickupType = PickupType.discussInChat;
+  LocationSelection _location = const LocationSelection(
+    exactLocation: null,
+    locationLabel: '',
+    exactAddress: '',
+  );
+  GeoLocation? _initialExactLocation;
+  String _initialExactAddress = '';
+  List<ProductImageData> _images = [];
+  bool _isPickingImages = false;
 
-  void _submitListing() {
-    final title = _titleController.text.trim();
-    if (title.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('กรุณากรอกชื่อสินค้า')));
+  bool get _isEditing => widget.productId != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.productId != null) _loadProductForEditing(widget.productId!);
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _priceController.dispose();
+    _tradeForController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  void _loadProductForEditing(String productId) {
+    final appState = AppState();
+    final index = appState.products.indexWhere((item) => item.id == productId);
+    if (index == -1) {
+      _accessError = 'ไม่พบประกาศที่ต้องการแก้ไข';
       return;
     }
 
-    double price = 0.0;
-    if (_listingType != ListingType.donate) {
-      price = double.tryParse(_priceController.text.trim()) ?? 0.0;
+    final product = appState.products[index];
+    if (product.sellerId != appState.currentUser.id) {
+      _accessError = 'คุณไม่มีสิทธิ์แก้ไขประกาศนี้';
+      return;
     }
 
-    final appState = AppState();
-    final productId = 'prod_${DateTime.now().millisecondsSinceEpoch}';
-    final exactLocation = appState.currentLocation;
-    final newProduct = ProductModel(
-      id: productId,
-      title: title,
-      description: _descriptionController.text.trim().isNotEmpty
-          ? _descriptionController.text.trim()
-          : 'ไม่มีรายละเอียดเพิ่มเติม',
-      price: price,
-      tradeFor: _tradeForController.text.trim(),
-      type: _listingType,
-      category: _selectedCategory,
-      condition: _selectedCondition,
-      publicLocation: obfuscate(exactLocation, productId),
-      locationLabel: appState.currentUser.homeLabel.isEmpty
-          ? 'พื้นที่ใกล้คุณ'
-          : appState.currentUser.homeLabel,
-      pickupType: PickupType.discussInChat,
-      pickupPoint: _selectedPickupPoint,
-      imageUrl: _selectedImagePreset,
-      sellerId: appState.currentUser.id,
-      sellerName: appState.currentUser.name,
-      sellerAreaLabel: appState.currentUser.homeLabel,
-      sellerRating: appState.currentUser.rating,
-      sellerReviewCount: appState.currentUser.reviewCount,
+    _editingProduct = product;
+    _titleController.text = product.title;
+    _priceController.text = product.price == 0 ? '' : '${product.price}';
+    _tradeForController.text = product.tradeFor;
+    _descriptionController.text = product.description;
+    _selectedCategory = _categories.contains(product.category)
+        ? product.category
+        : null;
+    _selectedCondition = _conditions.contains(product.condition)
+        ? product.condition
+        : _conditions.first;
+    _listingType = product.type;
+    _pickupType = product.pickupType;
+    _images = product.productImages.isNotEmpty
+        ? List<ProductImageData>.of(product.productImages)
+        : [?product.coverImage];
+
+    final exact = appState.getExactLocationFor(
+      productId,
+      appState.currentUser.id,
     );
-
-    appState.addProduct(newProduct, exactLocation: exactLocation);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('ลงประกาศสินค้าสำเร็จแล้ว! สินค้าพร้อมแสดงในหน้าแรก'),
-        backgroundColor: AppColors.greenPrimary,
-      ),
-    );
-
-    Navigator.pop(context);
+    if (exact != null) {
+      _initialExactLocation = GeoLocation(exact.exactLat, exact.exactLng);
+      _initialExactAddress = exact.exactAddress;
+      _location = LocationSelection(
+        exactLocation: _initialExactLocation,
+        locationLabel: product.locationLabel,
+        exactAddress: exact.exactAddress,
+      );
+    } else {
+      _location = LocationSelection(
+        exactLocation: null,
+        locationLabel: product.locationLabel,
+        exactAddress: '',
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final appState = AppState();
+    if (!appState.isLoggedIn) return _buildLoginPrompt();
+    if (_accessError != null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(_isEditing ? 'แก้ไขประกาศ' : 'ลงประกาศสินค้า'),
+        ),
+        body: Center(child: Text(_accessError!)),
+      );
+    }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('ลงประกาศสินค้าใหม่')),
+      appBar: AppBar(
+        title: Text(_isEditing ? 'แก้ไขประกาศ' : 'ลงประกาศสินค้าใหม่'),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Transaction Type Segment Selector (Sell / Trade / Donate)
-              const Text(
-                'ประเภทประกาศ',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
+              _buildSectionTitle('ประเภทประกาศ'),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  _buildTypeTab('ขาย', ListingType.sell, AppColors.pinkPrimary),
-                  const SizedBox(width: 8),
-                  _buildTypeTab(
-                    'แลกเปลี่ยน',
-                    ListingType.trade,
-                    AppColors.info,
+              SegmentedButton<ListingType>(
+                showSelectedIcon: false,
+                segments: const [
+                  ButtonSegment(value: ListingType.sell, label: Text('ขาย')),
+                  ButtonSegment(
+                    value: ListingType.trade,
+                    label: Text('แลกเปลี่ยน'),
                   ),
-                  const SizedBox(width: 8),
-                  _buildTypeTab(
-                    'บริจาค / ฟรี',
-                    ListingType.donate,
-                    AppColors.greenPrimary,
+                  ButtonSegment(
+                    value: ListingType.donate,
+                    label: Text('บริจาค'),
                   ),
                 ],
+                selected: {_listingType},
+                onSelectionChanged: (selection) =>
+                    setState(() => _listingType = selection.first),
               ),
               const SizedBox(height: 20),
-
-              // Image Selection / Upload preview
+              _buildSectionTitle('รูปภาพสินค้า'),
+              const SizedBox(height: 4),
               const Text(
-                'รูปภาพสินค้า (เลือกรูปจำลองตัวอย่าง)',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                'เลือกได้สูงสุด $kMaxListingImages รูป แตะรูปเพื่อตั้งเป็นรูปปก',
+                style: TextStyle(color: AppColors.graySecondary, fontSize: 12),
               ),
               const SizedBox(height: 8),
               SizedBox(
-                height: 100,
-                child: ListView.builder(
+                height: 116,
+                child: ListView(
                   scrollDirection: Axis.horizontal,
-                  itemCount: _imagePresets.length,
-                  itemBuilder: (context, index) {
-                    final item = _imagePresets[index];
-                    final isSelected = _selectedImagePreset == item['url'];
-                    return GestureDetector(
-                      onTap: () =>
-                          setState(() => _selectedImagePreset = item['url']!),
-                      child: Container(
-                        margin: const EdgeInsets.only(right: 12),
-                        width: 90,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: isSelected
-                                ? AppColors.pinkPrimary
-                                : AppColors.grayLine,
-                            width: isSelected ? 3 : 1,
-                          ),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              Image.network(item['url']!, fit: BoxFit.cover),
-                              if (isSelected)
-                                Container(
-                                  color: AppColors.pinkPrimary.withValues(
-                                    alpha: 0.3,
-                                  ),
-                                  child: const Center(
-                                    child: Icon(
-                                      Icons.check_circle_rounded,
-                                      color: Colors.white,
-                                      size: 28,
-                                    ),
-                                  ),
-                                ),
-                              Positioned(
-                                bottom: 4,
-                                left: 4,
-                                right: 4,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withValues(alpha: 0.6),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    item['name']!,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+                  children: [
+                    for (var index = 0; index < _images.length; index++)
+                      _buildImageTile(index),
+                    if (_images.length < kMaxListingImages)
+                      _buildAddImageButton(),
+                  ],
                 ),
               ),
-              const SizedBox(height: 20),
-
-              // Title
-              const Text(
-                'ชื่อสินค้า',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-              const SizedBox(height: 6),
-              TextField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  hintText: 'เช่น หนังสืออ่านเล่น, โต๊ะพับ, เสื้อแจ็กเก็ต',
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Price (if Sell or Trade)
-              if (_listingType != ListingType.donate) ...[
-                Text(
-                  _listingType == ListingType.trade
-                      ? 'ราคาประเมิน (บาท)'
-                      : 'ราคาขาย (บาท)',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+              if (_images.length < kMinListingImages)
+                const Padding(
+                  padding: EdgeInsets.only(top: 4),
+                  child: Text(
+                    'กรุณาเลือกรูปสินค้าอย่างน้อย 1 รูป',
+                    style: TextStyle(color: AppColors.error, fontSize: 12),
                   ),
                 ),
+              const SizedBox(height: 20),
+              _buildSectionTitle('ชื่อสินค้า'),
+              const SizedBox(height: 6),
+              TextFormField(
+                key: const ValueKey('listing-title'),
+                controller: _titleController,
+                maxLength: kMaxListingTitleLength,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                onChanged: (_) => setState(() {}),
+                validator: (_) => validateListingTitle(_titleController.text),
+                decoration: const InputDecoration(
+                  hintText: 'เช่น หนังสืออ่านเล่น โต๊ะพับ เสื้อแจ็กเก็ต',
+                ),
+              ),
+              const SizedBox(height: 8),
+              if (_listingType == ListingType.sell) ...[
+                _buildSectionTitle('ราคาขาย (บาท)'),
                 const SizedBox(height: 6),
-                TextField(
+                TextFormField(
+                  key: const ValueKey('listing-price'),
                   controller: _priceController,
-                  keyboardType: TextInputType.number,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  onChanged: (_) => setState(() {}),
+                  validator: (_) => validateListingPrice(_priceController.text),
                   decoration: const InputDecoration(
-                    hintText: 'เช่น 150',
+                    hintText: 'เช่น 150 หรือ 99.99',
                     prefixText: '฿ ',
-                    prefixStyle: TextStyle(
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ] else if (_listingType == ListingType.trade) ...[
+                _buildSectionTitle('ราคาประเมิน (ไม่บังคับ)'),
+                const SizedBox(height: 6),
+                TextFormField(
+                  key: const ValueKey('listing-price'),
+                  controller: _priceController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  onChanged: (_) => setState(() {}),
+                  validator: (_) => validateListingPrice(
+                    _priceController.text,
+                    required: false,
+                  ),
+                  decoration: const InputDecoration(
+                    hintText: 'เว้นว่างได้',
+                    prefixText: '฿ ',
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _buildSectionTitle('ต้องการแลกกับอะไร'),
+                const SizedBox(height: 6),
+                TextFormField(
+                  key: const ValueKey('listing-trade-for'),
+                  controller: _tradeForController,
+                  maxLength: kMaxTradeRequestLength,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  onChanged: (_) => setState(() {}),
+                  validator: (_) =>
+                      validateTradeRequest(_tradeForController.text),
+                  decoration: const InputDecoration(
+                    hintText: 'ระบุสิ่งที่ต้องการแลก',
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ] else ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.greenPale,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'ฟรี · ไม่มีค่าใช้จ่าย',
+                    style: TextStyle(
+                      color: AppColors.greenDark,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.pinkPrimary,
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
               ],
-
-              // Wishlist for Trade
-              if (_listingType == ListingType.trade) ...[
-                const Text(
-                  'สิ่งที่อยากได้ในการแลกเปลี่ยน',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                ),
-                const SizedBox(height: 6),
-                TextField(
-                  controller: _tradeForController,
-                  decoration: const InputDecoration(
-                    hintText: 'เช่น รับแลกกับหนังสือหรืออุปกรณ์ทำสวน',
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-
-              // Category Dropdown
-              const Text(
-                'หมวดหมู่สินค้า',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
+              _buildSectionTitle('หมวดหมู่สินค้า'),
               const SizedBox(height: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: AppColors.grayBg,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: AppColors.grayLine),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    isExpanded: true,
-                    value: _selectedCategory,
-                    items: _categories
-                        .map(
-                          (c) => DropdownMenuItem(
-                            value: c,
-                            child: Text(
-                              c,
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (val) {
-                      if (val != null) setState(() => _selectedCategory = val);
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Condition Dropdown
-              const Text(
-                'สภาพสินค้า',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-              const SizedBox(height: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: AppColors.grayBg,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: AppColors.grayLine),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    isExpanded: true,
-                    value: _selectedCondition,
-                    items: _conditions
-                        .map(
-                          (c) => DropdownMenuItem(
-                            value: c,
-                            child: Text(
-                              c,
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (val) {
-                      if (val != null) setState(() => _selectedCondition = val);
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Pickup preference selection.
-              const Text(
-                'จุดนัดรับที่แนะนำในพื้นที่',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-              const SizedBox(height: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: AppColors.greenPale,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: AppColors.greenLight),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    isExpanded: true,
-                    value: _selectedPickupPoint,
-                    items: appState.pickupPoints
-                        .map(
-                          (p) => DropdownMenuItem(
-                            value: p.name,
-                            child: Text(
-                              p.name,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: AppColors.greenDark,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (val) {
-                      if (val != null) {
-                        setState(() => _selectedPickupPoint = val);
-                      }
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Description
-              const Text(
-                'รายละเอียดเพิ่มเติม',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-              const SizedBox(height: 6),
-              TextField(
-                controller: _descriptionController,
-                maxLines: 3,
+              DropdownButtonFormField<String>(
+                key: const ValueKey('listing-category'),
+                initialValue: _selectedCategory,
                 decoration: InputDecoration(
-                  hintText:
-                      'อธิบายรายละเอียด สภาพ ตำหนิ (ถ้ามี) เหตุผลที่ส่งต่อ',
+                  hintText: 'เลือกหมวดหมู่',
+                  errorText: _selectedCategory == null
+                      ? 'กรุณาเลือกหมวดหมู่'
+                      : null,
+                ),
+                items: _categories
+                    .map(
+                      (category) => DropdownMenuItem(
+                        value: category,
+                        child: Text(category),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) => setState(() {
+                  _selectedCategory = value;
+                }),
+              ),
+              const SizedBox(height: 16),
+              _buildSectionTitle('สภาพสินค้า'),
+              const SizedBox(height: 6),
+              DropdownButtonFormField<String>(
+                initialValue: _selectedCondition,
+                items: _conditions
+                    .map(
+                      (condition) => DropdownMenuItem(
+                        value: condition,
+                        child: Text(condition),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) setState(() => _selectedCondition = value);
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildSectionTitle('รูปแบบการนัดรับ'),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: [
+                  _pickupChip(PickupType.sellerHome, 'บ้านผู้ขาย'),
+                  _pickupChip(PickupType.agreedSpot, 'จุดที่ตกลงกัน'),
+                  _pickupChip(PickupType.discussInChat, 'คุยกันในแชท'),
+                ],
+              ),
+              if (_pickupType == PickupType.sellerHome)
+                const Padding(
+                  padding: EdgeInsets.only(top: 6),
+                  child: Text(
+                    'นัดรับในที่ปลอดภัย และอย่ากรอกที่อยู่จริงในชื่อหรือรายละเอียดประกาศ',
+                    style: TextStyle(color: AppColors.warning, fontSize: 12),
+                  ),
+                ),
+              const SizedBox(height: 16),
+              LocationPicker(
+                initialLocation: _initialExactLocation,
+                initialLocationLabel: _location.locationLabel,
+                initialExactAddress: _initialExactAddress,
+                onChanged: (value) => setState(() => _location = value),
+              ),
+              const SizedBox(height: 16),
+              _buildSectionTitle(
+                'รายละเอียดเพิ่มเติม (ไม่เกิน $kMaxListingDescriptionLength ตัวอักษร)',
+              ),
+              const SizedBox(height: 6),
+              TextFormField(
+                key: const ValueKey('listing-description'),
+                controller: _descriptionController,
+                maxLength: kMaxListingDescriptionLength,
+                maxLines: 4,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                onChanged: (_) => setState(() {}),
+                validator: (_) =>
+                    validateListingDescription(_descriptionController.text),
+                decoration: InputDecoration(
+                  hintText: 'อธิบายสภาพสินค้า ตำหนิ และรายละเอียดที่จำเป็น',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
               ),
-              const SizedBox(height: 30),
-
-              // Submit Button
+              const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: _submitListing,
-                  child: const Text(
-                    'เผยแพร่ประกาศทันที',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  key: const ValueKey('publish-listing'),
+                  onPressed: _isFormValid ? _submitListing : null,
+                  child: Text(
+                    _isEditing ? 'บันทึกการแก้ไข' : 'เผยแพร่ประกาศ',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -449,29 +400,324 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
     );
   }
 
-  Widget _buildTypeTab(String label, ListingType type, Color activeColor) {
-    final isSelected = _listingType == type;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _listingType = type),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected ? activeColor : AppColors.grayBg,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isSelected ? activeColor : AppColors.grayLine,
-            ),
-          ),
-          child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? Colors.white : AppColors.inkText,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
+  Widget _buildLoginPrompt() {
+    return Scaffold(
+      appBar: AppBar(title: const Text('ลงประกาศสินค้า')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('เข้าสู่ระบบก่อนลงประกาศ'),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
+                ),
+                child: const Text('เข้าสู่ระบบ'),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) => Text(
+    title,
+    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+  );
+
+  Widget _pickupChip(PickupType type, String label) {
+    return ChoiceChip(
+      label: Text(label),
+      selected: _pickupType == type,
+      showCheckmark: false,
+      selectedColor: AppColors.pinkPale,
+      onSelected: (_) => setState(() => _pickupType = type),
+    );
+  }
+
+  Widget _buildImageTile(int index) {
+    final image = _images[index];
+    final isCover = index == 0;
+    return GestureDetector(
+      key: ValueKey('listing-image-$index'),
+      onTap: () => _setCover(index),
+      child: Container(
+        width: 100,
+        margin: const EdgeInsets.only(right: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isCover ? AppColors.pinkPrimary : AppColors.grayLine,
+            width: isCover ? 2 : 1,
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(11),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              ProductImage(source: image),
+              if (isCover)
+                const Positioned(left: 4, top: 4, child: _CoverBadge()),
+              Positioned(
+                right: 2,
+                top: 2,
+                child: IconButton(
+                  tooltip: 'ลบรูป ${index + 1}',
+                  onPressed: () => _removeImage(index),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white.withValues(alpha: 0.9),
+                    minimumSize: const Size(28, 28),
+                    padding: EdgeInsets.zero,
+                  ),
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    size: 16,
+                    color: AppColors.error,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddImageButton() {
+    return OutlinedButton(
+      key: const ValueKey('add-listing-image'),
+      onPressed: _isPickingImages ? null : _showImageSourceOptions,
+      child: SizedBox(
+        width: 88,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _isPickingImages
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.add_photo_alternate_outlined),
+            const SizedBox(height: 4),
+            const Text('เพิ่มรูป', style: TextStyle(fontSize: 12)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  bool get _isFormValid {
+    if (validateListingTitle(_titleController.text) != null ||
+        validateListingDescription(_descriptionController.text) != null ||
+        _selectedCategory == null ||
+        _images.length < kMinListingImages ||
+        _location.exactLocation == null ||
+        _location.locationLabel.trim().isEmpty) {
+      return false;
+    }
+    if (_listingType == ListingType.sell &&
+        validateListingPrice(_priceController.text) != null) {
+      return false;
+    }
+    if (_listingType == ListingType.trade &&
+        (validateListingPrice(_priceController.text, required: false) != null ||
+            validateTradeRequest(_tradeForController.text) != null)) {
+      return false;
+    }
+    return true;
+  }
+
+  Future<void> _showImageSourceOptions() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('เลือกจากแกลเลอรี่'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: const Text('ถ่ายภาพ'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source != null) await _pickImages(source);
+  }
+
+  Future<void> _pickImages(ImageSource source) async {
+    final remaining = kMaxListingImages - _images.length;
+    if (remaining <= 0) {
+      _showMessage('เลือกได้สูงสุด $kMaxListingImages รูป');
+      return;
+    }
+
+    setState(() => _isPickingImages = true);
+    try {
+      final handler = widget.pickImages ?? _pickImagesWithPlugin;
+      final picked = await handler(source, limit: remaining);
+      if (!mounted || picked == null || picked.isEmpty) return;
+
+      final selected = picked.take(remaining).toList();
+      final bytes = await Future.wait<Uint8List>(
+        selected.map((file) => file.readAsBytes()),
+      );
+      if (!mounted) return;
+      setState(() {
+        _images.addAll(bytes.map(ProductImageData.memory));
+      });
+      if (picked.length > remaining) {
+        _showMessage('เลือกเพิ่มได้อีกไม่เกิน $remaining รูป');
+      }
+    } on PlatformException catch (error) {
+      if (mounted) {
+        final code = error.code.toLowerCase();
+        final denied = code.contains('denied') || code.contains('permission');
+        _showMessage(
+          denied
+              ? 'ไม่ได้รับอนุญาตให้เข้าถึงกล้องหรือรูปภาพ'
+              : 'ไม่สามารถเลือกรูปภาพได้: ${error.message ?? error.code}',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isPickingImages = false);
+    }
+  }
+
+  Future<List<XFile>?> _pickImagesWithPlugin(
+    ImageSource source, {
+    required int limit,
+  }) async {
+    if (source == ImageSource.gallery) {
+      return _imagePicker.pickMultiImage(
+        maxWidth: kListingImageMaxWidth.toDouble(),
+        imageQuality: kListingImageQuality,
+        limit: limit,
+        requestFullMetadata: false,
+      );
+    }
+    final image = await _imagePicker.pickImage(
+      source: source,
+      maxWidth: kListingImageMaxWidth.toDouble(),
+      imageQuality: kListingImageQuality,
+      requestFullMetadata: false,
+    );
+    return image == null ? null : [image];
+  }
+
+  void _setCover(int index) {
+    if (index == 0) return;
+    setState(() {
+      final image = _images.removeAt(index);
+      _images.insert(0, image);
+    });
+  }
+
+  void _removeImage(int index) {
+    setState(() => _images.removeAt(index));
+  }
+
+  void _submitListing() {
+    if (!_isFormValid) return;
+    final appState = AppState();
+    final price =
+        _listingType == ListingType.donate ||
+            _priceController.text.trim().isEmpty
+        ? 0.0
+        : parseListingPrice(_priceController.text);
+    final productImages = List<ProductImageData>.of(_images);
+    final coverUrl = productImages.first.url ?? '';
+    final exactLocation = _location.exactLocation!;
+
+    try {
+      if (_editingProduct == null) {
+        appState.addListing(
+          title: _titleController.text,
+          description: _descriptionController.text,
+          price: price,
+          tradeFor: _tradeForController.text,
+          type: _listingType,
+          category: _selectedCategory!,
+          condition: _selectedCondition,
+          exactLocation: exactLocation,
+          locationLabel: _location.locationLabel,
+          exactAddress: _location.exactAddress,
+          pickupType: _pickupType,
+          imageUrl: coverUrl,
+          productImages: productImages,
+        );
+      } else {
+        appState.updateListing(
+          id: _editingProduct!.id,
+          title: _titleController.text,
+          description: _descriptionController.text,
+          price: price,
+          tradeFor: _tradeForController.text,
+          type: _listingType,
+          category: _selectedCategory!,
+          condition: _selectedCondition,
+          exactLocation: exactLocation,
+          locationLabel: _location.locationLabel,
+          exactAddress: _location.exactAddress,
+          pickupType: _pickupType,
+          imageUrl: coverUrl,
+          productImages: productImages,
+        );
+      }
+    } on StateError catch (error) {
+      _showMessage(error.message.toString());
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _isEditing ? 'แก้ไขประกาศเรียบร้อย' : 'ลงประกาศเรียบร้อย',
+        ),
+        backgroundColor: AppColors.greenPrimary,
+      ),
+    );
+    Navigator.pop(context);
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+class _CoverBadge extends StatelessWidget {
+  const _CoverBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.pinkPrimary,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+        child: Text(
+          'รูปปก',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),

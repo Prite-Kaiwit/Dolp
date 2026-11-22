@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../constants/app_info.dart';
 import '../../models/chat.dart';
 import '../../models/product.dart';
-import '../../utils/distance.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/product_image.dart';
 import '../../state/app_state.dart';
 import '../order/pickup_point_screen.dart';
 
@@ -122,15 +123,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      widget.conversation.productImageUrl,
+                    child: SizedBox(
                       width: 48,
                       height: 48,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => Container(
-                        color: AppColors.pinkPale,
-                        width: 48,
-                        height: 48,
+                      child: ProductImage(
+                        source: widget.conversation.productImage,
+                        fallbackUrl: widget.conversation.productImageUrl,
                       ),
                     ),
                   ),
@@ -172,13 +170,14 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                           type: ListingType.sell,
                           category: 'ทั่วไป',
                           condition: 'สภาพดี',
-                          publicLocation: obfuscate(
-                            appState.currentLocation,
-                            widget.conversation.productId,
-                          ),
+                          publicLocation: kDefaultCenter,
                           locationLabel: 'อำเภอเมืองจันทบุรี',
                           pickupPoint: 'จุดสาธารณะตัวอย่าง เขตเมือง',
                           imageUrl: widget.conversation.productImageUrl,
+                          productImages:
+                              widget.conversation.productImage == null
+                              ? const []
+                              : [widget.conversation.productImage!],
                           sellerId: widget.conversation.peerId,
                           sellerName: widget.conversation.peerName,
                           sellerAreaLabel: 'อำเภอเมืองจันทบุรี',

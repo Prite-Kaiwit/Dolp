@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import '../../models/order.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/product_image.dart';
 import '../../state/app_state.dart';
 import '../review_safety/rate_review_screen.dart';
 import '../review_safety/report_screen.dart';
@@ -171,15 +172,12 @@ class EscrowStatusScreen extends StatelessWidget {
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(10),
-                              child: Image.network(
-                                order.productImageUrl,
+                              child: SizedBox(
                                 width: 56,
                                 height: 56,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, _, _) => Container(
-                                  color: AppColors.pinkPale,
-                                  width: 56,
-                                  height: 56,
+                                child: ProductImage(
+                                  source: order.productImage,
+                                  fallbackUrl: order.productImageUrl,
                                 ),
                               ),
                             ),

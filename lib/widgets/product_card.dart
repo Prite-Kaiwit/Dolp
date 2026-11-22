@@ -4,6 +4,7 @@ import '../models/product.dart';
 import '../theme/app_theme.dart';
 import '../utils/distance.dart';
 import 'escrow_badge.dart';
+import 'product_image.dart';
 
 class ProductCard extends StatelessWidget {
   final NearbyProduct nearbyProduct;
@@ -46,19 +47,7 @@ class ProductCard extends StatelessWidget {
                   ),
                   child: AspectRatio(
                     aspectRatio: 1.1,
-                    child: Image.network(
-                      product.imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: AppColors.pinkPale,
-                        child: const Center(
-                          child: Icon(
-                            Icons.image_not_supported,
-                            color: AppColors.pinkLight,
-                          ),
-                        ),
-                      ),
-                    ),
+                    child: ProductImage.forProduct(product),
                   ),
                 ),
                 // Type badge on top left

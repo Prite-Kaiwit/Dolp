@@ -5,6 +5,7 @@ import '../../theme/app_theme.dart';
 import '../../state/app_state.dart';
 import '../../widgets/escrow_badge.dart';
 import '../../widgets/nearby_products_map.dart';
+import '../../widgets/product_image.dart';
 import '../../utils/distance.dart';
 import '../chat/chat_room_screen.dart';
 import '../order/pickup_point_screen.dart';
@@ -66,19 +67,12 @@ class ProductDetailScreen extends StatelessWidget {
               children: [
                 AspectRatio(
                   aspectRatio: 1.2,
-                  child: Image.network(
-                    product.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      color: AppColors.pinkPale,
-                      child: const Center(
-                        child: Icon(
-                          Icons.image_not_supported,
-                          size: 48,
-                          color: AppColors.pinkPrimary,
-                        ),
-                      ),
-                    ),
+                  child: PageView.builder(
+                    itemCount: product.productImages.isEmpty
+                        ? 1
+                        : product.productImages.length,
+                    itemBuilder: (context, index) =>
+                        ProductImage.forProduct(product, index: index),
                   ),
                 ),
                 Positioned(
@@ -517,6 +511,7 @@ class ProductDetailScreen extends StatelessWidget {
                       productTitle: product.title,
                       productPrice: product.price,
                       productImageUrl: product.imageUrl,
+                      productImage: product.coverImage,
                       lastMessage: 'สวัสดีครับ สนใจสินค้านี้ครับ',
                       lastMessageTime: DateTime.now(),
                       messages: [

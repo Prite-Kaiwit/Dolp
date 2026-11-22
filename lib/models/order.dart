@@ -2,6 +2,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'product.dart';
+import 'product_image_data.dart';
 
 enum OrderStatus {
   // Legacy escrow states; remove or migrate in phase 6.
@@ -70,6 +71,7 @@ class OrderModel {
   final String productTitle;
   final double productPrice;
   final String productImageUrl;
+  final ProductImageData? productImage;
   final String buyerId;
   final String buyerName;
   final String sellerId;
@@ -96,6 +98,7 @@ class OrderModel {
     required this.productTitle,
     required this.productPrice,
     required this.productImageUrl,
+    this.productImage,
     required this.buyerId,
     required this.buyerName,
     required this.sellerId,
@@ -120,6 +123,7 @@ class OrderModel {
     String? productTitle,
     double? productPrice,
     String? productImageUrl,
+    ProductImageData? productImage,
     String? buyerId,
     String? buyerName,
     String? sellerId,
@@ -141,6 +145,7 @@ class OrderModel {
       productTitle: productTitle ?? this.productTitle,
       productPrice: productPrice ?? this.productPrice,
       productImageUrl: productImageUrl ?? this.productImageUrl,
+      productImage: productImage ?? this.productImage,
       buyerId: buyerId ?? this.buyerId,
       buyerName: buyerName ?? this.buyerName,
       sellerId: sellerId ?? this.sellerId,

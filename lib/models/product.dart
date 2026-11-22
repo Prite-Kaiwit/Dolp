@@ -2,6 +2,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'geo_location.dart';
+import 'product_image_data.dart';
 
 enum ListingType { sell, trade, donate }
 
@@ -53,6 +54,7 @@ class ProductModel {
   final String pickupPoint;
   final String imageUrl;
   final List<String> images;
+  final List<ProductImageData> productImages;
   final String sellerId;
   final String sellerName;
   final String sellerAreaLabel;
@@ -78,6 +80,7 @@ class ProductModel {
     required this.pickupPoint,
     required this.imageUrl,
     this.images = const [],
+    this.productImages = const [],
     required this.sellerId,
     required this.sellerName,
     required this.sellerAreaLabel,
@@ -104,6 +107,7 @@ class ProductModel {
     String? pickupPoint,
     String? imageUrl,
     List<String>? images,
+    List<ProductImageData>? productImages,
     String? sellerId,
     String? sellerName,
     String? sellerAreaLabel,
@@ -129,6 +133,7 @@ class ProductModel {
       pickupPoint: pickupPoint ?? this.pickupPoint,
       imageUrl: imageUrl ?? this.imageUrl,
       images: images ?? this.images,
+      productImages: productImages ?? this.productImages,
       sellerId: sellerId ?? this.sellerId,
       sellerName: sellerName ?? this.sellerName,
       sellerAreaLabel: sellerAreaLabel ?? this.sellerAreaLabel,
@@ -139,5 +144,11 @@ class ProductModel {
       viewCount: viewCount ?? this.viewCount,
       favoriteCount: favoriteCount ?? this.favoriteCount,
     );
+  }
+
+  ProductImageData? get coverImage {
+    if (productImages.isNotEmpty) return productImages.first;
+    if (imageUrl.isNotEmpty) return ProductImageData.network(imageUrl);
+    return null;
   }
 }

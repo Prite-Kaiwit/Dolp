@@ -10,6 +10,7 @@ import '../screens/home/product_detail_screen.dart';
 import '../theme/app_theme.dart';
 import '../utils/distance.dart';
 import 'osm_tile_layer.dart';
+import 'product_image.dart';
 
 class NearbyProductsMap extends StatefulWidget {
   final List<NearbyProduct> products;
@@ -134,16 +135,10 @@ class _NearbyProductsMapState extends State<NearbyProductsMap> {
           contentPadding: const EdgeInsets.all(16),
           leading: ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image.network(
-              nearby.product.imageUrl,
+            child: SizedBox(
               width: 56,
               height: 56,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => const SizedBox(
-                width: 56,
-                height: 56,
-                child: Icon(Icons.image_not_supported_outlined),
-              ),
+              child: ProductImage.forProduct(nearby.product),
             ),
           ),
           title: Text(nearby.product.title),
