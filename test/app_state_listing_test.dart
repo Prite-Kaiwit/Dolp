@@ -6,6 +6,7 @@ import 'package:moor_market/models/geo_location.dart';
 import 'package:moor_market/models/product.dart';
 import 'package:moor_market/models/order.dart';
 import 'package:moor_market/models/product_image_data.dart';
+import 'package:moor_market/models/notification.dart';
 import 'package:moor_market/state/app_state.dart';
 import 'package:moor_market/utils/distance.dart';
 
@@ -14,13 +15,13 @@ void main() {
   late List<ProductModel> originalProducts;
   late List<OrderModel> originalOrders;
   late List<ProductModel> originalCart;
-  late List<Map<String, dynamic>> originalNotifications;
+  late List<AppNotification> originalNotifications;
 
   setUp(() {
     originalProducts = List<ProductModel>.of(appState.products);
     originalOrders = List<OrderModel>.of(appState.orders);
     originalCart = List<ProductModel>.of(appState.cartItems);
-    originalNotifications = List<Map<String, dynamic>>.of(
+    originalNotifications = List<AppNotification>.of(
       appState.notifications,
     );
     appState.loginWithPhoneAndPassword('0800000001', 'password123');

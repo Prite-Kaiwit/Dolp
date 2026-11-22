@@ -50,8 +50,9 @@ class ProductDetailScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (_) => ReportScreen(
+                    targetUserId: product.sellerId,
                     targetName: product.sellerName,
-                    orderId: 'PROD-${product.id}',
+                    productId: product.id,
                   ),
                 ),
               );

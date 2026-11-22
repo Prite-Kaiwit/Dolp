@@ -37,37 +37,45 @@ void main() {
     appState.loginWithPhoneAndPassword('0800000001', 'password123');
   });
 
-  testWidgets('summary requires handover payment and creates a reserved order', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: OrderSummaryScreen(sellerId: 'user_07'),
-      ),
-    );
+  testWidgets(
+    'summary requires handover payment and creates a reserved order',
+    (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(home: OrderSummaryScreen(sellerId: 'user_07')),
+      );
 
-    expect(find.text('โอนตอนรับของ'), findsOneWidget);
-    expect(find.text('ตรวจสินค้าก่อนจ่ายเงิน ไม่โอนก่อนเห็นของถ้าไม่มั่นใจ'), findsOneWidget);
+      expect(find.text('โอนตอนรับของ'), findsOneWidget);
+      expect(
+        find.text('ตรวจสินค้าก่อนจ่ายเงิน ไม่โอนก่อนเห็นของถ้าไม่มั่นใจ'),
+        findsOneWidget,
+      );
 
-    final confirm = find.text('ยืนยันคำสั่งซื้อ');
-    expect(tester.widget<ElevatedButton>(find.ancestor(
-      of: confirm,
-      matching: find.byType(ElevatedButton),
-    )).onPressed, isNull);
+      final confirm = find.text('ยืนยันคำสั่งซื้อ');
+      expect(
+        tester
+            .widget<ElevatedButton>(
+              find.ancestor(of: confirm, matching: find.byType(ElevatedButton)),
+            )
+            .onPressed,
+        isNull,
+      );
 
-    await tester.tap(find.text('เงินสดหน้างาน'));
-    await tester.pumpAndSettle();
-    await tester.tap(confirm);
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('เงินสดหน้างาน'));
+      await tester.pumpAndSettle();
+      await tester.tap(confirm);
+      await tester.pumpAndSettle();
 
-    final order = appState.orders.first;
-    expect(order.status.name, 'pending');
-    expect(order.sellerId, 'user_07');
-    expect(appState.products.firstWhere((item) => item.id == 'prod_6').status,
-        ListingStatus.reserved);
-    expect(appState.cartItems, isEmpty);
-    expect(find.text('สถานะคำสั่งซื้อ'), findsOneWidget);
-  });
+      final order = appState.orders.first;
+      expect(order.status.name, 'pending');
+      expect(order.sellerId, 'user_07');
+      expect(
+        appState.products.firstWhere((item) => item.id == 'prod_6').status,
+        ListingStatus.reserved,
+      );
+      expect(appState.cartItems, isEmpty);
+      expect(find.text('สถานะคำสั่งซื้อ'), findsOneWidget);
+    },
+  );
 
   testWidgets('cart groups sellers and warns that pickup is separate', (
     tester,
@@ -75,7 +83,9 @@ void main() {
     appState.clearCart();
     for (final id in ['prod_2', 'prod_7', 'prod_4']) {
       expect(
-        appState.addToCart(appState.products.firstWhere((item) => item.id == id)),
+        appState.addToCart(
+          appState.products.firstWhere((item) => item.id == id),
+        ),
         isNull,
       );
     }
@@ -91,9 +101,7 @@ void main() {
   testWidgets('status actions follow buyer and seller roles', (tester) async {
     expect(appState.currentUser.id, 'user_01');
     expect(
-      appState.orders
-          .firstWhere((order) => order.id == 'ORD-2026-0901')
-          .status,
+      appState.orders.firstWhere((order) => order.id == 'ORD-2026-0901').status,
       OrderStatus.pending,
     );
     expect(
@@ -103,9 +111,7 @@ void main() {
       appState.currentUser.id,
     );
     await tester.pumpWidget(
-      const MaterialApp(
-        home: OrderStatusScreen(orderId: 'ORD-2026-0901'),
-      ),
+      const MaterialApp(home: OrderStatusScreen(orderId: 'ORD-2026-0901')),
     );
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('ได้รับสินค้าแล้ว'), 300);
@@ -116,16 +122,14 @@ void main() {
 
     appState.currentUser = appState.userById('user_02')!;
     await tester.pumpWidget(
-      const MaterialApp(
-        home: OrderStatusScreen(orderId: 'ORD-2026-0901'),
-      ),
+      const MaterialApp(home: OrderStatusScreen(orderId: 'ORD-2026-0901')),
     );
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('ยืนยันส่งมอบ'), 300);
     await tester.pumpAndSettle();
     expect(find.text('ยืนยันส่งมอบ'), findsOneWidget);
     expect(find.text('ได้รับสินค้าแล้ว'), findsNothing);
-    expect(find.text('รายงานปัญหา'), findsNothing);
+    expect(find.text('รายงานปัญหา'), findsOneWidget);
   });
 
   testWidgets('history tabs count the current buyer orders', (tester) async {

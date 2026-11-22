@@ -9,8 +9,6 @@ class SuggestedSpot {
   final String description;
   final GeoLocation location;
   final SuggestedSpotType type;
-  @Deprecated('Remove in phase 7.')
-  final String zone;
   final bool isActive;
   final String openHours;
 
@@ -18,7 +16,6 @@ class SuggestedSpot {
     required this.id,
     required this.name,
     required this.description,
-    this.zone = '',
     GeoLocation? location,
     this.type = SuggestedSpotType.other,
     this.isActive = true,
@@ -31,7 +28,6 @@ class SuggestedSpot {
     String? description,
     GeoLocation? location,
     SuggestedSpotType? type,
-    String? zone,
     bool? isActive,
     String? openHours,
   }) {
@@ -41,7 +37,6 @@ class SuggestedSpot {
       description: description ?? this.description,
       location: location ?? this.location,
       type: type ?? this.type,
-      zone: zone ?? this.zone,
       isActive: isActive ?? this.isActive,
       openHours: openHours ?? this.openHours,
     );

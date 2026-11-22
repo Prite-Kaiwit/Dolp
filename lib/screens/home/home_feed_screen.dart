@@ -46,9 +46,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
           radiusKm: _selectedRadiusKm,
           type: selectedType,
         );
-        final unreadNotifs = appState.notifications
-            .where((notification) => !(notification['read'] as bool))
-            .length;
+        final unreadNotifs = appState.unreadNotificationCount;
 
         return Scaffold(
           appBar: AppBar(
@@ -112,7 +110,8 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
               ],
             ),
             actions: [
-              Stack(
+              if (appState.isLoggedIn)
+                Stack(
                 children: [
                   IconButton(
                     icon: const Icon(

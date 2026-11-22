@@ -9,6 +9,7 @@ import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/distance.dart';
 import '../../widgets/location_picker.dart';
+import '../../widgets/safety_tips_sheet.dart';
 
 Future<void> showMeetupOptionsSheet(
   BuildContext context, {
@@ -242,6 +243,9 @@ class _MeetupOptionsSheetState extends State<_MeetupOptionsSheet> {
         }
         _error = null;
       });
+      if (type == PickupType.sellerHome) {
+        showSafetyTipsSheet(context);
+      }
     },
   );
 

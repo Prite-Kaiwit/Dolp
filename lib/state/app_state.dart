@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'dart:typed_data';
 import '../constants/chat_limits.dart';
 import '../constants/app_info.dart';
+import '../constants/trust_safety_limits.dart';
+import '../models/area_alert_subscription.dart';
+import '../models/notification.dart';
 import '../models/user.dart';
 import '../models/product.dart';
 import '../models/product_image_data.dart';
@@ -49,6 +52,16 @@ class _MockCredential {
   const _MockCredential({required this.userId, required this.password});
 }
 
+class AdminQueryResult<T> {
+  final T? value;
+  final String? error;
+
+  const AdminQueryResult.success(T result) : value = result, error = null;
+  const AdminQueryResult.failure(String message) : value = null, error = message;
+
+  bool get isSuccess => value != null;
+}
+
 class AppState extends ChangeNotifier {
   static final AppState _instance = AppState._internal();
   factory AppState() => _instance;
@@ -68,6 +81,7 @@ class AppState extends ChangeNotifier {
 
   bool get isLoggedIn => currentUser.role != UserRole.guest;
   bool get isAdmin => currentUser.role == UserRole.admin;
+  String? lastLoginError;
 
   // Cart
   List<ProductModel> cartItems = [];
@@ -102,13 +116,30 @@ class AppState extends ChangeNotifier {
 
   // Reports (Trust & Safety / Admin)
   List<ReportModel> reports = [];
+  final Set<String> _blockedUserPairs = {};
+  final Map<String, String> _suspendedUserReasons = {};
+  final Set<String> _safetyTipsAcknowledgedBy = {};
 
   // Notifications
-  List<Map<String, dynamic>> notifications = [];
+  List<AppNotification> notifications = [];
+  final Map<String, AreaAlertSubscription> _areaAlertSubscriptions = {};
+  int _notificationSequence = 0;
+  DateTime Function() _clock = DateTime.now;
+
+  @visibleForTesting
+  void setClockForTesting(DateTime Function() clock) {
+    _clock = clock;
+  }
 
   void _initMockData() {
     _exactLocationsByProductId.clear();
     _reservedListingPreviousStatus.clear();
+    _blockedUserPairs.clear();
+    _suspendedUserReasons.clear();
+    _safetyTipsAcknowledgedBy.clear();
+    _areaAlertSubscriptions.clear();
+    _notificationSequence = 0;
+    _orderSequence = 0;
     meetupAgreements.clear();
     users = [
       UserModel(
@@ -206,6 +237,12 @@ class AppState extends ChangeNotifier {
       ),
     });
     currentUser = users.first;
+    _areaAlertSubscriptions['user_01'] = AreaAlertSubscription(
+      userId: 'user_01',
+      center: GeoLocation(users.first.homeLat!, users.first.homeLng!),
+      enabled: true,
+      radiusKm: 5,
+    );
 
     pickupPoints = [
       SuggestedSpot(
@@ -540,6 +577,13 @@ class AppState extends ChangeNotifier {
         pickupType: PickupType.suggestedSpot,
       ),
     ];
+    final seedCreatedAt = DateTime.now();
+    products = products.indexed.map((entry) {
+      final (index, product) = entry;
+      return product.copyWith(
+        createdAt: seedCreatedAt.subtract(Duration(days: index % 7)),
+      );
+    }).toList();
 
     reviews = _buildSeedReviews();
     _recalculateRatings();
@@ -586,6 +630,7 @@ class AppState extends ChangeNotifier {
         previousStatus: OrderStatus.pending,
       ),
     ];
+    _recalculateSuccessfulDeals();
     _setSeedListingStatus('prod_1', ListingStatus.reserved);
     _setSeedListingStatus('prod_14', ListingStatus.reserved);
     _setSeedListingStatus('prod_5', ListingStatus.sold);
@@ -664,55 +709,64 @@ class AppState extends ChangeNotifier {
       ),
     ];
 
-    // Seed Reports for Admin Dashboard (FR-11, UC-03)
+    // Seed Reports use valid users and references for admin review examples.
     reports = [
       ReportModel(
         id: 'REP-001',
         orderId: 'ORD-2026-0801',
-        reporterId: 'user_09',
-        reporterName: 'ศราวุธ วงษา',
-        reportedUserName: 'ร้านตัวอย่าง (ไม่ระบุตัวตน)',
-        reason: 'สินค้าไม่ตรงปก / สภาพเสียหายหนัก',
-        details:
+        reporterId: 'user_02',
+        reportedUserId: 'user_04',
+        reason: ReportReason.damagedItem,
+        detail:
             'ผู้ขายแจ้งว่าสภาพดี แต่สินค้าจริงจอแตกและใช้งานไม่ได้ โปรดช่วยตรวจสอบข้อมูลการนัดรับ',
-        status: ReportStatus.pending,
+        status: ReportStatus.open,
+        createdAt: DateTime.now().subtract(const Duration(hours: 2)),
       ),
       ReportModel(
         id: 'REP-002',
-        reporterId: 'user_10',
-        reporterName: 'กนกวรรณ รุ่งโรจน์',
-        reportedUserName: 'user_fake_00',
-        reason: 'พฤติกรรมน่าสงสัย / ชักชวนให้โอนก่อนรับสินค้า',
-        details:
+        reporterId: 'user_01',
+        reportedUserId: 'user_03',
+        productId: 'prod_2',
+        reason: ReportReason.paymentScam,
+        detail:
             'ผู้ขายทักแชทมาขอให้โอนเงินนอกช่องทางที่ตกลงกัน โปรดตรวจสอบข้อมูลก่อนทำรายการ',
-        status: ReportStatus.investigating,
+        status: ReportStatus.open,
+        createdAt: DateTime.now().subtract(const Duration(days: 1)),
       ),
     ];
 
-    // Seed Notifications (FR-10)
+    // Seed notifications for the first sample account.
     notifications = [
-      {
-        'title': 'มีคำสั่งซื้อใหม่',
-        'body': 'คำสั่งซื้อ ORD-2026-0901 รอนัดรับและชำระเงินหน้างาน',
-        'time': '12 นาทีที่แล้ว',
-        'type': 'order',
-        'read': false,
-      },
-      {
-        'title': 'มีข้อความใหม่จาก พีรภัทร ชาญวิทย์',
-        'body': 'ยังอยู่ครับ สะดวกนัดรับที่จุดสาธารณะในเขตเมืองช่วงเย็นไหมครับ',
-        'time': '1 ชั่วโมงที่แล้ว',
-        'type': 'chat',
-        'read': true,
-      },
-      {
-        'title': 'ประกาศจาก $appName',
-        'body':
-            'ยินดีต้อนรับสู่ตลาดซื้อขาย แลกเปลี่ยน และแบ่งปันสิ่งของในชุมชน',
-        'time': '1 วันที่แล้ว',
-        'type': 'system',
-        'read': true,
-      },
+      AppNotification(
+        id: 'notif_seed_order',
+        userId: 'user_01',
+        type: AppNotificationType.orderStatusChanged,
+        title: 'มีคำสั่งซื้อใหม่',
+        body: 'คำสั่งซื้อ ORD-2026-0901 รอนัดรับและชำระเงินหน้างาน',
+        refType: 'order',
+        refId: 'ORD-2026-0901',
+        createdAt: DateTime.now().subtract(const Duration(minutes: 12)),
+      ),
+      AppNotification(
+        id: 'notif_seed_chat',
+        userId: 'user_01',
+        type: AppNotificationType.newMessage,
+        title: 'มีข้อความใหม่จาก ณัฐชา เกียรติสกุล',
+        body: 'มีหนังสือ Data Structures แลกได้ไหมคะ',
+        refType: 'chat',
+        refId: 'chat_02',
+        createdAt: DateTime.now().subtract(const Duration(hours: 1)),
+        readAt: DateTime.now().subtract(const Duration(minutes: 30)),
+      ),
+      AppNotification(
+        id: 'notif_seed_system',
+        userId: 'user_01',
+        type: AppNotificationType.system,
+        title: 'ประกาศจาก $appName',
+        body: 'ยินดีต้อนรับสู่ตลาดซื้อขาย แลกเปลี่ยน และแบ่งปันสิ่งของในชุมชน',
+        createdAt: DateTime.now().subtract(const Duration(days: 1)),
+        readAt: DateTime.now().subtract(const Duration(hours: 20)),
+      ),
     ];
   }
 
@@ -917,7 +971,10 @@ class AppState extends ChangeNotifier {
 
   bool loginWithPhoneAndPassword(String phone, String password) {
     final credential = _credentialsByPhone[phone];
-    if (credential == null || credential.password != password) return false;
+    if (credential == null || credential.password != password) {
+      lastLoginError = 'เบอร์โทรหรือรหัสผ่านไม่ถูกต้อง';
+      return false;
+    }
 
     final userIndex = users.indexWhere((user) => user.id == credential.userId);
     if (userIndex == -1) {
@@ -926,7 +983,12 @@ class AppState extends ChangeNotifier {
       );
     }
 
+    if (users[userIndex].isSuspended) {
+      lastLoginError = 'บัญชีนี้ถูกระงับ ติดต่อผู้ดูแล';
+      return false;
+    }
     currentUser = users[userIndex];
+    lastLoginError = null;
     notifyListeners();
     return true;
   }
@@ -951,6 +1013,7 @@ class AppState extends ChangeNotifier {
       password: password,
     );
     currentUser = user;
+    lastLoginError = null;
     notifyListeners();
     return true;
   }
@@ -960,6 +1023,7 @@ class AppState extends ChangeNotifier {
     required double longitude,
     required String label,
   }) {
+    if (_expireSuspendedSession() != null) return;
     currentUser = currentUser.copyWith(
       homeLat: latitude,
       homeLng: longitude,
@@ -967,6 +1031,12 @@ class AppState extends ChangeNotifier {
     );
     final userIndex = users.indexWhere((user) => user.id == currentUser.id);
     if (userIndex != -1) users[userIndex] = currentUser;
+    final subscription = _areaAlertSubscriptions[currentUser.id];
+    if (subscription != null) {
+      _areaAlertSubscriptions[currentUser.id] = subscription.copyWith(
+        center: GeoLocation(latitude, longitude),
+      );
+    }
     notifyListeners();
   }
 
@@ -979,7 +1049,187 @@ class AppState extends ChangeNotifier {
       reviewCount: 0,
       successfulDeals: 0,
     );
+    lastLoginError = null;
     notifyListeners();
+  }
+
+  bool get isCurrentUserSuspended => currentUser.isSuspended;
+
+  String? _expireSuspendedSession() {
+    if (!isLoggedIn || !currentUser.isSuspended) return null;
+    final reason = currentUser.suspensionReason ?? 'ติดต่อผู้ดูแลระบบ';
+    loginAsGuest();
+    return 'บัญชีนี้ถูกระงับ: $reason';
+  }
+
+  AreaAlertSubscription areaAlertSubscriptionFor(String userId) {
+    final user = userById(userId);
+    final center = user?.homeLat != null && user?.homeLng != null
+        ? GeoLocation(user!.homeLat!, user.homeLng!)
+        : kDefaultCenter;
+    return _areaAlertSubscriptions[userId] ??
+        AreaAlertSubscription(userId: userId, center: center);
+  }
+
+  String? updateAreaAlertSubscription({
+    required bool enabled,
+    required double radiusKm,
+    required List<String> categories,
+  }) {
+    final sessionError = _expireSuspendedSession();
+    if (sessionError != null) return sessionError;
+    if (!isLoggedIn) return 'เข้าสู่ระบบก่อนตั้งค่าการแจ้งเตือน';
+    if (!radiusKm.isFinite ||
+        radiusKm < kAreaAlertMinRadiusKm ||
+        radiusKm > kAreaAlertMaxRadiusKm) {
+      return 'รัศมีต้องอยู่ระหว่าง 1 ถึง 20 กิโลเมตร';
+    }
+    final user = currentUser;
+    final center = user.homeLat != null && user.homeLng != null
+        ? GeoLocation(user.homeLat!, user.homeLng!)
+        : kDefaultCenter;
+    _areaAlertSubscriptions[user.id] = AreaAlertSubscription(
+      userId: user.id,
+      enabled: enabled,
+      radiusKm: radiusKm,
+      categories: List.unmodifiable(categories.toSet()),
+      center: center,
+    );
+    notifyListeners();
+    return null;
+  }
+
+  List<AppNotification> notificationsForCurrentUser() {
+    if (!isLoggedIn) return const [];
+    return notifications
+        .where((notification) => notification.userId == currentUser.id)
+        .toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  }
+
+  int get unreadNotificationCount => !isLoggedIn
+      ? 0
+      : notifications
+          .where(
+            (notification) =>
+                notification.userId == currentUser.id && !notification.isRead,
+          )
+          .length;
+
+  void markNotificationRead(String notificationId) {
+    final index = notifications.indexWhere(
+      (notification) =>
+          notification.id == notificationId &&
+          notification.userId == currentUser.id,
+    );
+    if (index == -1 || notifications[index].isRead) return;
+    notifications[index] = notifications[index].copyWith(readAt: DateTime.now());
+    notifyListeners();
+  }
+
+  void markAllNotificationsRead() {
+    if (!isLoggedIn) return;
+    final now = DateTime.now();
+    notifications = notifications
+        .map(
+          (notification) =>
+              notification.userId == currentUser.id && !notification.isRead
+              ? notification.copyWith(readAt: now)
+              : notification,
+        )
+        .toList();
+    notifyListeners();
+  }
+
+  void deleteNotification(String notificationId) {
+    notifications.removeWhere(
+      (notification) =>
+          notification.id == notificationId &&
+          notification.userId == currentUser.id,
+    );
+    notifyListeners();
+  }
+
+  void _notifyUser({
+    required String userId,
+    required AppNotificationType type,
+    required String title,
+    required String body,
+    String? refType,
+    String? refId,
+    String? aggregateKey,
+  }) {
+    // TODO: replace this in-memory delivery with FCM when the backend exists.
+    if (userId == currentUser.id || userId.startsWith('guest_')) return;
+    if (aggregateKey != null) {
+      final existingIndex = notifications.indexWhere(
+        (notification) =>
+            notification.userId == userId &&
+            notification.type == type &&
+            notification.refId == aggregateKey &&
+            !notification.isRead,
+      );
+      if (existingIndex != -1) {
+        notifications[existingIndex] = notifications[existingIndex].copyWith(
+          title: title,
+          body: body,
+          createdAt: DateTime.now(),
+        );
+        return;
+      }
+    }
+    notifications.insert(
+      0,
+      AppNotification(
+        id: 'notif_${DateTime.now().microsecondsSinceEpoch}_${_notificationSequence++}',
+        userId: userId,
+        type: type,
+        title: title,
+        body: body,
+        refType: refType,
+        refId: aggregateKey ?? refId,
+        createdAt: DateTime.now(),
+      ),
+    );
+  }
+
+  void _notifyOrderParticipants(
+    OrderModel order, {
+    required String body,
+  }) {
+    for (final userId in {order.buyerId, order.sellerId}) {
+      _notifyUser(
+        userId: userId,
+        type: AppNotificationType.orderStatusChanged,
+        title: 'อัปเดตคำสั่งซื้อ',
+        body: body,
+        refType: 'order',
+        refId: order.id,
+      );
+    }
+  }
+
+  AdminQueryResult<List<UserModel>> adminUsers({String query = ''}) {
+    if (!isAdmin) {
+      return const AdminQueryResult.failure('เฉพาะผู้ดูแลระบบเท่านั้น');
+    }
+    final normalized = query.trim().toLowerCase();
+    final result = users.where((user) {
+      return normalized.isEmpty ||
+          user.name.toLowerCase().contains(normalized) ||
+          user.phone.contains(normalized);
+    }).toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+    return AdminQueryResult.success(List.unmodifiable(result));
+  }
+
+  AdminQueryResult<List<ReportModel>> adminReports() {
+    if (!isAdmin) {
+      return const AdminQueryResult.failure('เฉพาะผู้ดูแลระบบเท่านั้น');
+    }
+    final result = List<ReportModel>.of(reports)
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return AdminQueryResult.success(List.unmodifiable(result));
   }
 
   List<NearbyProduct> productsNearby({
@@ -1002,9 +1252,11 @@ class AppState extends ChangeNotifier {
     final normalizedCategory = category?.trim();
     final normalizedQuery = query?.trim().toLowerCase();
     final blockedUserIds = _blockedUserIdsFor(currentUser.id);
+    if (currentUser.isSuspended) return const [];
     final nearby = <NearbyProduct>[];
     for (final product in products) {
       if (product.status != ListingStatus.active ||
+          (userById(product.sellerId)?.isSuspended ?? false) ||
           product.sellerId == currentUser.id ||
           blockedUserIds.contains(product.sellerId)) {
         continue;
@@ -1078,7 +1330,85 @@ class AppState extends ChangeNotifier {
     );
   }
 
-  Set<String> _blockedUserIdsFor(String userId) => const {};
+  String _blockedPairKey(String firstUserId, String secondUserId) {
+    final ids = [firstUserId, secondUserId]..sort();
+    return '${ids[0]}|${ids[1]}';
+  }
+
+  bool areUsersBlocked(String firstUserId, String secondUserId) =>
+      _blockedUserPairs.contains(_blockedPairKey(firstUserId, secondUserId));
+
+  bool isBlocked(String userId) =>
+      isLoggedIn && areUsersBlocked(currentUser.id, userId);
+
+  Set<String> _blockedUserIdsFor(String userId) {
+    final blocked = <String>{};
+    for (final pair in _blockedUserPairs) {
+      final ids = pair.split('|');
+      if (ids.length != 2) continue;
+      if (ids[0] == userId) blocked.add(ids[1]);
+      if (ids[1] == userId) blocked.add(ids[0]);
+    }
+    return blocked;
+  }
+
+  String? blockUser(String userId) {
+    final sessionError = _expireSuspendedSession();
+    if (sessionError != null) return sessionError;
+    if (!isLoggedIn) return 'เข้าสู่ระบบก่อนบล็อกผู้ใช้';
+    if (userId == currentUser.id) return 'ไม่สามารถบล็อกตัวเองได้';
+    if (userById(userId) == null) return 'ไม่พบผู้ใช้นี้';
+    _blockedUserPairs.add(_blockedPairKey(currentUser.id, userId));
+    notifyListeners();
+    return null;
+  }
+
+  String? unblockUser(String userId) {
+    final sessionError = _expireSuspendedSession();
+    if (sessionError != null) return sessionError;
+    if (!isLoggedIn) return 'เข้าสู่ระบบก่อนปลดบล็อกผู้ใช้';
+    _blockedUserPairs.remove(_blockedPairKey(currentUser.id, userId));
+    notifyListeners();
+    return null;
+  }
+
+  List<UserModel> blockedUsersForCurrentUser() {
+    if (!isLoggedIn) return const [];
+    final ids = _blockedUserIdsFor(currentUser.id);
+    return users.where((user) => ids.contains(user.id)).toList();
+  }
+
+  String? suspendUser(String userId, String reason) {
+    if (!isAdmin) return 'เฉพาะผู้ดูแลระบบเท่านั้น';
+    if (userId == currentUser.id) return 'ไม่สามารถระงับบัญชีตัวเองได้';
+    final index = users.indexWhere((user) => user.id == userId);
+    if (index == -1) return 'ไม่พบผู้ใช้นี้';
+    if (users[index].role == UserRole.admin) {
+      return 'ไม่สามารถระงับบัญชีผู้ดูแลระบบได้';
+    }
+    final detail = reason.trim();
+    if (detail.isEmpty) return 'กรุณาระบุเหตุผลในการระงับบัญชี';
+    users[index] = users[index].copyWith(
+      isSuspended: true,
+      suspensionReason: detail,
+    );
+    _suspendedUserReasons[userId] = detail;
+    notifyListeners();
+    return null;
+  }
+
+  String? unsuspendUser(String userId) {
+    if (!isAdmin) return 'เฉพาะผู้ดูแลระบบเท่านั้น';
+    final index = users.indexWhere((user) => user.id == userId);
+    if (index == -1) return 'ไม่พบผู้ใช้นี้';
+    users[index] = users[index].copyWith(
+      isSuspended: false,
+      clearSuspensionReason: true,
+    );
+    _suspendedUserReasons.remove(userId);
+    notifyListeners();
+    return null;
+  }
 
   bool _hasAcceptedMeetup(String productId, String requesterUserId) {
     final product = products.where((item) => item.id == productId).firstOrNull;
@@ -1112,6 +1442,8 @@ class AppState extends ChangeNotifier {
     required String imageUrl,
     required List<ProductImageData> productImages,
   }) {
+    final sessionError = _expireSuspendedSession();
+    if (sessionError != null) throw StateError(sessionError);
     if (!isLoggedIn) {
       throw StateError('กรุณาเข้าสู่ระบบก่อนลงประกาศ');
     }
@@ -1146,8 +1478,39 @@ class AppState extends ChangeNotifier {
       exactLat: exactLocation.lat,
       exactLng: exactLocation.lng,
     );
+    if (product.status == ListingStatus.active) {
+      _notifyAreaSubscribers(product);
+    }
     notifyListeners();
     return product;
+  }
+
+  void _notifyAreaSubscribers(ProductModel product) {
+    for (final user in users) {
+      if (user.id == product.sellerId ||
+          user.isSuspended ||
+          areUsersBlocked(user.id, product.sellerId)) {
+        continue;
+      }
+      final subscription = areaAlertSubscriptionFor(user.id);
+      if (!subscription.enabled ||
+          (subscription.categories.isNotEmpty &&
+              !subscription.categories.contains(product.category))) {
+        continue;
+      }
+      if (distanceKm(subscription.center, product.publicLocation) >
+          subscription.radiusKm) {
+        continue;
+      }
+      _notifyUser(
+        userId: user.id,
+        type: AppNotificationType.newListingNearby,
+        title: 'ประกาศใหม่ใกล้พื้นที่ของคุณ',
+        body: product.title,
+        refType: 'product',
+        refId: product.id,
+      );
+    }
   }
 
   ProductModel updateListing({
@@ -1166,6 +1529,8 @@ class AppState extends ChangeNotifier {
     required String imageUrl,
     required List<ProductImageData> productImages,
   }) {
+    final sessionError = _expireSuspendedSession();
+    if (sessionError != null) throw StateError(sessionError);
     final index = _ownedListingIndex(id);
     final previous = products[index];
     final updated = previous.copyWith(
@@ -1196,6 +1561,8 @@ class AppState extends ChangeNotifier {
   }
 
   String? setListingStatus(String id, ListingStatus newStatus) {
+    final sessionError = _expireSuspendedSession();
+    if (sessionError != null) return sessionError;
     final index = _ownedListingIndex(id);
     if (products[index].status == ListingStatus.reserved) {
       if (newStatus == ListingStatus.hidden) {
@@ -1211,6 +1578,8 @@ class AppState extends ChangeNotifier {
   }
 
   String? deleteListing(String id) {
+    final sessionError = _expireSuspendedSession();
+    if (sessionError != null) return sessionError;
     final index = _ownedListingIndex(id);
     final hasUnfinishedOrder = orders.any(
       (order) =>
@@ -1229,6 +1598,8 @@ class AppState extends ChangeNotifier {
   }
 
   int _ownedListingIndex(String id) {
+    final sessionError = _expireSuspendedSession();
+    if (sessionError != null) throw StateError(sessionError);
     if (!isLoggedIn) throw StateError('กรุณาเข้าสู่ระบบก่อนจัดการประกาศ');
     final index = products.indexWhere((product) => product.id == id);
     if (index == -1) throw StateError('ไม่พบประกาศนี้');
@@ -1269,11 +1640,19 @@ class AppState extends ChangeNotifier {
   }
 
   String? addToCart(ProductModel product) {
+    final sessionError = _expireSuspendedSession();
+    if (sessionError != null) return sessionError;
     if (!isLoggedIn) return 'เข้าสู่ระบบก่อนเพิ่มสินค้าลงตะกร้า';
     final actual = products.where((item) => item.id == product.id).firstOrNull;
     if (actual == null) return 'ไม่พบสินค้านี้';
     if (actual.sellerId == currentUser.id) {
       return 'เพิ่มประกาศของตัวเองลงตะกร้าไม่ได้';
+    }
+    if (areUsersBlocked(currentUser.id, actual.sellerId)) {
+      return 'ไม่สามารถซื้อสินค้าจากผู้ใช้ที่บล็อกกันได้';
+    }
+    if (userById(actual.sellerId)?.isSuspended ?? false) {
+      return 'ผู้ขายถูกระงับบัญชีชั่วคราว';
     }
     if (actual.status != ListingStatus.active) return 'สินค้านี้ไม่พร้อมขาย';
     if (cartItems.any((item) => item.id == actual.id)) return null;
@@ -1306,6 +1685,10 @@ class AppState extends ChangeNotifier {
     String sellerId, {
     required PaymentMethod paymentMethod,
   }) {
+    final sessionError = _expireSuspendedSession();
+    if (sessionError != null) {
+      return OrderCreationResult.failure(sessionError);
+    }
     if (!isLoggedIn) {
       return const OrderCreationResult.failure('เข้าสู่ระบบก่อนสั่งซื้อ');
     }
@@ -1314,6 +1697,14 @@ class AppState extends ChangeNotifier {
         .toList();
     if (sellerCartItems.isEmpty) {
       return const OrderCreationResult.failure('ไม่มีสินค้าของผู้ขายรายนี้ในตะกร้า');
+    }
+    if (areUsersBlocked(currentUser.id, sellerId)) {
+      return const OrderCreationResult.failure(
+        'ไม่สามารถสั่งซื้อจากผู้ใช้ที่บล็อกกันได้',
+      );
+    }
+    if (userById(sellerId)?.isSuspended ?? false) {
+      return const OrderCreationResult.failure('บัญชีผู้ขายถูกระงับ');
     }
 
     final currentProducts = <ProductModel>[];
@@ -1368,13 +1759,14 @@ class AppState extends ChangeNotifier {
     }
     orders.insert(0, order);
     cartItems.removeWhere((item) => item.sellerId == sellerId);
-    notifications.insert(0, {
-      'title': 'มีคำสั่งซื้อใหม่',
-      'body': '${currentUser.name} ตกลงซื้อสินค้า ${order.items.length} รายการ',
-      'time': 'เมื่อสักครู่',
-      'type': 'order',
-      'read': false,
-    });
+    _notifyUser(
+      userId: sellerId,
+      type: AppNotificationType.orderStatusChanged,
+      title: 'มีคำสั่งซื้อใหม่',
+      body: '${currentUser.name} ตกลงซื้อสินค้า ${order.items.length} รายการ',
+      refType: 'order',
+      refId: order.id,
+    );
     notifyListeners();
     return OrderCreationResult.success(order);
   }
@@ -1404,6 +1796,8 @@ class AppState extends ChangeNotifier {
   }
 
   String? markOrderHandedOver(String orderId) {
+    final sessionError = _expireSuspendedSession();
+    if (sessionError != null) return sessionError;
     final index = orders.indexWhere((order) => order.id == orderId);
     if (index == -1) return 'ไม่พบคำสั่งซื้อนี้';
     final order = orders[index];
@@ -1419,6 +1813,8 @@ class AppState extends ChangeNotifier {
   }
 
   String? completeOrder(String orderId) {
+    final sessionError = _expireSuspendedSession();
+    if (sessionError != null) return sessionError;
     final index = orders.indexWhere((order) => order.id == orderId);
     if (index == -1) return 'ไม่พบคำสั่งซื้อนี้';
     final order = orders[index];
@@ -1447,11 +1843,14 @@ class AppState extends ChangeNotifier {
       _reservedListingPreviousStatus.remove(item.productId);
     }
     _incrementSuccessfulDeals(order);
+    _notifyOrderParticipants(order, body: 'คำสั่งซื้อ ${order.id} สำเร็จแล้ว');
     notifyListeners();
     return null;
   }
 
   String? cancelOrder(String orderId, String reason) {
+    final sessionError = _expireSuspendedSession();
+    if (sessionError != null) return sessionError;
     final index = orders.indexWhere((order) => order.id == orderId);
     if (index == -1) return 'ไม่พบคำสั่งซื้อนี้';
     final order = orders[index];
@@ -1477,11 +1876,14 @@ class AppState extends ChangeNotifier {
       ],
     );
     _restoreReservedProducts(order);
+    _notifyOrderParticipants(order, body: 'คำสั่งซื้อ ${order.id} ถูกยกเลิก');
     notifyListeners();
     return null;
   }
 
   String? disputeOrder(String orderId, String reason, String details) {
+    final sessionError = _expireSuspendedSession();
+    if (sessionError != null) return sessionError;
     final index = orders.indexWhere((order) => order.id == orderId);
     if (index == -1) return 'ไม่พบคำสั่งซื้อนี้';
     final order = orders[index];
@@ -1489,14 +1891,25 @@ class AppState extends ChangeNotifier {
         (currentUser.id != order.buyerId && currentUser.id != order.sellerId)) {
       return 'เฉพาะผู้ซื้อหรือผู้ขายของคำสั่งซื้อนี้เท่านั้นที่รายงานได้';
     }
-    if (order.status != OrderStatus.pending) {
-      return 'รายงานปัญหาได้เฉพาะคำสั่งซื้อที่รอนัดรับ';
+    final now = _clock();
+    if (order.status == OrderStatus.completed) {
+      final completedAt = order.completedAt;
+      if (completedAt == null ||
+          now.difference(completedAt) >
+              const Duration(days: kDisputeWindowDays)) {
+        return 'แจ้งปัญหาได้ภายใน $kDisputeWindowDays วันหลังคำสั่งซื้อสำเร็จ';
+      }
+    } else if (order.status != OrderStatus.pending) {
+      return 'แจ้งปัญหาได้เฉพาะคำสั่งซื้อที่รอนัดรับ หรือสำเร็จภายใน $kDisputeWindowDays วัน';
     }
-    final now = DateTime.now();
+    final trimmedDetail = details.trim();
+    if (trimmedDetail.isEmpty) return 'กรุณาระบุรายละเอียดของปัญหา';
+    if (trimmedDetail.length > kReportDetailMaxLength) {
+      return 'รายละเอียดต้องไม่เกิน $kReportDetailMaxLength ตัวอักษร';
+    }
     final targetId = currentUser.id == order.buyerId
         ? order.sellerId
         : order.buyerId;
-    final target = users.where((user) => user.id == targetId).firstOrNull;
     orders[index] = order.copyWith(
       status: OrderStatus.disputed,
       previousStatus: order.status,
@@ -1511,91 +1924,225 @@ class AppState extends ChangeNotifier {
         id: 'DISP-${now.microsecondsSinceEpoch}',
         orderId: orderId,
         reporterId: currentUser.id,
-        reporterName: currentUser.name,
-        reportedUserName: target?.name ?? targetId,
-        reason: reason,
-        details: details,
+        reportedUserId: targetId,
+        reason: _reportReasonFromLabel(reason),
+        detail: trimmedDetail,
+        createdAt: now,
       ),
     );
-    notifications.insert(0, {
-      'title': 'รายงานปัญหาคำสั่งซื้อ',
-      'body': 'คำสั่งซื้อ $orderId ถูกส่งให้ทีมดูแลตรวจสอบ',
-      'time': 'เมื่อสักครู่',
-      'type': 'warning',
-      'read': false,
-    });
+    _notifyOrderParticipants(
+      order,
+      body: 'คำสั่งซื้อ $orderId ถูกส่งให้ทีมดูแลตรวจสอบ',
+    );
     notifyListeners();
     return null;
   }
 
-  void submitReport({
-    required String reportedUser,
-    required String reason,
-    required String details,
+  ReportReason _reportReasonFromLabel(String label) => ReportReason.values
+      .where((reason) => reason.label == label)
+      .firstOrNull ??
+      ReportReason.other;
+
+  String? submitReport({
+    required String reportedUserId,
+    required ReportReason reason,
+    required String detail,
+    String? orderId,
+    String? productId,
   }) {
+    final sessionError = _expireSuspendedSession();
+    if (sessionError != null) return sessionError;
+    if (!isLoggedIn) return 'เข้าสู่ระบบก่อนส่งรายงาน';
+    if (reportedUserId == currentUser.id) return 'ไม่สามารถรายงานตัวเองได้';
+    if (userById(reportedUserId) == null) return 'ไม่พบผู้ใช้ที่ต้องการรายงาน';
+    if (orderId != null) {
+      final order = orders.where((item) => item.id == orderId).firstOrNull;
+      if (order == null) return 'ไม่พบคำสั่งซื้อที่ระบุ';
+      final isBuyer = currentUser.id == order.buyerId;
+      final isSeller = currentUser.id == order.sellerId;
+      final otherId = isBuyer
+          ? order.sellerId
+          : isSeller
+          ? order.buyerId
+          : null;
+      if (otherId == null || reportedUserId != otherId) {
+        return 'รายงานได้เฉพาะคู่กรณีของคำสั่งซื้อนี้';
+      }
+    }
+    if (productId != null) {
+      final product = products.where((item) => item.id == productId).firstOrNull;
+      if (product == null || product.sellerId != reportedUserId) {
+        return 'สินค้าไม่ตรงกับผู้ใช้ที่ถูกรายงาน';
+      }
+    }
+    final trimmedDetail = detail.trim();
+    if (trimmedDetail.isEmpty) return 'กรุณาระบุรายละเอียดของปัญหา';
+    if (trimmedDetail.length > kReportDetailMaxLength) {
+      return 'รายละเอียดต้องไม่เกิน $kReportDetailMaxLength ตัวอักษร';
+    }
+    if (orderId != null &&
+        reports.any(
+          (report) =>
+              report.reporterId == currentUser.id &&
+              report.reportedUserId == reportedUserId &&
+              report.orderId == orderId &&
+              report.status == ReportStatus.open,
+        )) {
+      return 'คุณส่งรายงานเรื่องนี้สำหรับออเดอร์นี้แล้ว';
+    }
+    final now = DateTime.now();
     reports.insert(
       0,
       ReportModel(
-        id: 'REP-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}',
+        id: 'REP-${now.microsecondsSinceEpoch}',
         reporterId: currentUser.id,
-        reporterName: currentUser.name,
-        reportedUserName: reportedUser,
+        reportedUserId: reportedUserId,
+        orderId: orderId,
+        productId: productId,
         reason: reason,
-        details: details,
-        status: ReportStatus.pending,
+        detail: trimmedDetail,
+        createdAt: now,
       ),
     );
     notifyListeners();
+    return null;
   }
 
-  String? resolveDispute(String reportId, ReportResolution resolution) {
-    if (!isAdmin) return 'เฉพาะผู้ดูแลระบบเท่านั้นที่จัดการรายงานได้';
-    final repIndex = reports.indexWhere((r) => r.id == reportId);
-    if (repIndex == -1) return 'ไม่พบรายงานนี้';
-    final report = reports[repIndex];
-    final now = DateTime.now();
-    if (resolution == ReportResolution.accountSuspended) {
-      reports[repIndex] = report.copyWith(
-        status: ReportStatus.accountSuspended,
-      );
-      notifyListeners();
-      return null;
+  String? resolveReport(
+    String reportId, {
+    required AdminReportAction action,
+    required String adminNote,
+  }) {
+    if (!isAdmin) return 'เฉพาะผู้ดูแลระบบเท่านั้น';
+    final reportIndex = reports.indexWhere((report) => report.id == reportId);
+    if (reportIndex == -1) return 'ไม่พบรายงานนี้';
+    final report = reports[reportIndex];
+    if (report.status != ReportStatus.open) return 'รายงานนี้ปิดไปแล้ว';
+    final note = adminNote.trim();
+    if (action != AdminReportAction.dismiss && note.isEmpty) {
+      return 'กรุณาบันทึกหมายเหตุแอดมินเมื่อดำเนินการ';
     }
 
-    final orderIndex = orders.indexWhere((order) => order.id == report.orderId);
+    final shouldSuspend =
+        action == AdminReportAction.suspendUser ||
+        action == AdminReportAction.suspendAndCancel;
+    final shouldCancel =
+        action == AdminReportAction.cancelOrder ||
+        action == AdminReportAction.suspendAndCancel;
+    final target = userById(report.reportedUserId);
+    if (shouldSuspend) {
+      if (target == null) return 'ไม่พบผู้ใช้ที่ถูกรายงาน';
+      if (target.id == currentUser.id || target.role == UserRole.admin) {
+        return 'ไม่สามารถระงับบัญชีแอดมินหรือตัวเองได้';
+      }
+    }
+    final orderIndex = report.orderId == null
+        ? -1
+        : orders.indexWhere((order) => order.id == report.orderId);
+    if (shouldCancel) {
+      if (orderIndex == -1) return 'รายงานนี้ไม่มีออเดอร์ที่ยกเลิกได้';
+      final order = orders[orderIndex];
+      if (order.status != OrderStatus.pending &&
+          order.status != OrderStatus.disputed) {
+        return 'ยกเลิกได้เฉพาะออเดอร์ที่รอนัดรับหรือรอตรวจสอบ';
+      }
+    }
+
+    final now = DateTime.now();
+    if (shouldSuspend) {
+      final userIndex = users.indexWhere(
+        (user) => user.id == report.reportedUserId,
+      );
+      users[userIndex] = users[userIndex].copyWith(
+        isSuspended: true,
+        suspensionReason: note,
+      );
+      _suspendedUserReasons[report.reportedUserId] = note;
+    }
+
     if (orderIndex != -1) {
       final order = orders[orderIndex];
-      if (order.status != OrderStatus.disputed) {
-        return 'คำสั่งซื้อนี้ไม่ได้อยู่ระหว่างตรวจสอบปัญหา';
-      }
-      if (resolution == ReportResolution.close) {
-        final restoredStatus = order.previousStatus ?? OrderStatus.pending;
+      if (order.status == OrderStatus.disputed) {
+        final nextStatus = shouldCancel
+            ? OrderStatus.cancelled
+            : order.previousStatus ?? OrderStatus.pending;
         orders[orderIndex] = order.copyWith(
-          status: restoredStatus,
+          status: nextStatus,
+          cancelledBy: shouldCancel ? currentUser.id : order.cancelledBy,
+          cancelReason: shouldCancel ? 'ยกเลิกโดยผู้ดูแลหลังตรวจสอบรายงาน' : null,
+          cancelledAt: shouldCancel ? now : order.cancelledAt,
           clearPreviousStatus: true,
           events: [
             ...order.events,
-            OrderEvent(at: now, actorId: currentUser.id, status: restoredStatus),
+            OrderEvent(at: now, actorId: currentUser.id, status: nextStatus),
           ],
         );
-      } else {
+        if (shouldCancel) _restoreReservedProducts(order);
+      } else if (shouldCancel) {
         orders[orderIndex] = order.copyWith(
           status: OrderStatus.cancelled,
           cancelledBy: currentUser.id,
-          cancelReason: 'ยกเลิกโดยผู้ดูแลระบบหลังตรวจสอบรายงาน',
+          cancelReason: 'ยกเลิกโดยผู้ดูแลหลังตรวจสอบรายงาน',
           cancelledAt: now,
-          clearPreviousStatus: true,
           events: [
             ...order.events,
-            OrderEvent(at: now, actorId: currentUser.id, status: OrderStatus.cancelled),
+            OrderEvent(
+              at: now,
+              actorId: currentUser.id,
+              status: OrderStatus.cancelled,
+            ),
           ],
         );
         _restoreReservedProducts(order);
       }
+      if (orderIndex != -1) {
+        _notifyOrderParticipants(
+          orders[orderIndex],
+          body: 'มีการอัปเดตคำสั่งซื้อ ${orders[orderIndex].id}',
+        );
+      }
     }
-    reports[repIndex] = report.copyWith(status: ReportStatus.resolved);
+
+    reports[reportIndex] = report.copyWith(
+      status: action == AdminReportAction.dismiss
+          ? ReportStatus.dismissed
+          : ReportStatus.actioned,
+      adminId: currentUser.id,
+      adminNote: note.isEmpty ? null : note,
+      resolvedAt: now,
+    );
+    for (final userId in {report.reporterId, report.reportedUserId}) {
+      _notifyUser(
+        userId: userId,
+        type: AppNotificationType.reportUpdated,
+        title: 'อัปเดตผลการตรวจสอบรายงาน',
+        body: action == AdminReportAction.dismiss
+            ? 'รายงาน ${report.id} ถูกปิดเรื่องแล้ว'
+            : 'มีการดำเนินการกับรายงาน ${report.id}',
+        refType: 'report',
+        refId: report.id,
+      );
+    }
     notifyListeners();
     return null;
+  }
+
+  String? resolveDispute(String reportId, ReportResolution resolution) {
+    if (!isAdmin) return 'เฉพาะผู้ดูแลระบบเท่านั้น';
+    final report = reports.where((item) => item.id == reportId).firstOrNull;
+    if (report == null) return 'ไม่พบรายงานนี้';
+    final action = switch (resolution) {
+      ReportResolution.close => AdminReportAction.dismiss,
+      ReportResolution.cancelOrder => AdminReportAction.cancelOrder,
+      ReportResolution.accountSuspended => AdminReportAction.suspendUser,
+    };
+    return resolveReport(
+      reportId,
+      action: action,
+      adminNote: resolution == ReportResolution.close
+          ? ''
+          : 'ดำเนินการโดยผู้ดูแลระบบ',
+    );
   }
 
   void _restoreReservedProducts(OrderModel order) {
@@ -1603,7 +2150,18 @@ class AppState extends ChangeNotifier {
       final index = products.indexWhere(
         (product) => product.id == item.productId,
       );
-      if (index == -1 || products[index].status != ListingStatus.reserved) {
+      if (index == -1) {
+        _reservedListingPreviousStatus.remove(item.productId);
+        continue;
+      }
+      if (products[index].status == ListingStatus.sold) {
+        products[index] = products[index].copyWith(
+          status: ListingStatus.active,
+        );
+        _reservedListingPreviousStatus.remove(item.productId);
+        continue;
+      }
+      if (products[index].status != ListingStatus.reserved) {
         _reservedListingPreviousStatus.remove(item.productId);
         continue;
       }
@@ -1621,6 +2179,34 @@ class AppState extends ChangeNotifier {
       }
       return user;
     }).toList();
+    currentUser =
+        users.where((user) => user.id == currentUser.id).firstOrNull ??
+        currentUser;
+  }
+
+  void _recalculateSuccessfulDeals() {
+    final completedByUser = <String, int>{};
+    for (final order in orders.where(
+      (item) => item.status == OrderStatus.completed,
+    )) {
+      completedByUser.update(
+        order.buyerId,
+        (count) => count + 1,
+        ifAbsent: () => 1,
+      );
+      completedByUser.update(
+        order.sellerId,
+        (count) => count + 1,
+        ifAbsent: () => 1,
+      );
+    }
+    users = users
+        .map(
+          (user) => user.copyWith(
+            successfulDeals: completedByUser[user.id] ?? 0,
+          ),
+        )
+        .toList();
     currentUser =
         users.where((user) => user.id == currentUser.id).firstOrNull ??
         currentUser;
@@ -1768,31 +2354,15 @@ class AppState extends ChangeNotifier {
   int get completedOrderCount =>
       orders.where((order) => order.status == OrderStatus.completed).length;
 
-  // Pickup Points Management (FR-11)
-  void addPickupPoint(SuggestedSpot point) {
-    pickupPoints.add(point);
-    notifyListeners();
-  }
-
-  void togglePickupPointActive(String id) {
-    final index = pickupPoints.indexWhere((p) => p.id == id);
-    if (index != -1) {
-      pickupPoints[index] = pickupPoints[index].copyWith(
-        isActive: !pickupPoints[index].isActive,
-      );
-      notifyListeners();
-    }
-  }
-
-  void deletePickupPoint(String id) {
-    pickupPoints.removeWhere((p) => p.id == id);
-    notifyListeners();
-  }
-
   ChatConversation? openConversationForProduct(String productId) {
+    if (_expireSuspendedSession() != null) return null;
     if (!isLoggedIn) return null;
     final product = products.where((item) => item.id == productId).firstOrNull;
     if (product == null || product.sellerId == currentUser.id) return null;
+    if (areUsersBlocked(currentUser.id, product.sellerId) ||
+        (userById(product.sellerId)?.isSuspended ?? false)) {
+      return null;
+    }
 
     final existing = conversations.where(
       (conversation) =>
@@ -1870,6 +2440,17 @@ class AppState extends ChangeNotifier {
           : conversation.unreadCount,
       unreadByUser: unread,
     );
+    notifications = notifications
+        .map(
+          (notification) =>
+              notification.userId == currentUser.id &&
+                  notification.type == AppNotificationType.newMessage &&
+                  notification.refId == conversationId &&
+                  !notification.isRead
+              ? notification.copyWith(readAt: DateTime.now())
+              : notification,
+        )
+        .toList();
     notifyListeners();
   }
 
@@ -1905,6 +2486,8 @@ class AppState extends ChangeNotifier {
   }
 
   String? sendTextMessage(String conversationId, String text) {
+    final sessionError = _expireSuspendedSession();
+    if (sessionError != null) return sessionError;
     if (!isLoggedIn) return 'เข้าสู่ระบบก่อนส่งข้อความ';
     final trimmed = text.trim();
     if (trimmed.isEmpty) return 'กรุณาพิมพ์ข้อความ';
@@ -1913,11 +2496,16 @@ class AppState extends ChangeNotifier {
     }
     final conversation = _participantConversation(conversationId);
     if (conversation == null) return 'ไม่พบบทสนทนาหรือคุณไม่มีสิทธิ์ส่งข้อความ';
+    if (areUsersBlocked(conversation.buyerId, conversation.sellerId)) {
+      return 'ส่งข้อความไม่ได้เนื่องจากผู้ใช้บล็อกกัน';
+    }
     _appendChatMessage(conversation, ChatMessageType.text, trimmed);
     return null;
   }
 
   String? sendImageMessage(String conversationId, Uint8List bytes) {
+    final sessionError = _expireSuspendedSession();
+    if (sessionError != null) return sessionError;
     if (!isLoggedIn) return 'เข้าสู่ระบบก่อนส่งรูปภาพ';
     if (bytes.isEmpty) return 'ไม่พบข้อมูลรูปภาพ';
     if (bytes.lengthInBytes > kMaxChatImageBytes) {
@@ -1925,6 +2513,9 @@ class AppState extends ChangeNotifier {
     }
     final conversation = _participantConversation(conversationId);
     if (conversation == null) return 'ไม่พบบทสนทนาหรือคุณไม่มีสิทธิ์ส่งรูปภาพ';
+    if (areUsersBlocked(conversation.buyerId, conversation.sellerId)) {
+      return 'ส่งรูปภาพไม่ได้เนื่องจากผู้ใช้บล็อกกัน';
+    }
     _appendChatMessage(
       conversation,
       ChatMessageType.image,
@@ -1942,9 +2533,14 @@ class AppState extends ChangeNotifier {
     String note = '',
     GeoLocation? spotLocation,
   }) {
+    final sessionError = _expireSuspendedSession();
+    if (sessionError != null) return sessionError;
     if (!isLoggedIn) return 'เข้าสู่ระบบก่อนเสนอนัดรับ';
     final conversation = _participantConversation(conversationId);
     if (conversation == null) return 'ไม่พบบทสนทนาหรือคุณไม่มีสิทธิ์เสนอนัด';
+    if (areUsersBlocked(conversation.buyerId, conversation.sellerId)) {
+      return 'เสนอนัดไม่ได้เนื่องจากผู้ใช้บล็อกกัน';
+    }
     if (pickupType == PickupType.discussInChat) {
       return 'กรุณาเลือกวิธีนัดรับ';
     }
@@ -2018,16 +2614,30 @@ class AppState extends ChangeNotifier {
       'ข้อเสนอนัดรับ',
       meetupId: agreementId,
     );
+    _notifyUser(
+      userId: agreement.responderId,
+      type: AppNotificationType.meetupProposed,
+      title: 'มีข้อเสนอนัดรับใหม่',
+      body: agreement.placeLabel,
+      refType: 'chat',
+      refId: conversation.id,
+    );
     return null;
   }
 
   String? respondMeetup(String meetupId, {required bool accept}) {
+    final sessionError = _expireSuspendedSession();
+    if (sessionError != null) return sessionError;
     if (!isLoggedIn) return 'เข้าสู่ระบบก่อนตอบรับนัด';
     final index = meetupAgreements.indexWhere((item) => item.id == meetupId);
     if (index == -1) return 'ไม่พบข้อเสนอนัดรับ';
     final agreement = meetupAgreements[index];
     if (!_isConversationParticipantById(agreement.conversationId)) {
       return 'คุณไม่มีสิทธิ์ตอบข้อเสนอนี้';
+    }
+    final conversation = _participantConversation(agreement.conversationId)!;
+    if (areUsersBlocked(conversation.buyerId, conversation.sellerId)) {
+      return 'ตอบนัดไม่ได้เนื่องจากผู้ใช้บล็อกกัน';
     }
     if (agreement.status != MeetupStatus.proposed) {
       return 'ข้อเสนอนี้ถูกตอบหรือเปลี่ยนไปแล้ว';
@@ -2055,11 +2665,18 @@ class AppState extends ChangeNotifier {
       createdAt: agreement.createdAt,
       respondedAt: DateTime.now(),
     );
-    final conversation = _participantConversation(agreement.conversationId)!;
     _appendChatMessage(
       conversation,
       ChatMessageType.system,
       accept ? 'ตกลงนัดรับแล้ว' : 'ปฏิเสธข้อเสนอนัดรับ',
+    );
+    _notifyUser(
+      userId: agreement.proposerId,
+      type: AppNotificationType.meetupResponded,
+      title: accept ? 'ข้อเสนอนัดได้รับการตอบรับ' : 'ข้อเสนอนัดถูกปฏิเสธ',
+      body: agreement.placeLabel,
+      refType: 'chat',
+      refId: conversation.id,
     );
     return null;
   }
@@ -2077,9 +2694,14 @@ class AppState extends ChangeNotifier {
   }
 
   String? shareExactAddress(String conversationId) {
+    final sessionError = _expireSuspendedSession();
+    if (sessionError != null) return sessionError;
     if (!isLoggedIn) return 'เข้าสู่ระบบก่อนส่งที่อยู่';
     final conversation = _participantConversation(conversationId);
     if (conversation == null) return 'ไม่พบบทสนทนาหรือคุณไม่มีสิทธิ์ส่งที่อยู่';
+    if (areUsersBlocked(conversation.buyerId, conversation.sellerId)) {
+      return 'ส่งที่อยู่ไม่ได้เนื่องจากผู้ใช้บล็อกกัน';
+    }
     final product = products
         .where((item) => item.id == conversation.productId)
         .firstOrNull;
@@ -2162,6 +2784,28 @@ class AppState extends ChangeNotifier {
       unreadCount: conversation.unreadCount + 1,
       unreadByUser: unread,
     );
+    if (type == ChatMessageType.text ||
+        type == ChatMessageType.image ||
+        type == ChatMessageType.addressShare) {
+      _notifyUser(
+        userId: recipient,
+        type: AppNotificationType.newMessage,
+        title: 'มีข้อความใหม่จาก ${currentUser.name}',
+        body: 'มีข้อความใหม่ในแชท ${conversation.productTitle}',
+        refType: 'chat',
+        refId: conversation.id,
+        aggregateKey: conversation.id,
+      );
+    }
+    notifyListeners();
+  }
+
+  bool get shouldShowSafetyTips =>
+      isLoggedIn && !_safetyTipsAcknowledgedBy.contains(currentUser.id);
+
+  void acknowledgeSafetyTips() {
+    if (!isLoggedIn) return;
+    _safetyTipsAcknowledgedBy.add(currentUser.id);
     notifyListeners();
   }
 

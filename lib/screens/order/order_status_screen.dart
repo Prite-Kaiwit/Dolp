@@ -4,9 +4,12 @@ import '../../models/order.dart';
 import '../../models/product.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/meetup_sharing.dart';
 import '../../widgets/order_status_badge.dart';
 import '../../widgets/product_image.dart';
+import '../../widgets/safety_tips_sheet.dart';
 import '../chat/chat_room_screen.dart';
+import '../profile/public_user_profile_screen.dart';
 import '../review_safety/rate_review_screen.dart';
 import '../review_safety/report_screen.dart';
 
@@ -31,6 +34,17 @@ class OrderStatusScreen extends StatelessWidget {
           }
           final isBuyer = appState.currentUser.id == order.buyerId;
           final isSeller = appState.currentUser.id == order.sellerId;
+          final otherUserId = isBuyer ? order.sellerId : order.buyerId;
+          final otherUser = appState.userById(otherUserId);
+          final isParticipant = isBuyer || isSeller;
+          final hasDisputeWindow =
+              order.status == OrderStatus.pending ||
+              (order.status == OrderStatus.completed &&
+                  order.completedAt != null &&
+                  DateTime.now().difference(order.completedAt!) <=
+                      const Duration(days: 7));
+          final participantsBlocked =
+              isParticipant && appState.isBlocked(otherUserId);
           final canReview =
               order.status == OrderStatus.completed &&
               (isBuyer || isSeller) &&
@@ -59,15 +73,44 @@ class OrderStatusScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 _buildTimeline(order),
                 const SizedBox(height: 12),
+                if (participantsBlocked)
+                  Card(
+                    color: AppColors.warningPale,
+                    child: const ListTile(
+                      leading: Icon(
+                        Icons.info_outline,
+                        color: AppColors.warningDark,
+                      ),
+                      title: Text('ผู้ซื้อและผู้ขายบล็อกกัน'),
+                      subtitle: Text(
+                        'ออเดอร์เดิมยังไม่ถูกยกเลิก คุณยังยกเลิกหรือรายงานปัญหาได้',
+                      ),
+                    ),
+                  ),
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(14),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'ผู้ขาย: ${appState.userById(order.sellerId)?.name ?? order.sellerId}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        InkWell(
+                          onTap: otherUser == null
+                              ? null
+                              : () => Navigator.push<void>(
+                                  context,
+                                  MaterialPageRoute<void>(
+                                    builder: (_) => PublicUserProfileScreen(
+                                      userId: otherUserId,
+                                    ),
+                                  ),
+                                ),
+                          child: Text(
+                            '${isBuyer ? 'ผู้ขาย' : 'ผู้ซื้อ'}: ${otherUser?.name ?? otherUserId}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.deepNavy,
+                            ),
+                          ),
                         ),
                         Text(
                           'วิธีชำระ: ${order.paymentMethod.label}',
@@ -139,6 +182,20 @@ class OrderStatusScreen extends StatelessWidget {
                   icon: const Icon(Icons.chat_outlined),
                   label: const Text('ไปแชท'),
                 ),
+                OutlinedButton.icon(
+                  onPressed: () => showSafetyTipsSheet(context, force: true),
+                  icon: const Icon(Icons.shield_outlined),
+                  label: const Text('คำแนะนำก่อนนัดรับ'),
+                ),
+                if (order.meetupId != null &&
+                    order.agreedPlaceLabel != null &&
+                    order.agreedTime != null)
+                  OutlinedButton.icon(
+                    onPressed: () async =>
+                        shareOrderMeetupPlan(appState, order),
+                    icon: const Icon(Icons.share_outlined),
+                    label: const Text('แชร์แผนนัด'),
+                  ),
                 if (order.status == OrderStatus.pending && isSeller) ...[
                   ElevatedButton(
                     onPressed: () {
@@ -152,25 +209,26 @@ class OrderStatusScreen extends StatelessWidget {
                     child: const Text('ยกเลิก'),
                   ),
                 ],
-                if (order.status == OrderStatus.pending && isBuyer) ...[
+                if (order.status == OrderStatus.pending && isBuyer)
                   ElevatedButton(
                     onPressed: () =>
                         _confirmReceipt(context, appState, order.id),
                     child: const Text('ได้รับสินค้าแล้ว'),
                   ),
+                if (order.status == OrderStatus.pending && isBuyer)
                   OutlinedButton(
                     onPressed: () => _showCancelDialog(context, appState, order),
                     child: const Text('ยกเลิก'),
                   ),
+                if (hasDisputeWindow && isParticipant)
                   OutlinedButton.icon(
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute<void>(
                         builder: (_) => ReportScreen(
                           orderId: order.id,
-                          targetName:
-                              appState.userById(order.sellerId)?.name ??
-                              order.sellerId,
+                          targetUserId: otherUserId,
+                          targetName: otherUser?.name ?? otherUserId,
                         ),
                       ),
                     ),
@@ -180,7 +238,6 @@ class OrderStatusScreen extends StatelessWidget {
                     ),
                     label: const Text('รายงานปัญหา'),
                   ),
-                ],
                 if (canReview)
                   ElevatedButton.icon(
                     onPressed: () => Navigator.push(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
+import '../review_safety/report_screen.dart';
 
 class PublicUserProfileScreen extends StatelessWidget {
   final String userId;
@@ -21,7 +22,8 @@ class PublicUserProfileScreen extends StatelessWidget {
             body: const Center(child: Text('ไม่พบข้อมูลผู้ใช้นี้')),
           );
         }
-        final reviews = appState.reviewsForUser(user.id).take(5).toList();
+        final reviews = appState.reviewsForUser(user.id).take(10).toList();
+        final isOwnProfile = appState.currentUser.id == user.id;
         return Scaffold(
           appBar: AppBar(title: const Text('โปรไฟล์ผู้ใช้')),
           body: ListView(
@@ -90,6 +92,67 @@ class PublicUserProfileScreen extends StatelessWidget {
                   ),
                 ),
               ),
+              const SizedBox(height: 8),
+              Text(
+                'สมาชิกตั้งแต่ ${_joinedDate(user.createdAt)}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: AppColors.graySecondary),
+              ),
+              const SizedBox(height: 8),
+              Card(
+                child: ListTile(
+                  leading: const Icon(
+                    Icons.handshake_outlined,
+                    color: AppColors.success,
+                  ),
+                  title: Text('${user.successfulDeals} รายการสำเร็จ'),
+                ),
+              ),
+              if (!isOwnProfile) ...[
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => Navigator.push<void>(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (_) => ReportScreen(
+                              targetUserId: user.id,
+                              targetName: user.name,
+                            ),
+                          ),
+                        ),
+                        icon: const Icon(
+                          Icons.flag_outlined,
+                          color: AppColors.error,
+                        ),
+                        label: const Text('รายงานผู้ใช้'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          final blocked = appState.isBlocked(user.id);
+                          final error = blocked
+                              ? appState.unblockUser(user.id)
+                              : appState.blockUser(user.id);
+                          if (error != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(error)),
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.block_outlined),
+                        label: Text(
+                          appState.isBlocked(user.id) ? 'ปลดบล็อก' : 'บล็อก',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               const SizedBox(height: 12),
               const Text(
                 'รีวิวล่าสุด',
@@ -137,6 +200,11 @@ class PublicUserProfileScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  String _joinedDate(DateTime value) {
+    final date = value.toLocal();
+    return '${date.day}/${date.month}/${date.year}';
   }
 }
 

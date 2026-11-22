@@ -6,6 +6,7 @@ import 'package:moor_market/models/review.dart';
 import 'package:moor_market/models/user.dart';
 import 'package:moor_market/models/chat.dart';
 import 'package:moor_market/models/meetup_agreement.dart';
+import 'package:moor_market/models/notification.dart';
 import 'package:moor_market/state/app_state.dart';
 
 void main() {
@@ -15,7 +16,7 @@ void main() {
   late List<OrderModel> originalOrders;
   late List<ReviewModel> originalReviews;
   late List<UserModel> originalUsers;
-  late List<Map<String, dynamic>> originalNotifications;
+  late List<AppNotification> originalNotifications;
   late List<ChatConversation> originalConversations;
   late List<MeetupAgreement> originalMeetups;
 
@@ -25,7 +26,7 @@ void main() {
     originalOrders = List<OrderModel>.of(appState.orders);
     originalReviews = List<ReviewModel>.of(appState.reviews);
     originalUsers = List<UserModel>.of(appState.users);
-    originalNotifications = List<Map<String, dynamic>>.of(
+    originalNotifications = List<AppNotification>.of(
       appState.notifications,
     );
     originalConversations = List<ChatConversation>.of(appState.conversations);

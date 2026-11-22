@@ -1,72 +1,107 @@
-enum ReportStatus { pending, investigating, resolved, accountSuspended }
+enum ReportReason {
+  damagedItem,
+  missedMeetup,
+  paymentScam,
+  counterfeitOrIllegal,
+  harassment,
+  suspiciousAccount,
+  other,
+}
 
-extension ReportStatusExtension on ReportStatus {
+extension ReportReasonExtension on ReportReason {
   String get label {
     switch (this) {
-      case ReportStatus.pending:
-        return 'รอดำเนินการ';
-      case ReportStatus.investigating:
-        return 'กำลังตรวจสอบ';
-      case ReportStatus.resolved:
-        return 'ปิดเรื่องแล้ว';
-      case ReportStatus.accountSuspended:
-        return 'ระงับบัญชีผู้กระทำผิด';
+      case ReportReason.damagedItem:
+        return 'สินค้าไม่ตรงกับที่ระบุ / ชำรุดเสียหาย';
+      case ReportReason.missedMeetup:
+        return 'ไม่มาตามนัดหมาย';
+      case ReportReason.paymentScam:
+        return 'ชักชวนให้โอนเงินก่อนรับสินค้า';
+      case ReportReason.counterfeitOrIllegal:
+        return 'สินค้าลอกเลียนแบบ / ของปลอม / ผิดกฎหมาย';
+      case ReportReason.harassment:
+        return 'ใช้คำหยาบคาย / คุกคามผ่านช่องแชท';
+      case ReportReason.suspiciousAccount:
+        return 'บัญชีผู้ใช้น่าสงสัย / สวมรอย';
+      case ReportReason.other:
+        return 'อื่น ๆ';
     }
   }
 }
 
+enum ReportStatus { open, dismissed, actioned }
+
+extension ReportStatusExtension on ReportStatus {
+  String get label {
+    switch (this) {
+      case ReportStatus.open:
+        return 'รอดำเนินการ';
+      case ReportStatus.dismissed:
+        return 'ปิดเรื่องแล้ว';
+      case ReportStatus.actioned:
+        return 'ดำเนินการแล้ว';
+    }
+  }
+}
+
+enum AdminReportAction { dismiss, suspendUser, cancelOrder, suspendAndCancel }
+
 class ReportModel {
   final String id;
-  final String orderId;
   final String reporterId;
-  final String reporterName;
-  final String reportedUserName;
-  final String reason;
-  final String details;
-  final String evidenceUrl;
+  final String reportedUserId;
+  final String? orderId;
+  final String? productId;
+  final ReportReason reason;
+  final String detail;
   final ReportStatus status;
   final DateTime createdAt;
-  final String adminNotes;
+  final String? adminId;
+  final String? adminNote;
+  final DateTime? resolvedAt;
 
-  ReportModel({
+  const ReportModel({
     required this.id,
-    this.orderId = '',
     required this.reporterId,
-    required this.reporterName,
-    required this.reportedUserName,
+    required this.reportedUserId,
     required this.reason,
-    required this.details,
-    this.evidenceUrl = 'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=400',
-    this.status = ReportStatus.pending,
-    DateTime? createdAt,
-    this.adminNotes = '',
-  }) : createdAt = createdAt ?? DateTime.now();
+    required this.detail,
+    required this.createdAt,
+    this.orderId,
+    this.productId,
+    this.status = ReportStatus.open,
+    this.adminId,
+    this.adminNote,
+    this.resolvedAt,
+  });
 
   ReportModel copyWith({
     String? id,
-    String? orderId,
     String? reporterId,
-    String? reporterName,
-    String? reportedUserName,
-    String? reason,
-    String? details,
-    String? evidenceUrl,
+    String? reportedUserId,
+    String? orderId,
+    String? productId,
+    ReportReason? reason,
+    String? detail,
     ReportStatus? status,
     DateTime? createdAt,
-    String? adminNotes,
+    String? adminId,
+    String? adminNote,
+    DateTime? resolvedAt,
   }) {
     return ReportModel(
       id: id ?? this.id,
-      orderId: orderId ?? this.orderId,
       reporterId: reporterId ?? this.reporterId,
-      reporterName: reporterName ?? this.reporterName,
-      reportedUserName: reportedUserName ?? this.reportedUserName,
+      reportedUserId: reportedUserId ?? this.reportedUserId,
+      orderId: orderId ?? this.orderId,
+      productId: productId ?? this.productId,
       reason: reason ?? this.reason,
-      details: details ?? this.details,
-      evidenceUrl: evidenceUrl ?? this.evidenceUrl,
+      detail: detail ?? this.detail,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
-      adminNotes: adminNotes ?? this.adminNotes,
+      adminId: adminId ?? this.adminId,
+      adminNote: adminNote ?? this.adminNote,
+      resolvedAt: resolvedAt ?? this.resolvedAt,
     );
   }
 }

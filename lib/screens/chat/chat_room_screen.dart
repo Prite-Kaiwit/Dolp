@@ -10,8 +10,11 @@ import '../../screens/review_safety/report_screen.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/distance.dart';
+import '../../utils/meetup_sharing.dart';
 import '../../widgets/product_image.dart';
+import '../../widgets/safety_tips_sheet.dart';
 import 'meetup_options_screen.dart';
+import '../profile/public_user_profile_screen.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final ChatConversation conversation;
@@ -92,6 +95,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         final peer = appState.conversationPeer(conversation);
         final peerName = peer?.name ?? conversation.peerName;
         final peerAvatar = peer?.avatarUrl ?? conversation.peerAvatar;
+        final peerUserId = appState.currentUser.id == conversation.buyerId
+            ? conversation.sellerId
+            : conversation.buyerId;
         if (!appState.isLoggedIn ||
             (appState.currentUser.id != conversation.buyerId &&
                 appState.currentUser.id != conversation.sellerId)) {
@@ -105,6 +111,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             .where((item) => item.id == conversation.productId)
             .firstOrNull;
         final agreement = appState.activeAgreementFor(conversation.id);
+        final blocked = appState.isBlocked(peerUserId);
 
         return Scaffold(
           appBar: AppBar(
@@ -119,13 +126,23 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text(
-                    peerName,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
+                  child: InkWell(
+                    onTap: () => Navigator.push<void>(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => PublicUserProfileScreen(
+                          userId: peerUserId,
+                        ),
+                      ),
                     ),
-                    overflow: TextOverflow.ellipsis,
+                    child: Text(
+                      peerName,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ),
               ],
@@ -134,17 +151,45 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               PopupMenuButton<String>(
                 tooltip: 'ตัวเลือกแชท',
                 onSelected: (value) {
-                  if (value == 'report') {
+                  if (value == 'profile') {
+                    Navigator.push<void>(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => PublicUserProfileScreen(
+                          userId: peerUserId,
+                        ),
+                      ),
+                    );
+                  } else if (value == 'report') {
                     Navigator.push(
                       context,
                       MaterialPageRoute<void>(
-                        builder: (_) => ReportScreen(targetName: peerName),
+                        builder: (_) => ReportScreen(
+                          targetUserId: peerUserId,
+                          targetName: peerName,
+                          productId: conversation.productId,
+                        ),
                       ),
                     );
+                  } else if (value == 'block') {
+                    final error = appState.blockUser(peerUserId);
+                    _showMessage(error ?? 'บล็อกผู้ใช้แล้ว');
+                  } else if (value == 'safety') {
+                    showSafetyTipsSheet(context, force: true);
                   }
                 },
-                itemBuilder: (_) => const [
-                  PopupMenuItem(value: 'report', child: Text('รายงานผู้ใช้')),
+                itemBuilder: (_) => [
+                  const PopupMenuItem(
+                    value: 'profile',
+                    child: Text('ดูโปรไฟล์ผู้ใช้'),
+                  ),
+                  const PopupMenuItem(value: 'report', child: Text('รายงานผู้ใช้')),
+                  if (!appState.isBlocked(peerUserId))
+                    const PopupMenuItem(value: 'block', child: Text('บล็อกผู้ใช้')),
+                  const PopupMenuItem(
+                    value: 'safety',
+                    child: Text('คำแนะนำก่อนนัดรับ'),
+                  ),
                 ],
               ),
             ],
@@ -165,7 +210,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     ),
                   ),
                 ),
-                if (_quickResponses.isNotEmpty)
+                if (blocked)
+                  const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: Text(
+                      'แชทนี้ยังเปิดอ่านได้ แต่ส่งข้อความไม่ได้เนื่องจากผู้ใช้บล็อกกัน',
+                      style: TextStyle(color: AppColors.warningDark),
+                    ),
+                  ),
+                if (!blocked && _quickResponses.isNotEmpty)
                   SizedBox(
                     height: 38,
                     child: ListView(
@@ -187,7 +240,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                           .toList(),
                     ),
                   ),
-                _buildInputBar(),
+                if (!blocked) _buildInputBar(),
               ],
             ),
           ),
@@ -282,9 +335,32 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 color: AppColors.successPale,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Text(
-                'นัดหมาย: ${agreement.placeLabel} · ${_formatDateTime(context, agreement.scheduledAt)}',
-                style: const TextStyle(fontSize: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'นัดหมาย: ${agreement.placeLabel} · ${_formatDateTime(context, agreement.scheduledAt)}',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: () async {
+                        final appState = AppState();
+                        await shareMeetupAgreement(
+                          agreement: agreement,
+                          partnerName: appState
+                                  .userById(conversation.peerId)
+                                  ?.name ??
+                              conversation.peerName,
+                          productTitle: conversation.productTitle,
+                        );
+                      },
+                      icon: const Icon(Icons.share_outlined, size: 18),
+                      label: const Text('แชร์แผนนัด'),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -599,7 +675,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       _showMessage(error);
       return;
     }
-    if (!accept) {
+    if (accept) {
+      await showSafetyTipsSheet(context);
+    } else {
       final appState = AppState();
       final conversation = appState.conversations.firstWhere(
         (item) => item.id == agreement.conversationId,

@@ -27,7 +27,11 @@ class _LoginScreenState extends State<LoginScreen> {
   void _login(String phone, String password) {
     if (!AppState().loginWithPhoneAndPassword(phone, password)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('เบอร์โทรหรือรหัสผ่านไม่ถูกต้อง')),
+        SnackBar(
+          content: Text(
+            AppState().lastLoginError ?? 'เบอร์โทรหรือรหัสผ่านไม่ถูกต้อง',
+          ),
+        ),
       );
       return;
     }

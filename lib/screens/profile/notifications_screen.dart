@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_theme.dart';
+
+import '../../models/notification.dart';
 import '../../state/app_state.dart';
+import '../../theme/app_theme.dart';
+import '../chat/chat_room_screen.dart';
+import '../home/product_detail_screen.dart';
+import '../order/order_status_screen.dart';
+import 'my_reports_screen.dart';
+import 'area_alert_settings_screen.dart';
 
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
@@ -8,22 +15,22 @@ class NotificationsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = AppState();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('การแจ้งเตือน'),
         actions: [
+          IconButton(
+            tooltip: 'ตั้งค่าแจ้งเตือนในพื้นที่',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (_) => const AreaAlertSettingsScreen(),
+              ),
+            ),
+            icon: const Icon(Icons.tune_rounded),
+          ),
           TextButton(
-            onPressed: () {
-              for (var n in appState.notifications) {
-                n['read'] = true;
-              }
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('ทำเครื่องหมายว่าอ่านทั้งหมดแล้ว'),
-                ),
-              );
-            },
+            onPressed: appState.markAllNotificationsRead,
             child: const Text('อ่านทั้งหมด'),
           ),
         ],
@@ -31,7 +38,8 @@ class NotificationsScreen extends StatelessWidget {
       body: ListenableBuilder(
         listenable: appState,
         builder: (context, _) {
-          if (appState.notifications.isEmpty) {
+          final notifications = appState.notificationsForCurrentUser();
+          if (notifications.isEmpty) {
             return const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -43,100 +51,71 @@ class NotificationsScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 12),
                   Text(
-                    'ไม่มีการแจ้งเตือนใหม่',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    'ยังไม่มีการแจ้งเตือน',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
                 ],
               ),
             );
           }
-
           return ListView.separated(
             padding: const EdgeInsets.all(16),
-            itemCount: appState.notifications.length,
+            itemCount: notifications.length,
             separatorBuilder: (_, _) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
-              final notif = appState.notifications[index];
-              final isRead = notif['read'] as bool;
-              final type = notif['type'] as String;
-
-              IconData icon = Icons.notifications_rounded;
-              Color iconColor = AppColors.oceanBlue;
-              Color iconBg = AppColors.aquaPale;
-
-              if (type == 'warning') {
-                icon = Icons.warning_amber_rounded;
-                iconColor = AppColors.warning;
-                iconBg = AppColors.warningPale;
-              } else if (type == 'chat') {
-                icon = Icons.chat_bubble_outline_rounded;
-                iconColor = AppColors.info;
-                iconBg = AppColors.aquaPale;
-              } else if (type == 'order') {
-                icon = Icons.receipt_long_outlined;
-                iconColor = AppColors.oceanBlue;
-                iconBg = AppColors.aquaPale;
-              }
-
-              return Card(
-                color: isRead
-                    ? Colors.white
-                    : AppColors.aquaPale.withValues(alpha: 0.25),
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: iconBg,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(icon, color: iconColor, size: 20),
+              final notification = notifications[index];
+              final (icon, color) = _styleFor(notification.type);
+              return Dismissible(
+                key: ValueKey(notification.id),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 20),
+                  decoration: BoxDecoration(
+                    color: AppColors.error,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(
+                    Icons.delete_outline,
+                    color: AppColors.white,
+                  ),
+                ),
+                onDismissed: (_) =>
+                    appState.deleteNotification(notification.id),
+                child: Card(
+                  color: notification.isRead
+                      ? AppColors.white
+                      : AppColors.aquaPale.withValues(alpha: 0.3),
+                  child: ListTile(
+                    onTap: () async {
+                      appState.markNotificationRead(notification.id);
+                      await _openReference(context, appState, notification);
+                    },
+                    leading: CircleAvatar(
+                      backgroundColor: AppColors.aquaPale,
+                      child: Icon(icon, color: color),
+                    ),
+                    title: Text(
+                      notification.title,
+                      style: TextStyle(
+                        fontWeight: notification.isRead
+                            ? FontWeight.w600
+                            : FontWeight.bold,
+                        color: AppColors.deepNavy,
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    notif['title'] as String,
-                                    style: TextStyle(
-                                      fontWeight: isRead
-                                          ? FontWeight.w600
-                                          : FontWeight.bold,
-                                      fontSize: 13,
-                                      color: AppColors.deepNavy,
-                                    ),
-                                  ),
-                                ),
-                                Text(
-                                  notif['time'] as String,
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    color: AppColors.graySecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              notif['body'] as String,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.graySecondary,
-                                height: 1.3,
-                              ),
-                            ),
-                          ],
-                        ),
+                    ),
+                    subtitle: Text(
+                      '${notification.body}\n${_formatTime(notification.createdAt)}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.graySecondary,
+                        height: 1.4,
                       ),
-                    ],
+                    ),
+                    isThreeLine: true,
                   ),
                 ),
               );
@@ -145,5 +124,94 @@ class NotificationsScreen extends StatelessWidget {
         },
       ),
     );
+  }
+
+  (IconData, Color) _styleFor(AppNotificationType type) => switch (type) {
+    AppNotificationType.newListingNearby => (
+      Icons.storefront_outlined,
+      AppColors.oceanBlue,
+    ),
+    AppNotificationType.newMessage => (
+      Icons.chat_bubble_outline_rounded,
+      AppColors.info,
+    ),
+    AppNotificationType.meetupProposed ||
+    AppNotificationType.meetupResponded => (
+      Icons.handshake_outlined,
+      AppColors.warningDark,
+    ),
+    AppNotificationType.orderStatusChanged => (
+      Icons.receipt_long_outlined,
+      AppColors.oceanBlue,
+    ),
+    AppNotificationType.reportUpdated => (
+      Icons.flag_outlined,
+      AppColors.error,
+    ),
+    AppNotificationType.system => (
+      Icons.notifications_outlined,
+      AppColors.deepNavy,
+    ),
+  };
+
+  Future<void> _openReference(
+    BuildContext context,
+    AppState appState,
+    AppNotification notification,
+  ) async {
+    final referenceId = notification.refId;
+    if (referenceId == null) return;
+    switch (notification.refType) {
+      case 'product':
+        final product = appState.products
+            .where((item) => item.id == referenceId)
+            .firstOrNull;
+        if (product != null && context.mounted) {
+          await Navigator.push<void>(
+            context,
+            MaterialPageRoute<void>(
+              builder: (_) => ProductDetailScreen(product: product),
+            ),
+          );
+        }
+      case 'chat':
+        final conversation = appState.conversations
+            .where((item) => item.id == referenceId)
+            .firstOrNull;
+        if (conversation != null && context.mounted) {
+          await Navigator.push<void>(
+            context,
+            MaterialPageRoute<void>(
+              builder: (_) => ChatRoomScreen(conversation: conversation),
+            ),
+          );
+        }
+      case 'order':
+        if (context.mounted) {
+          await Navigator.push<void>(
+            context,
+            MaterialPageRoute<void>(
+              builder: (_) => OrderStatusScreen(orderId: referenceId),
+            ),
+          );
+        }
+      case 'report':
+        if (context.mounted) {
+          await Navigator.push<void>(
+            context,
+            MaterialPageRoute<void>(builder: (_) => const MyReportsScreen()),
+          );
+        }
+      default:
+        return;
+    }
+  }
+
+  String _formatTime(DateTime time) {
+    final elapsed = DateTime.now().difference(time);
+    if (elapsed.inMinutes < 1) return 'เมื่อสักครู่';
+    if (elapsed.inHours < 1) return '${elapsed.inMinutes} นาทีที่แล้ว';
+    if (elapsed.inDays < 1) return '${elapsed.inHours} ชั่วโมงที่แล้ว';
+    return '${elapsed.inDays} วันที่แล้ว';
   }
 }

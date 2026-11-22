@@ -13,6 +13,9 @@ class UserModel {
   final int reviewCount;
   final int successfulDeals;
   final UserRole role;
+  final DateTime createdAt;
+  final bool isSuspended;
+  final String? suspensionReason;
 
   UserModel({
     required this.id,
@@ -28,7 +31,10 @@ class UserModel {
     this.reviewCount = 38,
     this.successfulDeals = 24,
     this.role = UserRole.member,
-  });
+    DateTime? createdAt,
+    this.isSuspended = false,
+    this.suspensionReason,
+  }) : createdAt = createdAt ?? DateTime.now();
 
   UserModel copyWith({
     String? id,
@@ -43,6 +49,10 @@ class UserModel {
     int? reviewCount,
     int? successfulDeals,
     UserRole? role,
+    DateTime? createdAt,
+    bool? isSuspended,
+    String? suspensionReason,
+    bool clearSuspensionReason = false,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -57,6 +67,11 @@ class UserModel {
       reviewCount: reviewCount ?? this.reviewCount,
       successfulDeals: successfulDeals ?? this.successfulDeals,
       role: role ?? this.role,
+      createdAt: createdAt ?? this.createdAt,
+      isSuspended: isSuspended ?? this.isSuspended,
+      suspensionReason: clearSuspensionReason
+          ? null
+          : suspensionReason ?? this.suspensionReason,
     );
   }
 }

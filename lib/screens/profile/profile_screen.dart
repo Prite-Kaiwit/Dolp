@@ -7,6 +7,10 @@ import '../home/my_listings_screen.dart';
 import '../order/order_history_screen.dart';
 import '../admin/admin_dashboard_screen.dart';
 import '../auth/splash_onboarding_screen.dart';
+import 'area_alert_settings_screen.dart';
+import 'blocked_users_screen.dart';
+import 'my_reports_screen.dart';
+import 'notifications_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -221,6 +225,52 @@ class ProfileScreen extends StatelessWidget {
                     );
                   },
                 ),
+                if (!isGuest) ...[
+                  _buildMenuItem(
+                    icon: Icons.notifications_active_outlined,
+                    title: 'แจ้งเตือนในพื้นที่',
+                    subtitle: 'ตั้งค่ารัศมีและหมวดหมู่ประกาศ',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => const AreaAlertSettingsScreen(),
+                      ),
+                    ),
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.block_outlined,
+                    title: 'รายชื่อที่บล็อก',
+                    subtitle: 'ดูและปลดบล็อกผู้ใช้',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => const BlockedUsersScreen(),
+                      ),
+                    ),
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.flag_outlined,
+                    title: 'รายงานของฉัน',
+                    subtitle: 'ติดตามสถานะการตรวจสอบรายงาน',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => const MyReportsScreen(),
+                      ),
+                    ),
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.notifications_outlined,
+                    title: 'การแจ้งเตือน',
+                    subtitle: 'ดูรายการแจ้งเตือนทั้งหมด',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => const NotificationsScreen(),
+                      ),
+                    ),
+                  ),
+                ],
                 _buildMenuItem(
                   icon: Icons.shield_outlined,
                   title: 'แนวทางซื้อขายอย่างระมัดระวัง',
