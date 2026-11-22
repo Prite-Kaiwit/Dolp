@@ -58,15 +58,15 @@ class EscrowStatusScreen extends StatelessWidget {
                       color: isDisputed
                           ? AppColors.error.withValues(alpha: 0.1)
                           : isCompleted
-                          ? AppColors.greenPale
-                          : AppColors.pinkPale,
+                          ? AppColors.successPale
+                          : AppColors.warningPale,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: isDisputed
                             ? AppColors.error
                             : isCompleted
-                            ? AppColors.greenPrimary
-                            : AppColors.pinkPrimary,
+                            ? AppColors.success
+                            : AppColors.warning,
                       ),
                     ),
                     child: Row(
@@ -80,8 +80,8 @@ class EscrowStatusScreen extends StatelessWidget {
                           color: isDisputed
                               ? AppColors.error
                               : isCompleted
-                              ? AppColors.greenPrimary
-                              : AppColors.pinkPrimary,
+                              ? AppColors.success
+                              : AppColors.warning,
                           size: 32,
                         ),
                         const SizedBox(width: 14),
@@ -97,8 +97,8 @@ class EscrowStatusScreen extends StatelessWidget {
                                   color: isDisputed
                                       ? AppColors.error
                                       : isCompleted
-                                      ? AppColors.greenDark
-                                      : AppColors.pinkDark,
+                                      ? AppColors.successDark
+                                      : AppColors.warningDark,
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -106,7 +106,7 @@ class EscrowStatusScreen extends StatelessWidget {
                                 'รหัสคำสั่งซื้อ: ${order.id}',
                                 style: const TextStyle(
                                   fontSize: 12,
-                                  color: AppColors.inkText,
+                                  color: AppColors.deepNavy,
                                 ),
                               ),
                             ],
@@ -199,7 +199,7 @@ class EscrowStatusScreen extends StatelessWidget {
                                   Text(
                                     'ยอดเงิน: ฿${order.productPrice.toStringAsFixed(2)}',
                                     style: const TextStyle(
-                                      color: AppColors.pinkPrimary,
+                                      color: AppColors.oceanBlue,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 13,
                                     ),
@@ -232,7 +232,7 @@ class EscrowStatusScreen extends StatelessWidget {
                                   'โน้ต: ${order.note}',
                                   style: const TextStyle(
                                     fontSize: 12,
-                                    color: AppColors.inkText,
+                                    color: AppColors.deepNavy,
                                   ),
                                 ),
                               ),
@@ -259,7 +259,7 @@ class EscrowStatusScreen extends StatelessWidget {
                           'ฉันได้รับและตรวจรับสินค้าเรียบร้อยแล้ว (ปล่อยเงิน)',
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.greenPrimary,
+                          backgroundColor: AppColors.success,
                         ),
                         onPressed: () {
                           _showConfirmReceiptDialog(context, appState, order);
@@ -311,7 +311,7 @@ class EscrowStatusScreen extends StatelessWidget {
                           'ให้คะแนนและรีวิวผู้ขาย (Rate & Review)',
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.pinkPrimary,
+                          backgroundColor: AppColors.oceanBlue,
                         ),
                         onPressed: () {
                           Navigator.push(
@@ -370,17 +370,17 @@ class EscrowStatusScreen extends StatelessWidget {
     );
 
     if (isDone) {
-      circleColor = AppColors.greenPrimary;
-      textColor = AppColors.inkText;
+      circleColor = AppColors.success;
+      textColor = AppColors.deepNavy;
       icon = const Icon(Icons.check, size: 16, color: Colors.white);
     } else if (isCurrent) {
-      circleColor = AppColors.pinkPrimary;
-      textColor = AppColors.pinkDark;
+      circleColor = AppColors.warning;
+      textColor = AppColors.warningDark;
       icon = Text(
         '$stepNumber',
         style: const TextStyle(
           fontWeight: FontWeight.bold,
-          color: Colors.white,
+          color: AppColors.white,
         ),
       );
     }
@@ -404,7 +404,7 @@ class EscrowStatusScreen extends StatelessWidget {
                 Expanded(
                   child: Container(
                     width: 2,
-                    color: isDone ? AppColors.greenPrimary : AppColors.grayLine,
+                    color: isDone ? AppColors.success : AppColors.grayLine,
                   ),
                 ),
             ],
@@ -452,7 +452,7 @@ class EscrowStatusScreen extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         title: const Row(
           children: [
-            Icon(Icons.verified_rounded, color: AppColors.greenPrimary),
+            Icon(Icons.verified_rounded, color: AppColors.success),
             SizedBox(width: 8),
             Text('ยืนยันรับสินค้า?'),
           ],
@@ -475,13 +475,11 @@ class EscrowStatusScreen extends StatelessWidget {
                   content: Text(
                     'ยืนยันรับสินค้าสำเร็จ! ปล่อยเงินให้ผู้ขายเรียบร้อยแล้ว',
                   ),
-                  backgroundColor: AppColors.greenPrimary,
+                  backgroundColor: AppColors.success,
                 ),
               );
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.greenPrimary,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
             child: const Text('ยืนยันและปล่อยเงิน'),
           ),
         ],

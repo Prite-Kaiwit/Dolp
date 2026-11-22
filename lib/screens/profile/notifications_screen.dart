@@ -19,7 +19,9 @@ class NotificationsScreen extends StatelessWidget {
                 n['read'] = true;
               }
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('ทำเครื่องหมายว่าอ่านทั้งหมดแล้ว')),
+                const SnackBar(
+                  content: Text('ทำเครื่องหมายว่าอ่านทั้งหมดแล้ว'),
+                ),
               );
             },
             child: const Text('อ่านทั้งหมด'),
@@ -34,9 +36,16 @@ class NotificationsScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.notifications_none_rounded, size: 56, color: AppColors.graySecondary),
+                  Icon(
+                    Icons.notifications_none_rounded,
+                    size: 56,
+                    color: AppColors.graySecondary,
+                  ),
                   SizedBox(height: 12),
-                  Text('ไม่มีการแจ้งเตือนใหม่', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(
+                    'ไม่มีการแจ้งเตือนใหม่',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
                 ],
               ),
             );
@@ -52,25 +61,27 @@ class NotificationsScreen extends StatelessWidget {
               final type = notif['type'] as String;
 
               IconData icon = Icons.notifications_rounded;
-              Color iconColor = AppColors.pinkPrimary;
-              Color iconBg = AppColors.pinkPale;
+              Color iconColor = AppColors.oceanBlue;
+              Color iconBg = AppColors.aquaPale;
 
               if (type == 'escrow') {
                 icon = Icons.security_rounded;
-                iconColor = AppColors.greenPrimary;
-                iconBg = AppColors.greenPale;
+                iconColor = AppColors.success;
+                iconBg = AppColors.successPale;
               } else if (type == 'warning') {
                 icon = Icons.warning_amber_rounded;
-                iconColor = AppColors.error;
-                iconBg = AppColors.error.withValues(alpha: 0.1);
+                iconColor = AppColors.warning;
+                iconBg = AppColors.warningPale;
               } else if (type == 'chat') {
                 icon = Icons.chat_bubble_outline_rounded;
                 iconColor = AppColors.info;
-                iconBg = const Color(0xFFEFF6FF);
+                iconBg = AppColors.aquaPale;
               }
 
               return Card(
-                color: isRead ? Colors.white : AppColors.pinkPale.withValues(alpha: 0.25),
+                color: isRead
+                    ? Colors.white
+                    : AppColors.aquaPale.withValues(alpha: 0.25),
                 child: Padding(
                   padding: const EdgeInsets.all(14),
                   child: Row(
@@ -96,22 +107,31 @@ class NotificationsScreen extends StatelessWidget {
                                   child: Text(
                                     notif['title'] as String,
                                     style: TextStyle(
-                                      fontWeight: isRead ? FontWeight.w600 : FontWeight.bold,
+                                      fontWeight: isRead
+                                          ? FontWeight.w600
+                                          : FontWeight.bold,
                                       fontSize: 13,
-                                      color: AppColors.inkText,
+                                      color: AppColors.deepNavy,
                                     ),
                                   ),
                                 ),
                                 Text(
                                   notif['time'] as String,
-                                  style: const TextStyle(fontSize: 10, color: AppColors.graySecondary),
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: AppColors.graySecondary,
+                                  ),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 4),
                             Text(
                               notif['body'] as String,
-                              style: const TextStyle(fontSize: 12, color: AppColors.graySecondary, height: 1.3),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.graySecondary,
+                                height: 1.3,
+                              ),
                             ),
                           ],
                         ),

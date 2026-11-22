@@ -28,7 +28,7 @@ class ProductCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: AppColors.deepNavy.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -77,7 +77,7 @@ class ProductCard extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.inkText,
+                      color: AppColors.deepNavy,
                       height: 1.25,
                     ),
                   ),
@@ -90,7 +90,7 @@ class ProductCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.greenDark,
+                        color: AppColors.listingDonate,
                       ),
                     )
                   else if (product.type == ListingType.trade)
@@ -99,7 +99,7 @@ class ProductCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.info,
+                        color: AppColors.listingExchange,
                       ),
                     )
                   else
@@ -108,7 +108,7 @@ class ProductCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.pinkPrimary,
+                        color: AppColors.oceanBlue,
                       ),
                     ),
 
@@ -120,14 +120,14 @@ class ProductCard extends StatelessWidget {
                       const Icon(
                         Icons.location_on_outlined,
                         size: 12,
-                        color: AppColors.pinkPrimary,
+                        color: AppColors.oceanBlue,
                       ),
                       const SizedBox(width: 3),
                       Text(
                         formatDistance(nearbyProduct.distanceKm),
                         style: const TextStyle(
                           fontSize: 10,
-                          color: AppColors.pinkDark,
+                          color: AppColors.deepNavy,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -156,7 +156,7 @@ class ProductCard extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.pinkPale,
+                          color: AppColors.aquaPale,
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
@@ -172,7 +172,7 @@ class ProductCard extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.inkText,
+                                color: AppColors.deepNavy,
                               ),
                             ),
                           ],

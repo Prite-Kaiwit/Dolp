@@ -95,7 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   counterText: '',
                   prefixIcon: Icon(
                     Icons.phone_outlined,
-                    color: AppColors.pinkPrimary,
+                    color: AppColors.oceanBlue,
                   ),
                 ),
               ),
@@ -114,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   hintText: 'กรอกรหัสผ่าน',
                   prefixIcon: const Icon(
                     Icons.lock_outline_rounded,
-                    color: AppColors.pinkPrimary,
+                    color: AppColors.oceanBlue,
                   ),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -146,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: const Text(
                     'ลืมรหัสผ่าน?',
                     style: TextStyle(
-                      color: AppColors.pinkPrimary,
+                      color: AppColors.oceanBlue,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
@@ -185,7 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Icon(
                             Icons.touch_app_rounded,
                             size: 16,
-                            color: AppColors.pinkPrimary,
+                            color: AppColors.oceanBlue,
                           ),
                           SizedBox(width: 6),
                           Text(
@@ -193,7 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.inkText,
+                              color: AppColors.deepNavy,
                             ),
                           ),
                         ],
@@ -210,7 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   vertical: 8,
                                 ),
                                 side: const BorderSide(
-                                  color: AppColors.pinkPrimary,
+                                  color: AppColors.oceanBlue,
                                 ),
                               ),
                               child: const Text(
@@ -232,9 +232,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   vertical: 8,
                                 ),
                                 side: const BorderSide(
-                                  color: AppColors.greenDark,
+                                  color: AppColors.successDark,
                                 ),
-                                foregroundColor: AppColors.greenDark,
+                                foregroundColor: AppColors.successDark,
                               ),
                               child: const Text(
                                 'แอดมิน / Admin',
@@ -273,7 +273,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: const Text(
                       'ลงทะเบียนใหม่',
                       style: TextStyle(
-                        color: AppColors.pinkPrimary,
+                        color: AppColors.oceanBlue,
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),

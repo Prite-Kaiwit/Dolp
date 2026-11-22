@@ -165,7 +165,7 @@ class _LocationPickerState extends State<LocationPicker> {
                   options: MapOptions(
                     initialCenter: LatLng(center.lat, center.lng),
                     initialZoom: 14,
-                    backgroundColor: const Color(0xFFE7E9E7),
+                    backgroundColor: AppColors.grayBg,
                     onTap: (_, point) => _selectLocation(
                       GeoLocation(point.latitude, point.longitude),
                     ),
@@ -185,10 +185,8 @@ class _LocationPickerState extends State<LocationPicker> {
                             point: LatLng(selected.lat, selected.lng),
                             radius: kLocationPreviewRadiusMeters,
                             useRadiusInMeter: true,
-                            color: AppColors.pinkPrimary.withValues(
-                              alpha: 0.12,
-                            ),
-                            borderColor: AppColors.pinkPrimary,
+                            color: AppColors.aqua.withValues(alpha: 0.16),
+                            borderColor: AppColors.aqua,
                             borderStrokeWidth: 2,
                           ),
                         ],
@@ -209,7 +207,7 @@ class _LocationPickerState extends State<LocationPicker> {
                               child: const Icon(
                                 Icons.location_on,
                                 size: 42,
-                                color: AppColors.pinkPrimary,
+                                color: AppColors.oceanBlue,
                               ),
                             ),
                           ),
@@ -220,7 +218,7 @@ class _LocationPickerState extends State<LocationPicker> {
                 if (_hasTileError)
                   const Positioned.fill(
                     child: ColoredBox(
-                      color: Color(0xFFE7E9E7),
+                      color: AppColors.grayBg,
                       child: Center(child: Text('โหลดแผนที่ไม่ได้')),
                     ),
                   ),
@@ -395,7 +393,7 @@ class _MapAttribution extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 5, vertical: 3),
         child: Text(
           '© OpenStreetMap contributors',
-          style: TextStyle(fontSize: 10, color: AppColors.inkText),
+          style: TextStyle(fontSize: 10, color: AppColors.deepNavy),
         ),
       ),
     );

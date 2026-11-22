@@ -58,7 +58,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: AppColors.pinkPale,
+                    color: AppColors.aquaPale,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Text('🛍️', style: TextStyle(fontSize: 18)),
@@ -74,7 +74,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                           style: const TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.pinkPrimary,
+                            color: AppColors.oceanBlue,
                           ),
                         ),
                         const SizedBox(width: 4),
@@ -84,13 +84,13 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.greenPale,
+                            color: AppColors.aquaPale,
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Text(
                             'ชุมชนใกล้คุณ',
                             style: TextStyle(
-                              color: AppColors.greenDark,
+                              color: AppColors.deepNavy,
                               fontSize: 9,
                               fontWeight: FontWeight.bold,
                             ),
@@ -117,7 +117,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                   IconButton(
                     icon: const Icon(
                       Icons.notifications_outlined,
-                      color: AppColors.inkText,
+                      color: AppColors.deepNavy,
                     ),
                     onPressed: () => Navigator.push(
                       context,
@@ -153,7 +153,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                   IconButton(
                     icon: const Icon(
                       Icons.shopping_bag_outlined,
-                      color: AppColors.inkText,
+                      color: AppColors.deepNavy,
                     ),
                     onPressed: () => Navigator.push(
                       context,
@@ -169,13 +169,13 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: const BoxDecoration(
-                          color: AppColors.pinkPrimary,
+                          color: AppColors.aquaPale,
                           shape: BoxShape.circle,
                         ),
                         child: Text(
                           '${appState.cartItems.length}',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.deepNavy,
                             fontSize: 9,
                             fontWeight: FontWeight.bold,
                           ),
@@ -188,7 +188,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
             ],
           ),
           body: RefreshIndicator(
-            color: AppColors.pinkPrimary,
+            color: AppColors.oceanBlue,
             onRefresh: () async {
               await Future<void>.delayed(const Duration(milliseconds: 300));
               if (mounted) setState(() {});
@@ -223,12 +223,10 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                         child: ChoiceChip(
                           label: Text(filter),
                           selected: isSelected,
-                          selectedColor: AppColors.pinkPrimary,
+                          selectedColor: AppColors.aquaPale,
                           backgroundColor: AppColors.grayBg,
                           labelStyle: TextStyle(
-                            color: isSelected
-                                ? Colors.white
-                                : AppColors.inkText,
+                            color: AppColors.deepNavy,
                             fontWeight: isSelected
                                 ? FontWeight.bold
                                 : FontWeight.normal,
@@ -251,7 +249,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.inkText,
+                        color: AppColors.deepNavy,
                       ),
                     ),
                     SegmentedButton<bool>(
@@ -339,14 +337,14 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
         ),
         child: Row(
           children: [
-            const Icon(Icons.near_me_outlined, color: AppColors.pinkPrimary),
+            const Icon(Icons.near_me_outlined, color: AppColors.oceanBlue),
             const SizedBox(width: 8),
             const Text(
               'ใกล้ฉัน',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
-                color: AppColors.inkText,
+                color: AppColors.deepNavy,
               ),
             ),
             const SizedBox(width: 8),
@@ -379,7 +377,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
       decoration: BoxDecoration(
-        color: AppColors.greenPale,
+        color: AppColors.aquaPale,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -387,13 +385,13 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
           const Icon(
             Icons.info_outline_rounded,
             size: 18,
-            color: AppColors.greenDark,
+            color: AppColors.oceanBlue,
           ),
           const SizedBox(width: 8),
           const Expanded(
             child: Text(
               'ใช้ตำแหน่งโดยประมาณ',
-              style: TextStyle(fontSize: 12, color: AppColors.greenDark),
+              style: TextStyle(fontSize: 12, color: AppColors.deepNavy),
             ),
           ),
           TextButton(
@@ -419,7 +417,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
-            color: AppColors.inkText,
+            color: AppColors.deepNavy,
           ),
         ),
         const SizedBox(width: 8),
@@ -432,11 +430,8 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                 label: Text('${radius.toInt()} กม.'),
                 selected: selected,
                 showCheckmark: false,
-                labelStyle: TextStyle(
-                  fontSize: 11,
-                  color: selected ? Colors.white : AppColors.inkText,
-                ),
-                selectedColor: AppColors.pinkPrimary,
+                labelStyle: TextStyle(fontSize: 11, color: AppColors.deepNavy),
+                selectedColor: AppColors.aquaPale,
                 onSelected: (_) => setState(() => _selectedRadiusKm = radius),
               );
             }).toList(),
@@ -546,7 +541,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.bold,
-                color: AppColors.inkText,
+                color: AppColors.deepNavy,
               ),
             ),
             const SizedBox(height: 12),
@@ -633,7 +628,7 @@ class _AreaPickerSheetState extends State<_AreaPickerSheet> {
                       (area) => RadioListTile<CommunityArea>(
                         value: area,
                         title: Text(area.label),
-                        activeColor: AppColors.pinkPrimary,
+                        activeColor: AppColors.oceanBlue,
                       ),
                     )
                     .toList(),

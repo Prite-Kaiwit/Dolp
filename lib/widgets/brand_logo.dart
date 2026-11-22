@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../constants/app_info.dart';
+import '../theme/app_theme.dart';
 
 class BrandLogo extends StatelessWidget {
   final double size;
@@ -14,7 +15,7 @@ class BrandLogo extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: const Color(0xFF0875E1),
+        color: AppColors.oceanBlue,
         borderRadius: BorderRadius.circular(size * 0.22),
       ),
       alignment: Alignment.center,
@@ -23,7 +24,7 @@ class BrandLogo extends StatelessWidget {
           Text(
             appName,
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.white,
               fontSize: size * 0.31,
               fontWeight: FontWeight.w900,
               letterSpacing: -0.5,

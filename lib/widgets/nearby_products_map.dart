@@ -46,7 +46,7 @@ class _NearbyProductsMapState extends State<NearbyProductsMap> {
             options: MapOptions(
               initialCenter: center,
               initialZoom: _zoomForRadius(widget.radiusKm),
-              backgroundColor: const Color(0xFFE7E9E7),
+              backgroundColor: AppColors.grayBg,
             ),
             children: [
               OsmTileLayer(onError: _handleTileError),
@@ -56,8 +56,8 @@ class _NearbyProductsMapState extends State<NearbyProductsMap> {
                     point: center,
                     radius: widget.radiusKm * 1000,
                     useRadiusInMeter: true,
-                    color: AppColors.pinkPrimary.withValues(alpha: 0.1),
-                    borderColor: AppColors.pinkPrimary,
+                    color: AppColors.aqua.withValues(alpha: 0.16),
+                    borderColor: AppColors.aqua,
                     borderStrokeWidth: 2,
                   ),
                 ],
@@ -76,7 +76,7 @@ class _NearbyProductsMapState extends State<NearbyProductsMap> {
                         onTap: () => _showProduct(context, nearby),
                         child: const Icon(
                           Icons.location_on,
-                          color: AppColors.pinkPrimary,
+                          color: AppColors.oceanBlue,
                           size: 38,
                         ),
                       ),
@@ -87,13 +87,13 @@ class _NearbyProductsMapState extends State<NearbyProductsMap> {
                     height: 40,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: AppColors.info,
+                        color: AppColors.deepNavy,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 3),
+                        border: Border.all(color: AppColors.white, width: 3),
                       ),
                       child: const Icon(
                         Icons.person_pin_circle,
-                        color: Colors.white,
+                        color: AppColors.white,
                         size: 24,
                       ),
                     ),
@@ -105,7 +105,7 @@ class _NearbyProductsMapState extends State<NearbyProductsMap> {
           if (_hasTileError)
             const Positioned.fill(
               child: ColoredBox(
-                color: Color(0xFFE7E9E7),
+                color: AppColors.grayBg,
                 child: Center(
                   child: Text(
                     'โหลดแผนที่ไม่ได้',
@@ -190,7 +190,7 @@ class _PublicLocationPreviewState extends State<PublicLocationPreview> {
             options: MapOptions(
               initialCenter: center,
               initialZoom: 14,
-              backgroundColor: const Color(0xFFE7E9E7),
+              backgroundColor: AppColors.grayBg,
               interactionOptions: const InteractionOptions(
                 flags: InteractiveFlag.none,
               ),
@@ -209,8 +209,8 @@ class _PublicLocationPreviewState extends State<PublicLocationPreview> {
                     point: center,
                     radius: 500,
                     useRadiusInMeter: true,
-                    color: AppColors.pinkPrimary.withValues(alpha: 0.12),
-                    borderColor: AppColors.pinkPrimary,
+                    color: AppColors.aqua.withValues(alpha: 0.16),
+                    borderColor: AppColors.aqua,
                     borderStrokeWidth: 2,
                   ),
                 ],
@@ -220,7 +220,7 @@ class _PublicLocationPreviewState extends State<PublicLocationPreview> {
           if (_hasTileError)
             const Positioned.fill(
               child: ColoredBox(
-                color: Color(0xFFE7E9E7),
+                color: AppColors.grayBg,
                 child: Center(child: Text('โหลดแผนที่ไม่ได้')),
               ),
             ),
@@ -245,7 +245,7 @@ class _MapAttribution extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 5, vertical: 3),
         child: Text(
           '© OpenStreetMap contributors',
-          style: TextStyle(fontSize: 10, color: AppColors.inkText),
+          style: TextStyle(fontSize: 10, color: AppColors.deepNavy),
         ),
       ),
     );

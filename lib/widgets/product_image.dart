@@ -59,11 +59,11 @@ class ProductImage extends StatelessWidget {
 
   Widget _placeholder() {
     return Container(
-      color: AppColors.pinkPale,
+      color: AppColors.aquaPale,
       alignment: Alignment.center,
       child: const Icon(
         Icons.image_not_supported_outlined,
-        color: AppColors.pinkLight,
+        color: AppColors.aquaLight,
       ),
     );
   }

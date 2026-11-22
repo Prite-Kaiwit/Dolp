@@ -40,13 +40,13 @@ class CartScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: const BoxDecoration(
-                      color: AppColors.pinkPale,
+                      color: AppColors.aquaPale,
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.remove_shopping_cart_outlined,
                       size: 56,
-                      color: AppColors.pinkPrimary,
+                      color: AppColors.oceanBlue,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -55,7 +55,7 @@ class CartScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.inkText,
+                      color: AppColors.deepNavy,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -122,8 +122,10 @@ class CartScreen extends StatelessWidget {
                                     item.type == ListingType.donate
                                         ? 'ส่งต่อฟรี'
                                         : '฿${item.price.toStringAsFixed(0)}',
-                                    style: const TextStyle(
-                                      color: AppColors.pinkPrimary,
+                                    style: TextStyle(
+                                      color: item.type == ListingType.donate
+                                          ? AppColors.listingDonate
+                                          : AppColors.oceanBlue,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
                                     ),
@@ -161,7 +163,7 @@ class CartScreen extends StatelessWidget {
                   color: AppColors.white,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
+                      color: AppColors.deepNavy.withValues(alpha: 0.08),
                       blurRadius: 10,
                       offset: const Offset(0, -3),
                     ),
@@ -185,7 +187,7 @@ class CartScreen extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.pinkPrimary,
+                              color: AppColors.oceanBlue,
                             ),
                           ),
                         ],
@@ -195,7 +197,7 @@ class CartScreen extends StatelessWidget {
                         children: [
                           Icon(
                             Icons.shield_rounded,
-                            color: AppColors.greenPrimary,
+                            color: AppColors.success,
                             size: 14,
                           ),
                           SizedBox(width: 4),
@@ -203,7 +205,7 @@ class CartScreen extends StatelessWidget {
                             'คุ้มครองด้วยระบบพักเงิน Escrow ทุกออเดอร์',
                             style: TextStyle(
                               fontSize: 11,
-                              color: AppColors.greenDark,
+                              color: AppColors.successDark,
                             ),
                           ),
                         ],

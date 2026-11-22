@@ -57,7 +57,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
+                  color: AppColors.deepNavy.withValues(alpha: 0.06),
                   blurRadius: 10,
                   offset: const Offset(0, -3),
                 ),
@@ -95,17 +95,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [AppColors.pinkPrimary, Color(0xFFFF6584)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
+                          color: AppColors.oceanBlue,
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.pinkPrimary.withValues(
-                                alpha: 0.4,
-                              ),
+                              color: AppColors.oceanBlue.withValues(alpha: 0.4),
                               blurRadius: 8,
                               offset: const Offset(0, 3),
                             ),
@@ -164,7 +158,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 Icon(
                   isSelected ? activeIcon : inactiveIcon,
                   color: isSelected
-                      ? AppColors.pinkPrimary
+                      ? AppColors.oceanBlue
                       : AppColors.graySecondary,
                   size: 24,
                 ),
@@ -175,13 +169,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: const BoxDecoration(
-                        color: AppColors.pinkPrimary,
+                        color: AppColors.aquaPale,
                         shape: BoxShape.circle,
                       ),
                       child: Text(
                         '$badgeCount',
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AppColors.deepNavy,
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
                         ),
@@ -197,7 +191,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 color: isSelected
-                    ? AppColors.pinkPrimary
+                    ? AppColors.oceanBlue
                     : AppColors.graySecondary,
               ),
             ),

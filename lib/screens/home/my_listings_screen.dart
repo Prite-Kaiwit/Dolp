@@ -81,8 +81,8 @@ class _MyListingsScreenState extends State<MyListingsScreen>
             title: const Text('ประกาศของฉัน'),
             bottom: TabBar(
               controller: _tabController,
-              indicatorColor: AppColors.pinkPrimary,
-              labelColor: AppColors.pinkPrimary,
+              indicatorColor: AppColors.oceanBlue,
+              labelColor: AppColors.oceanBlue,
               unselectedLabelColor: AppColors.graySecondary,
               tabs: [
                 Tab(text: 'กำลังขาย (${active.length})'),
@@ -93,7 +93,7 @@ class _MyListingsScreenState extends State<MyListingsScreen>
           ),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () => _openListingForm(),
-            backgroundColor: AppColors.pinkPrimary,
+            backgroundColor: AppColors.oceanBlue,
             icon: const Icon(Icons.add, color: Colors.white),
             label: const Text(
               'ลงประกาศใหม่',
@@ -133,7 +133,7 @@ class _MyListingsScreenState extends State<MyListingsScreen>
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
-                color: AppColors.inkText,
+                color: AppColors.deepNavy,
               ),
             ),
             const SizedBox(height: 16),
@@ -193,9 +193,11 @@ class _MyListingsScreenState extends State<MyListingsScreen>
                         product.type == ListingType.donate
                             ? 'ฟรี'
                             : '฿${product.price.toStringAsFixed(2)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.pinkPrimary,
+                          color: product.type == ListingType.donate
+                              ? AppColors.listingDonate
+                              : AppColors.oceanBlue,
                           fontSize: 14,
                         ),
                       ),
@@ -248,7 +250,7 @@ class _MyListingsScreenState extends State<MyListingsScreen>
                 const Icon(
                   Icons.location_on_outlined,
                   size: 16,
-                  color: AppColors.pinkPrimary,
+                  color: AppColors.oceanBlue,
                 ),
                 const SizedBox(width: 4),
                 Expanded(

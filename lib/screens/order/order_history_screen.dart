@@ -59,8 +59,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
             bottom: TabBar(
               controller: _tabController,
               isScrollable: true,
-              indicatorColor: AppColors.pinkPrimary,
-              labelColor: AppColors.pinkPrimary,
+              indicatorColor: AppColors.oceanBlue,
+              labelColor: AppColors.oceanBlue,
               unselectedLabelColor: AppColors.graySecondary,
               tabs: [
                 Tab(text: 'ทั้งหมด (${allOrders.length})'),
@@ -101,7 +101,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
-                color: AppColors.inkText,
+                color: AppColors.deepNavy,
               ),
             ),
           ],
@@ -142,7 +142,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
-                          color: AppColors.inkText,
+                          color: AppColors.deepNavy,
                         ),
                       ),
                       Container(
@@ -154,8 +154,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
                           color: isDisputed
                               ? AppColors.error.withValues(alpha: 0.1)
                               : isCompleted
-                              ? AppColors.greenPale
-                              : AppColors.pinkPale,
+                              ? AppColors.successPale
+                              : AppColors.warningPale,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -170,8 +170,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
                             color: isDisputed
                                 ? AppColors.error
                                 : isCompleted
-                                ? AppColors.greenDark
-                                : AppColors.pinkDark,
+                                ? AppColors.successDark
+                                : AppColors.warningDark,
                           ),
                         ),
                       ),
@@ -212,7 +212,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
                               'ยอดชำระ: ฿${order.productPrice.toStringAsFixed(2)}',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.pinkPrimary,
+                                color: AppColors.oceanBlue,
                                 fontSize: 13,
                               ),
                             ),

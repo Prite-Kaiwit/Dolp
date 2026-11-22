@@ -249,7 +249,7 @@ class _MeetupOptionsSheetState extends State<_MeetupOptionsSheet> {
     width: double.infinity,
     padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(
-      color: AppColors.greenPale,
+      color: AppColors.warningPale,
       borderRadius: BorderRadius.circular(12),
     ),
     child: Text(
@@ -265,14 +265,12 @@ class _MeetupOptionsSheetState extends State<_MeetupOptionsSheet> {
         final selected = _suggestedSpot?.id == spot.id;
         final km = distanceKm(widget.product.publicLocation, spot.location);
         return Card(
-          color: selected ? AppColors.greenPale : AppColors.white,
+          color: selected ? AppColors.aquaPale : AppColors.white,
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 10),
             leading: Icon(
               selected ? Icons.radio_button_checked : Icons.radio_button_off,
-              color: selected
-                  ? AppColors.greenPrimary
-                  : AppColors.graySecondary,
+              color: selected ? AppColors.oceanBlue : AppColors.graySecondary,
             ),
             title: Text(spot.name),
             subtitle: Text('${spot.type.label} · ${formatDistance(km)}'),

@@ -110,7 +110,7 @@ class _ReportScreenState extends State<ReportScreen> {
                             'หากเปิดข้อพิพาทเกี่ยวกับคำสั่งซื้อ ระบบจะระงับการปล่อยเงิน Escrow ชั่วคราวทันทีจนกว่าแอดมินจะตรวจสอบเสร็จสิ้น',
                             style: TextStyle(
                               fontSize: 11,
-                              color: AppColors.inkText,
+                              color: AppColors.deepNavy,
                             ),
                           ),
                         ],
@@ -219,12 +219,12 @@ class _ReportScreenState extends State<ReportScreen> {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: _attachedScreenshot
-                        ? AppColors.greenPale
+                        ? AppColors.successPale
                         : AppColors.grayBg,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: _attachedScreenshot
-                          ? AppColors.greenPrimary
+                          ? AppColors.success
                           : AppColors.grayLine,
                     ),
                   ),
@@ -235,7 +235,7 @@ class _ReportScreenState extends State<ReportScreen> {
                             ? Icons.check_circle_rounded
                             : Icons.add_photo_alternate_outlined,
                         color: _attachedScreenshot
-                            ? AppColors.greenPrimary
+                            ? AppColors.success
                             : AppColors.graySecondary,
                       ),
                       const SizedBox(width: 12),
@@ -248,7 +248,7 @@ class _ReportScreenState extends State<ReportScreen> {
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: _attachedScreenshot
-                                ? AppColors.greenDark
+                                ? AppColors.successDark
                                 : AppColors.graySecondary,
                           ),
                         ),

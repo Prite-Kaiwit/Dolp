@@ -276,13 +276,13 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.greenPale,
+                    color: AppColors.successPale,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Text(
                     'ฟรี · ไม่มีค่าใช้จ่าย',
                     style: TextStyle(
-                      color: AppColors.greenDark,
+                      color: AppColors.listingDonate,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -435,7 +435,7 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
       label: Text(label),
       selected: _pickupType == type,
       showCheckmark: false,
-      selectedColor: AppColors.pinkPale,
+      selectedColor: AppColors.aquaPale,
       onSelected: (_) => setState(() => _pickupType = type),
     );
   }
@@ -452,7 +452,7 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isCover ? AppColors.pinkPrimary : AppColors.grayLine,
+            color: isCover ? AppColors.oceanBlue : AppColors.grayLine,
             width: isCover ? 2 : 1,
           ),
         ),
@@ -687,7 +687,7 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
         content: Text(
           _isEditing ? 'แก้ไขประกาศเรียบร้อย' : 'ลงประกาศเรียบร้อย',
         ),
-        backgroundColor: AppColors.greenPrimary,
+        backgroundColor: AppColors.success,
       ),
     );
     Navigator.pop(context);
@@ -707,7 +707,7 @@ class _CoverBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.pinkPrimary,
+        color: AppColors.oceanBlue,
         borderRadius: BorderRadius.circular(6),
       ),
       child: const Padding(

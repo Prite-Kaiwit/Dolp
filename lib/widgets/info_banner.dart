@@ -13,15 +13,11 @@ class InfoBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.pinkPrimary, Color(0xFFFF758F)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppColors.oceanBlue,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.pinkPrimary.withValues(alpha: 0.3),
+            color: AppColors.oceanBlue.withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -53,21 +49,21 @@ class InfoBanner extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.greenPrimary,
+                      color: AppColors.white,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.shield_rounded,
-                          color: Colors.white,
+                          color: AppColors.oceanBlue,
                           size: 14,
                         ),
-                        SizedBox(width: 4),
+                        const SizedBox(width: 4),
                         Text(
                           '$appName · ชุมชน',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.oceanBlue,
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
                           ),
@@ -79,9 +75,9 @@ class InfoBanner extends StatelessWidget {
                   const Text(
                     'ซื้อขายอย่างระมัดระวัง',
                     style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      color: AppColors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
@@ -90,7 +86,7 @@ class InfoBanner extends StatelessWidget {
               const Text(
                 'นัดรับหน้างาน\nตกลงรายละเอียดกับผู้ขายโดยตรง',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   height: 1.3,
@@ -99,7 +95,7 @@ class InfoBanner extends StatelessWidget {
               const SizedBox(height: 6),
               const Text(
                 'เลือกจุดนัดรับที่เหมาะสม และซื้อขายอย่างระมัดระวัง',
-                style: TextStyle(color: Colors.white70, fontSize: 12),
+                style: TextStyle(color: AppColors.white, fontSize: 14),
               ),
               const SizedBox(height: 12),
               InkWell(
@@ -110,7 +106,7 @@ class InfoBanner extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.white,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Row(
@@ -119,7 +115,7 @@ class InfoBanner extends StatelessWidget {
                       Text(
                         'ดูขั้นตอนการทำงาน',
                         style: TextStyle(
-                          color: AppColors.pinkDark,
+                          color: AppColors.oceanBlue,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
@@ -128,7 +124,7 @@ class InfoBanner extends StatelessWidget {
                       Icon(
                         Icons.arrow_forward_ios_rounded,
                         size: 10,
-                        color: AppColors.pinkDark,
+                        color: AppColors.oceanBlue,
                       ),
                     ],
                   ),

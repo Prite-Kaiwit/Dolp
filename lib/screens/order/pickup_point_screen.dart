@@ -92,8 +92,8 @@ class _PickupPointScreenState extends State<PickupPointScreen> {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: widget.product.type == ListingType.donate
-                                  ? AppColors.greenDark
-                                  : AppColors.pinkPrimary,
+                                  ? AppColors.listingDonate
+                                  : AppColors.oceanBlue,
                               fontSize: 13,
                             ),
                           ),
@@ -117,7 +117,7 @@ class _PickupPointScreenState extends State<PickupPointScreen> {
                 children: [
                   Icon(
                     Icons.place_rounded,
-                    color: AppColors.greenPrimary,
+                    color: AppColors.oceanBlue,
                     size: 22,
                   ),
                   SizedBox(width: 6),
@@ -126,7 +126,7 @@ class _PickupPointScreenState extends State<PickupPointScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.inkText,
+                      color: AppColors.deepNavy,
                     ),
                   ),
                 ],
@@ -147,11 +147,11 @@ class _PickupPointScreenState extends State<PickupPointScreen> {
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.greenPale : AppColors.white,
+                      color: isSelected ? AppColors.aquaPale : AppColors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: isSelected
-                            ? AppColors.greenPrimary
+                            ? AppColors.oceanBlue
                             : AppColors.grayLine,
                         width: isSelected ? 1.5 : 1,
                       ),
@@ -164,7 +164,7 @@ class _PickupPointScreenState extends State<PickupPointScreen> {
                               ? Icons.radio_button_checked_rounded
                               : Icons.radio_button_off_rounded,
                           color: isSelected
-                              ? AppColors.greenPrimary
+                              ? AppColors.oceanBlue
                               : AppColors.graySecondary,
                           size: 20,
                         ),
@@ -181,8 +181,8 @@ class _PickupPointScreenState extends State<PickupPointScreen> {
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
                                       color: isSelected
-                                          ? AppColors.greenDark
-                                          : AppColors.inkText,
+                                          ? AppColors.deepNavy
+                                          : AppColors.deepNavy,
                                     ),
                                   ),
                                 ],

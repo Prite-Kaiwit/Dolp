@@ -24,13 +24,13 @@ class ChatListScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: const BoxDecoration(
-                      color: AppColors.pinkPale,
+                      color: AppColors.aquaPale,
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.chat_bubble_outline_rounded,
                       size: 48,
-                      color: AppColors.pinkPrimary,
+                      color: AppColors.aquaPale,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -39,7 +39,7 @@ class ChatListScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.inkText,
+                      color: AppColors.deepNavy,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -101,14 +101,14 @@ class ChatListScreen extends StatelessWidget {
                         width: 18,
                         height: 18,
                         decoration: BoxDecoration(
-                          color: AppColors.pinkPrimary,
+                          color: AppColors.oceanBlue,
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 2),
                         ),
                         child: const Icon(
                           Icons.shopping_bag,
                           size: 10,
-                          color: Colors.white,
+                          color: AppColors.oceanBlue,
                         ),
                       ),
                     ),
@@ -148,14 +148,14 @@ class ChatListScreen extends StatelessWidget {
                             vertical: 1,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.pinkPale,
+                            color: AppColors.aquaPale,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             conv.productTitle,
                             style: const TextStyle(
                               fontSize: 10,
-                              color: AppColors.pinkDark,
+                              color: AppColors.deepNavy,
                               fontWeight: FontWeight.bold,
                             ),
                             maxLines: 1,
@@ -168,7 +168,7 @@ class ChatListScreen extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.inkText,
+                            color: AppColors.deepNavy,
                           ),
                         ),
                       ],
@@ -181,7 +181,7 @@ class ChatListScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 13,
                         color: unread > 0
-                            ? AppColors.inkText
+                            ? AppColors.deepNavy
                             : AppColors.graySecondary,
                         fontWeight: unread > 0
                             ? FontWeight.bold
@@ -194,13 +194,13 @@ class ChatListScreen extends StatelessWidget {
                     ? Container(
                         padding: const EdgeInsets.all(6),
                         decoration: const BoxDecoration(
-                          color: AppColors.pinkPrimary,
+                          color: AppColors.aquaPale,
                           shape: BoxShape.circle,
                         ),
                         child: Text(
                           '$unread',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.deepNavy,
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
                           ),

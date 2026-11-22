@@ -87,11 +87,14 @@ class AdminPickupPointsScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('จัดการจุดนัดรับ')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddPointDialog(context, appState),
-        backgroundColor: AppColors.greenPrimary,
-        icon: const Icon(Icons.add_location_alt_rounded, color: Colors.white),
+        backgroundColor: AppColors.oceanBlue,
+        icon: const Icon(
+          Icons.add_location_alt_rounded,
+          color: AppColors.white,
+        ),
         label: const Text(
           'เพิ่มจุดนัดรับ',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: AppColors.white, fontWeight: FontWeight.bold),
         ),
       ),
       body: ListenableBuilder(
@@ -110,14 +113,14 @@ class AdminPickupPointsScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: point.isActive
-                          ? AppColors.greenPale
+                          ? AppColors.successPale
                           : AppColors.grayLine,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
                       Icons.place_rounded,
                       color: point.isActive
-                          ? AppColors.greenPrimary
+                          ? AppColors.success
                           : AppColors.graySecondary,
                     ),
                   ),
@@ -130,7 +133,7 @@ class AdminPickupPointsScreen extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                             color: point.isActive
-                                ? AppColors.inkText
+                                ? AppColors.deepNavy
                                 : AppColors.graySecondary,
                           ),
                         ),
@@ -190,7 +193,7 @@ class AdminPickupPointsScreen extends StatelessWidget {
                     children: [
                       Switch(
                         value: point.isActive,
-                        activeThumbColor: AppColors.greenPrimary,
+                        activeThumbColor: AppColors.success,
                         onChanged: (_) =>
                             appState.togglePickupPointActive(point.id),
                       ),

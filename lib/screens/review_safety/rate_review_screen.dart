@@ -37,7 +37,7 @@ class _RateReviewScreenState extends State<RateReviewScreen> {
               // Seller avatar & name
               CircleAvatar(
                 radius: 36,
-                backgroundColor: AppColors.pinkPale,
+                backgroundColor: AppColors.aquaPale,
                 child: Text(
                   widget.order.sellerName.isNotEmpty
                       ? widget.order.sellerName[0]
@@ -45,7 +45,7 @@ class _RateReviewScreenState extends State<RateReviewScreen> {
                   style: const TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.pinkPrimary,
+                    color: AppColors.oceanBlue,
                   ),
                 ),
               ),
@@ -55,7 +55,7 @@ class _RateReviewScreenState extends State<RateReviewScreen> {
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.inkText,
+                  color: AppColors.deepNavy,
                 ),
               ),
               Text(
@@ -95,7 +95,7 @@ class _RateReviewScreenState extends State<RateReviewScreen> {
                 style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.pinkDark,
+                  color: AppColors.deepNavy,
                 ),
               ),
               const SizedBox(height: 24),
@@ -117,12 +117,12 @@ class _RateReviewScreenState extends State<RateReviewScreen> {
                   return FilterChip(
                     label: Text(tag),
                     selected: isSelected,
-                    selectedColor: AppColors.pinkPale,
+                    selectedColor: AppColors.aquaPale,
                     backgroundColor: AppColors.grayBg,
                     labelStyle: TextStyle(
                       color: isSelected
-                          ? AppColors.pinkDark
-                          : AppColors.inkText,
+                          ? AppColors.deepNavy
+                          : AppColors.deepNavy,
                       fontWeight: isSelected
                           ? FontWeight.bold
                           : FontWeight.normal,
@@ -132,7 +132,7 @@ class _RateReviewScreenState extends State<RateReviewScreen> {
                       borderRadius: BorderRadius.circular(16),
                       side: BorderSide(
                         color: isSelected
-                            ? AppColors.pinkPrimary
+                            ? AppColors.oceanBlue
                             : AppColors.grayLine,
                       ),
                     ),
@@ -183,7 +183,7 @@ class _RateReviewScreenState extends State<RateReviewScreen> {
                         content: Text(
                           'ขอบคุณสำหรับการรีวิว! คะแนนของคุณช่วยสร้างชุมชนซื้อขายที่น่าอยู่',
                         ),
-                        backgroundColor: AppColors.greenPrimary,
+                        backgroundColor: AppColors.success,
                       ),
                     );
                     Navigator.pop(context);

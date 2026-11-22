@@ -21,18 +21,18 @@ class AdminDashboardScreen extends StatelessWidget {
             margin: const EdgeInsets.only(right: 16),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: AppColors.greenPale,
+              color: AppColors.successPale,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.greenLight),
+              border: Border.all(color: AppColors.successLight),
             ),
             child: const Row(
               children: [
-                Icon(Icons.security, size: 14, color: AppColors.greenDark),
+                Icon(Icons.security, size: 14, color: AppColors.successDark),
                 SizedBox(width: 4),
                 Text(
                   'ผู้ดูแลระบบ',
                   style: TextStyle(
-                    color: AppColors.greenDark,
+                    color: AppColors.successDark,
                     fontWeight: FontWeight.bold,
                     fontSize: 11,
                   ),
@@ -63,7 +63,7 @@ class AdminDashboardScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [AppColors.greenDark, AppColors.greenPrimary],
+                      colors: [AppColors.successDark, AppColors.success],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -78,7 +78,7 @@ class AdminDashboardScreen extends StatelessWidget {
                           Text(
                             '$appName · ระบบจัดการชุมชน',
                             style: TextStyle(
-                              color: Colors.white70,
+                              color: AppColors.white,
                               fontSize: 12,
                             ),
                           ),
@@ -104,10 +104,7 @@ class AdminDashboardScreen extends StatelessWidget {
                       const SizedBox(height: 6),
                       Text(
                         'ดูแลการใช้งานและรายงานจากสมาชิกในชุมชน',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.85),
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: AppColors.white, fontSize: 12),
                       ),
                     ],
                   ),
@@ -132,7 +129,7 @@ class AdminDashboardScreen extends StatelessWidget {
                       'ยอดเงินใน Escrow',
                       '฿${totalEscrowVolume.toStringAsFixed(0)}',
                       Icons.account_balance_wallet_outlined,
-                      AppColors.greenPrimary,
+                      AppColors.success,
                     ),
                     _buildMetricCard(
                       'ข้อพิพาทรอดำเนินการ',
@@ -145,7 +142,7 @@ class AdminDashboardScreen extends StatelessWidget {
                       'สินค้าที่เปิดขายอยู่',
                       '${appState.products.length} รายการ',
                       Icons.shopping_bag_outlined,
-                      AppColors.pinkPrimary,
+                      AppColors.oceanBlue,
                     ),
                     _buildMetricCard(
                       'จุดนัดรับแนะนำ',
@@ -268,12 +265,12 @@ class AdminDashboardScreen extends StatelessWidget {
                     leading: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: AppColors.greenPale,
+                        color: AppColors.successPale,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(
                         Icons.map_rounded,
-                        color: AppColors.greenDark,
+                        color: AppColors.successDark,
                       ),
                     ),
                     title: const Text(
@@ -361,9 +358,7 @@ class AdminDashboardScreen extends StatelessWidget {
           value,
           style: TextStyle(
             fontSize: 9,
-            color: isHighlight
-                ? AppColors.pinkPrimary
-                : AppColors.graySecondary,
+            color: isHighlight ? AppColors.oceanBlue : AppColors.graySecondary,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -372,7 +367,7 @@ class AdminDashboardScreen extends StatelessWidget {
           width: 22,
           height: height,
           decoration: BoxDecoration(
-            color: isHighlight ? AppColors.pinkPrimary : AppColors.greenLight,
+            color: isHighlight ? AppColors.oceanBlue : AppColors.successLight,
             borderRadius: BorderRadius.circular(6),
           ),
         ),

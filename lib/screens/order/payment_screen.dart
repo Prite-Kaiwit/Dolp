@@ -63,15 +63,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.greenPale,
+                  color: AppColors.successPale,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.greenLight),
+                  border: Border.all(color: AppColors.successLight),
                 ),
                 child: const Row(
                   children: [
                     Icon(
                       Icons.lock_clock_rounded,
-                      color: AppColors.greenPrimary,
+                      color: AppColors.success,
                       size: 28,
                     ),
                     SizedBox(width: 12),
@@ -84,7 +84,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
-                              color: AppColors.greenDark,
+                              color: AppColors.successDark,
                             ),
                           ),
                           SizedBox(height: 2),
@@ -92,7 +92,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             'ผู้ขายจะได้รับเงินเมื่อคุณได้ตรวจรับสินค้าและกดยืนยันด้วยตนเองเท่านั้น',
                             style: TextStyle(
                               fontSize: 11,
-                              color: AppColors.inkText,
+                              color: AppColors.deepNavy,
                             ),
                           ),
                         ],
@@ -157,7 +157,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           'ไม่มีค่าธรรมเนียมในตัวอย่างนี้',
                           style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.greenPrimary,
+                            color: AppColors.success,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -172,7 +172,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.inkText,
+                            color: AppColors.deepNavy,
                           ),
                         ),
                         Text(
@@ -180,7 +180,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.pinkPrimary,
+                            color: AppColors.oceanBlue,
                           ),
                         ),
                       ],
@@ -237,7 +237,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF103F64),
+                              color: AppColors.deepNavy,
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Text(
@@ -268,7 +268,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.black12),
+                          border: Border.all(color: AppColors.grayLine),
                         ),
                         child: Center(
                           child: Column(
@@ -277,14 +277,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
                               const Icon(
                                 Icons.qr_code_2_rounded,
                                 size: 110,
-                                color: Color(0xFF1E293B),
+                                color: AppColors.deepNavy,
                               ),
                               Text(
                                 '฿${widget.product.price.toStringAsFixed(2)}',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
-                                  color: AppColors.pinkPrimary,
+                                  color: AppColors.oceanBlue,
                                 ),
                               ),
                             ],
@@ -357,11 +357,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.pinkPale.withValues(alpha: 0.5)
+              ? AppColors.aquaPale.withValues(alpha: 0.5)
               : AppColors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? AppColors.pinkPrimary : AppColors.grayLine,
+            color: isSelected ? AppColors.oceanBlue : AppColors.grayLine,
             width: isSelected ? 1.5 : 1,
           ),
         ),
@@ -371,15 +371,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
               isSelected
                   ? Icons.radio_button_checked_rounded
                   : Icons.radio_button_off_rounded,
-              color: isSelected
-                  ? AppColors.pinkPrimary
-                  : AppColors.graySecondary,
+              color: isSelected ? AppColors.oceanBlue : AppColors.graySecondary,
               size: 20,
             ),
             const SizedBox(width: 12),
             Icon(
               icon,
-              color: isSelected ? AppColors.pinkPrimary : AppColors.inkText,
+              color: isSelected ? AppColors.oceanBlue : AppColors.deepNavy,
               size: 24,
             ),
             const SizedBox(width: 12),
@@ -393,8 +391,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
                       color: isSelected
-                          ? AppColors.pinkDark
-                          : AppColors.inkText,
+                          ? AppColors.deepNavy
+                          : AppColors.deepNavy,
                     ),
                   ),
                   const SizedBox(height: 2),

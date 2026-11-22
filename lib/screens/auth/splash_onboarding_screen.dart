@@ -116,14 +116,10 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
                           width: 170,
                           height: 170,
                           decoration: BoxDecoration(
-                            color: index % 2 == 0
-                                ? AppColors.pinkPale
-                                : AppColors.greenPale,
+                            color: AppColors.aquaPale,
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: index % 2 == 0
-                                  ? AppColors.pinkLight
-                                  : AppColors.greenLight,
+                              color: AppColors.aquaLight,
                               width: 3,
                             ),
                           ),
@@ -143,17 +139,13 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: index % 2 == 0
-                                ? AppColors.pinkPale
-                                : AppColors.greenPale,
+                            color: AppColors.aquaPale,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             item['badge']!,
                             style: TextStyle(
-                              color: index % 2 == 0
-                                  ? AppColors.pinkDark
-                                  : AppColors.greenDark,
+                              color: AppColors.deepNavy,
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
                             ),
@@ -168,7 +160,7 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.inkText,
+                            color: AppColors.deepNavy,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -180,9 +172,7 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: index % 2 == 0
-                                ? AppColors.pinkPrimary
-                                : AppColors.greenDark,
+                            color: AppColors.oceanBlue,
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -215,7 +205,7 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
                   height: 8,
                   decoration: BoxDecoration(
                     color: _currentPage == index
-                        ? AppColors.pinkPrimary
+                        ? AppColors.oceanBlue
                         : AppColors.grayLine,
                     borderRadius: BorderRadius.circular(4),
                   ),
@@ -242,7 +232,7 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.pinkPrimary,
+                        backgroundColor: AppColors.oceanBlue,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -271,7 +261,7 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
                       },
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(
-                          color: AppColors.pinkPrimary,
+                          color: AppColors.oceanBlue,
                           width: 1.5,
                         ),
                         shape: RoundedRectangleBorder(
@@ -281,7 +271,7 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
                       child: const Text(
                         'เข้าสู่ระบบ (Login)',
                         style: TextStyle(
-                          color: AppColors.pinkPrimary,
+                          color: AppColors.oceanBlue,
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),

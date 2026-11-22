@@ -247,7 +247,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                           : '฿${conversation.productPrice.toStringAsFixed(0)}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: AppColors.pinkPrimary,
+                        color: AppColors.oceanBlue,
                         fontSize: 13,
                       ),
                     ),
@@ -279,7 +279,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppColors.greenPale,
+                color: AppColors.successPale,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
@@ -362,7 +362,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           IconButton(
             tooltip: 'ส่งข้อความ',
             onPressed: trimmed.isEmpty ? null : () => _sendMessage(),
-            icon: const Icon(Icons.send_rounded, color: AppColors.pinkPrimary),
+            icon: const Icon(Icons.send_rounded, color: AppColors.oceanBlue),
           ),
         ],
       ),
@@ -413,7 +413,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       _ => Text(
         message.text,
         style: TextStyle(
-          color: isMe ? Colors.white : AppColors.inkText,
+          color: isMe ? Colors.white : AppColors.deepNavy,
           fontSize: 14,
         ),
       ),
@@ -444,9 +444,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: message.type == ChatMessageType.addressShare
-                    ? AppColors.greenPrimary
+                    ? AppColors.success
                     : isMe
-                    ? AppColors.pinkPrimary
+                    ? AppColors.oceanBlue
                     : AppColors.grayBg,
                 borderRadius: BorderRadius.circular(16),
                 border: isMe ? null : Border.all(color: AppColors.grayLine),

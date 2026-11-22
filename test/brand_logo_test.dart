@@ -12,15 +12,21 @@ void main() {
     expect(find.text(appName), findsOneWidget);
   });
 
-  testWidgets('BrandLogo can render supplied logo content', (tester) async {
-    const logo = Icon(Icons.water_drop);
+  testWidgets('BrandLogo can render a supplied image logo', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(body: BrandLogo(logoImage: logo)),
+      MaterialApp(
+        home: Scaffold(
+          body: BrandLogo(
+            logoImage: Image.asset(
+              'test-logo.png',
+              errorBuilder: (_, _, _) => const SizedBox.shrink(),
+            ),
+          ),
+        ),
       ),
     );
 
-    expect(find.byWidget(logo), findsOneWidget);
+    expect(find.byType(Image), findsOneWidget);
     expect(find.text(appName), findsNothing);
   });
 }

@@ -36,7 +36,7 @@ class CustomSearchBar extends StatelessWidget {
               readOnly: readOnly,
               onTap: onTap,
               onChanged: onChanged,
-              style: const TextStyle(fontSize: 14, color: AppColors.inkText),
+              style: const TextStyle(fontSize: 14, color: AppColors.deepNavy),
               decoration: InputDecoration(
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -49,7 +49,7 @@ class CustomSearchBar extends StatelessWidget {
                 ),
                 prefixIcon: const Icon(
                   Icons.search_rounded,
-                  color: AppColors.pinkPrimary,
+                  color: AppColors.oceanBlue,
                   size: 20,
                 ),
                 border: InputBorder.none,
@@ -69,12 +69,12 @@ class CustomSearchBar extends StatelessWidget {
               height: 46,
               width: 46,
               decoration: BoxDecoration(
-                color: AppColors.pinkPale,
+                color: AppColors.aquaPale,
                 borderRadius: BorderRadius.circular(24),
               ),
               child: const Icon(
                 Icons.tune_rounded,
-                color: AppColors.pinkPrimary,
+                color: AppColors.oceanBlue,
                 size: 20,
               ),
             ),

@@ -22,7 +22,7 @@ class AdminDisputesScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.verified_user_outlined, size: 56, color: AppColors.greenPrimary),
+                  Icon(Icons.verified_user_outlined, size: 56, color: AppColors.success),
                   SizedBox(height: 12),
                   Text('ไม่มีข้อพิพาทหรือรายงานที่ค้างอยู่', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 ],
@@ -57,11 +57,11 @@ class AdminDisputesScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(report.id, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.inkText)),
+                Text(report.id, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.deepNavy)),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: isPending ? AppColors.error.withValues(alpha: 0.1) : AppColors.greenPale,
+                    color: isPending ? AppColors.error.withValues(alpha: 0.1) : AppColors.successPale,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -69,7 +69,7 @@ class AdminDisputesScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: isPending ? AppColors.error : AppColors.greenDark,
+                      color: isPending ? AppColors.error : AppColors.successDark,
                     ),
                   ),
                 ),
@@ -97,9 +97,9 @@ class AdminDisputesScreen extends StatelessWidget {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  const Icon(Icons.lock_outline, size: 16, color: AppColors.greenPrimary),
+                  const Icon(Icons.lock_outline, size: 16, color: AppColors.success),
                   const SizedBox(width: 6),
-                  Text('ยอดเงิน Escrow ที่ถูกพักไว้: ฿${report.amount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.greenDark)),
+                  Text('ยอดเงิน Escrow ที่ถูกพักไว้: ฿${report.amount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.successDark)),
                 ],
               ),
             ],
@@ -118,7 +118,7 @@ class AdminDisputesScreen extends StatelessWidget {
                 children: [
                   Text('เหตุผล: ${report.reason}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                   const SizedBox(height: 4),
-                  Text(report.details, style: const TextStyle(fontSize: 12, color: AppColors.inkText)),
+                  Text(report.details, style: const TextStyle(fontSize: 12, color: AppColors.deepNavy)),
                 ],
               ),
             ),
@@ -140,7 +140,7 @@ class AdminDisputesScreen extends StatelessWidget {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.greenPrimary,
+                        backgroundColor: AppColors.success,
                         padding: const EdgeInsets.symmetric(vertical: 10),
                       ),
                       child: const Text('คืนเงินผู้ซื้อ', style: TextStyle(fontSize: 12)),
@@ -158,7 +158,7 @@ class AdminDisputesScreen extends StatelessWidget {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.pinkPrimary,
+                        backgroundColor: AppColors.success,
                         padding: const EdgeInsets.symmetric(vertical: 10),
                       ),
                       child: const Text('ปล่อยเงินผู้ขาย', style: TextStyle(fontSize: 12)),

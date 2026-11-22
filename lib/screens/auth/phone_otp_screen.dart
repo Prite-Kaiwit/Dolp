@@ -112,7 +112,7 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
               const Icon(
                 Icons.sms_outlined,
                 size: 64,
-                color: AppColors.pinkPrimary,
+                color: AppColors.oceanBlue,
               ),
               const SizedBox(height: 20),
               const Text(
@@ -130,7 +130,7 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.pinkPrimary,
+                  color: AppColors.oceanBlue,
                 ),
               ),
               const SizedBox(height: 8),

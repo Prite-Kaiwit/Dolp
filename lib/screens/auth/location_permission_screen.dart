@@ -152,7 +152,7 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
                       (area) => RadioListTile<CommunityArea>(
                         value: area,
                         title: Text(area.label),
-                        activeColor: AppColors.pinkPrimary,
+                        activeColor: AppColors.oceanBlue,
                       ),
                     )
                     .toList(),

@@ -72,10 +72,10 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                     child: FilterChip(
                       label: Text(category),
                       selected: selected,
-                      selectedColor: AppColors.pinkPrimary,
+                      selectedColor: AppColors.aquaPale,
                       backgroundColor: AppColors.grayBg,
                       labelStyle: TextStyle(
-                        color: selected ? Colors.white : AppColors.inkText,
+                        color: AppColors.deepNavy,
                         fontSize: 12,
                       ),
                       showCheckmark: false,
@@ -244,13 +244,13 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
         label,
         style: const TextStyle(
           fontSize: 11,
-          color: AppColors.pinkDark,
+          color: AppColors.deepNavy,
           fontWeight: FontWeight.w600,
         ),
       ),
       onDeleted: onRemove,
-      deleteIconColor: AppColors.pinkDark,
-      backgroundColor: AppColors.pinkPale,
+      deleteIconColor: AppColors.deepNavy,
+      backgroundColor: AppColors.aquaPale,
       visualDensity: VisualDensity.compact,
       side: BorderSide.none,
     );
@@ -274,7 +274,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: AppColors.inkText,
+                color: AppColors.deepNavy,
               ),
             ),
             const SizedBox(height: 6),
@@ -315,7 +315,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.inkText,
+                      color: AppColors.deepNavy,
                     ),
                   ),
                   IconButton(
@@ -335,7 +335,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                 max: 20,
                 divisions: 19,
                 label: '${_radiusKm.toInt()} กม.',
-                activeColor: AppColors.pinkPrimary,
+                activeColor: AppColors.aqua,
                 onChanged: (value) {
                   setModalState(() => _radiusKm = value);
                   setState(() {});
@@ -358,9 +358,9 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                   return ChoiceChip(
                     label: Text(type),
                     selected: selected,
-                    selectedColor: AppColors.pinkPrimary,
+                    selectedColor: AppColors.aquaPale,
                     labelStyle: TextStyle(
-                      color: selected ? Colors.white : AppColors.inkText,
+                      color: AppColors.deepNavy,
                       fontSize: 12,
                     ),
                     onSelected: (_) {
@@ -383,7 +383,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                 min: _fullPriceRange.start,
                 max: _fullPriceRange.end,
                 divisions: 100,
-                activeColor: AppColors.pinkPrimary,
+                activeColor: AppColors.aqua,
                 inactiveColor: AppColors.grayLine,
                 labels: RangeLabels(
                   '฿${_priceRange.start.round()}',

@@ -13,23 +13,23 @@ class EscrowBadge extends StatelessWidget {
         vertical: isCompact ? 4 : 6,
       ),
       decoration: BoxDecoration(
-        color: AppColors.greenPale,
+        color: AppColors.successPale,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.greenLight, width: 1),
+        border: Border.all(color: AppColors.successLight, width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           const Icon(
             Icons.verified_user_rounded,
-            color: AppColors.greenPrimary,
+            color: AppColors.success,
             size: 16,
           ),
           const SizedBox(width: 5),
           Text(
             isCompact ? 'Escrow พักเงิน' : 'คุ้มครองด้วยระบบพักเงิน (Escrow)',
             style: const TextStyle(
-              color: AppColors.greenDark,
+              color: AppColors.successDark,
               fontSize: 12,
               fontWeight: FontWeight.bold,
             ),
@@ -54,15 +54,18 @@ class ListingTypeBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color bg = AppColors.pinkPale;
-    Color text = AppColors.pinkDark;
+    Color bg = AppColors.white;
+    Color text = AppColors.listingSale;
+    Color border = AppColors.listingSale;
 
     if (isDonate) {
-      bg = AppColors.greenPale;
-      text = AppColors.greenDark;
+      bg = AppColors.listingDonate;
+      text = AppColors.white;
+      border = AppColors.listingDonate;
     } else if (isTrade) {
-      bg = const Color(0xFFEFF6FF);
-      text = AppColors.info;
+      bg = AppColors.listingExchange;
+      text = AppColors.white;
+      border = AppColors.listingExchange;
     }
 
     return Container(
@@ -70,6 +73,7 @@ class ListingTypeBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: border),
       ),
       child: Text(
         label,

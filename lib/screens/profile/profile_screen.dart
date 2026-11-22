@@ -50,7 +50,7 @@ class ProfileScreen extends StatelessWidget {
                     border: Border.all(color: AppColors.grayLine),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
+                        color: AppColors.deepNavy.withValues(alpha: 0.04),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -62,7 +62,7 @@ class ProfileScreen extends StatelessWidget {
                         children: [
                           CircleAvatar(
                             radius: 42,
-                            backgroundColor: AppColors.pinkPale,
+                            backgroundColor: AppColors.aquaPale,
                             backgroundImage: NetworkImage(user.avatarUrl),
                             onBackgroundImageError: (_, _) {},
                             child: Text(
@@ -70,7 +70,7 @@ class ProfileScreen extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.pinkPrimary,
+                                color: AppColors.oceanBlue,
                               ),
                             ),
                           ),
@@ -81,7 +81,7 @@ class ProfileScreen extends StatelessWidget {
                               child: Container(
                                 padding: const EdgeInsets.all(4),
                                 decoration: const BoxDecoration(
-                                  color: AppColors.greenPrimary,
+                                  color: AppColors.success,
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(
@@ -99,7 +99,7 @@ class ProfileScreen extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.inkText,
+                          color: AppColors.deepNavy,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -120,7 +120,7 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: user.phoneVerified
-                              ? AppColors.greenPale
+                              ? AppColors.successPale
                               : AppColors.grayBg,
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -132,7 +132,7 @@ class ProfileScreen extends StatelessWidget {
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
                             color: user.phoneVerified
-                                ? AppColors.greenDark
+                                ? AppColors.successDark
                                 : AppColors.graySecondary,
                           ),
                         ),
@@ -155,13 +155,13 @@ class ProfileScreen extends StatelessWidget {
                       _buildStatBox(
                         '${user.successfulDeals}',
                         'ทำรายการสำเร็จ',
-                        AppColors.greenPrimary,
+                        AppColors.success,
                       ),
                       const SizedBox(width: 10),
                       _buildStatBox(
                         '${user.reviewCount}',
                         'รีวิวจากผู้ใช้',
-                        AppColors.pinkPrimary,
+                        AppColors.oceanBlue,
                       ),
                     ],
                   ),
@@ -179,7 +179,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       label: const Text('เข้าสู่หน้า Admin Dashboard'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.greenPrimary,
+                        backgroundColor: AppColors.success,
                       ),
                       onPressed: () {
                         Navigator.push(
@@ -325,10 +325,10 @@ class ProfileScreen extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: AppColors.pinkPale,
+            color: AppColors.aquaPale,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: AppColors.pinkPrimary, size: 22),
+          child: Icon(icon, color: AppColors.oceanBlue, size: 22),
         ),
         title: Text(
           title,

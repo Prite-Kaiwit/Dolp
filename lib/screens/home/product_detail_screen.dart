@@ -105,7 +105,7 @@ class ProductDetailScreen extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 26,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.greenDark,
+                            color: AppColors.listingDonate,
                           ),
                         )
                       else if (product.type == ListingType.trade)
@@ -114,7 +114,7 @@ class ProductDetailScreen extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.info,
+                            color: AppColors.listingExchange,
                           ),
                         )
                       else
@@ -123,7 +123,7 @@ class ProductDetailScreen extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.pinkPrimary,
+                            color: AppColors.oceanBlue,
                           ),
                         ),
                       Container(
@@ -140,7 +140,7 @@ class ProductDetailScreen extends StatelessWidget {
                           product.condition,
                           style: const TextStyle(
                             fontSize: 12,
-                            color: AppColors.inkText,
+                            color: AppColors.deepNavy,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -155,7 +155,7 @@ class ProductDetailScreen extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.inkText,
+                      color: AppColors.deepNavy,
                       height: 1.3,
                     ),
                   ),
@@ -165,15 +165,15 @@ class ProductDetailScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: AppColors.greenPale,
+                      color: AppColors.warningPale,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.greenLight),
+                      border: Border.all(color: AppColors.warning),
                     ),
                     child: const Row(
                       children: [
                         Icon(
                           Icons.shield_rounded,
-                          color: AppColors.greenPrimary,
+                          color: AppColors.warning,
                           size: 28,
                         ),
                         SizedBox(width: 12),
@@ -186,7 +186,7 @@ class ProductDetailScreen extends StatelessWidget {
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
-                                  color: AppColors.inkText,
+                                  color: AppColors.deepNavy,
                                 ),
                               ),
                               SizedBox(height: 2),
@@ -194,7 +194,7 @@ class ProductDetailScreen extends StatelessWidget {
                                 'ตกลงรายละเอียดและตรวจสอบสินค้าก่อนชำระเงิน',
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: AppColors.inkText,
+                                  color: AppColors.deepNavy,
                                 ),
                               ),
                             ],
@@ -211,9 +211,9 @@ class ProductDetailScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
+                        color: AppColors.listingExchangePale,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFBFDBFE)),
+                        border: Border.all(color: AppColors.listingExchange),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -222,7 +222,7 @@ class ProductDetailScreen extends StatelessWidget {
                             children: [
                               Icon(
                                 Icons.swap_horiz_rounded,
-                                color: AppColors.info,
+                                color: AppColors.listingExchange,
                                 size: 18,
                               ),
                               SizedBox(width: 6),
@@ -231,7 +231,7 @@ class ProductDetailScreen extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.info,
+                                  color: AppColors.listingExchange,
                                 ),
                               ),
                             ],
@@ -241,7 +241,7 @@ class ProductDetailScreen extends StatelessWidget {
                             product.tradeFor,
                             style: const TextStyle(
                               fontSize: 13,
-                              color: AppColors.inkText,
+                              color: AppColors.deepNavy,
                             ),
                           ),
                         ],
@@ -256,7 +256,7 @@ class ProductDetailScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.inkText,
+                      color: AppColors.deepNavy,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -271,7 +271,7 @@ class ProductDetailScreen extends StatelessWidget {
                       children: [
                         CircleAvatar(
                           radius: 24,
-                          backgroundColor: AppColors.pinkPale,
+                          backgroundColor: AppColors.aquaPale,
                           child: Text(
                             product.sellerName.isNotEmpty
                                 ? product.sellerName[0]
@@ -279,7 +279,7 @@ class ProductDetailScreen extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.pinkPrimary,
+                              color: AppColors.oceanBlue,
                             ),
                           ),
                         ),
@@ -295,14 +295,14 @@ class ProductDetailScreen extends StatelessWidget {
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
-                                      color: AppColors.inkText,
+                                      color: AppColors.deepNavy,
                                     ),
                                   ),
                                   const SizedBox(width: 4),
                                   const Icon(
                                     Icons.check_circle_rounded,
                                     size: 14,
-                                    color: AppColors.greenPrimary,
+                                    color: AppColors.success,
                                   ),
                                 ],
                               ),
@@ -322,7 +322,7 @@ class ProductDetailScreen extends StatelessWidget {
                                       vertical: 2,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: AppColors.pinkPale,
+                                      color: AppColors.aquaPale,
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Row(
@@ -338,7 +338,7 @@ class ProductDetailScreen extends StatelessWidget {
                                           style: const TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.bold,
-                                            color: AppColors.inkText,
+                                            color: AppColors.deepNavy,
                                           ),
                                         ),
                                       ],
@@ -358,14 +358,14 @@ class ProductDetailScreen extends StatelessWidget {
                     children: [
                       const Icon(
                         Icons.near_me_outlined,
-                        color: AppColors.pinkPrimary,
+                        color: AppColors.oceanBlue,
                         size: 18,
                       ),
                       const SizedBox(width: 6),
                       Text(
                         formatDistance(productDistance),
                         style: const TextStyle(
-                          color: AppColors.pinkDark,
+                          color: AppColors.deepNavy,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -377,7 +377,7 @@ class ProductDetailScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.inkText,
+                      color: AppColors.deepNavy,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -401,7 +401,7 @@ class ProductDetailScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.inkText,
+                      color: AppColors.deepNavy,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -417,12 +417,12 @@ class ProductDetailScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: AppColors.greenPale,
+                            color: AppColors.aquaPale,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
                             Icons.location_on_rounded,
-                            color: AppColors.greenPrimary,
+                            color: AppColors.oceanBlue,
                             size: 22,
                           ),
                         ),
@@ -436,7 +436,7 @@ class ProductDetailScreen extends StatelessWidget {
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
-                                  color: AppColors.inkText,
+                                  color: AppColors.deepNavy,
                                 ),
                               ),
                               const Text(
@@ -460,7 +460,7 @@ class ProductDetailScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.inkText,
+                      color: AppColors.deepNavy,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -468,7 +468,7 @@ class ProductDetailScreen extends StatelessWidget {
                     product.description,
                     style: const TextStyle(
                       fontSize: 14,
-                      color: AppColors.inkText,
+                      color: AppColors.deepNavy,
                       height: 1.5,
                     ),
                   ),
@@ -486,7 +486,7 @@ class ProductDetailScreen extends StatelessWidget {
           color: AppColors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
+              color: AppColors.deepNavy.withValues(alpha: 0.08),
               blurRadius: 10,
               offset: const Offset(0, -3),
             ),
@@ -532,7 +532,7 @@ class ProductDetailScreen extends StatelessWidget {
                       horizontal: 16,
                       vertical: 12,
                     ),
-                    side: const BorderSide(color: AppColors.pinkPrimary),
+                    side: const BorderSide(color: AppColors.oceanBlue),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -543,13 +543,13 @@ class ProductDetailScreen extends StatelessWidget {
                       Icon(
                         Icons.chat_bubble_outline_rounded,
                         size: 20,
-                        color: AppColors.pinkPrimary,
+                        color: AppColors.oceanBlue,
                       ),
                       Text(
                         'แชทกับผู้ขาย',
                         style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.pinkPrimary,
+                          color: AppColors.oceanBlue,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -566,7 +566,7 @@ class ProductDetailScreen extends StatelessWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('เพิ่ม "${product.title}" ลงตะกร้าแล้ว'),
-                      backgroundColor: AppColors.pinkPrimary,
+                      backgroundColor: AppColors.oceanBlue,
                     ),
                   );
                 },
@@ -586,13 +586,13 @@ class ProductDetailScreen extends StatelessWidget {
                     Icon(
                       Icons.add_shopping_cart_rounded,
                       size: 20,
-                      color: AppColors.inkText,
+                      color: AppColors.deepNavy,
                     ),
                     Text(
                       'ใส่ตะกร้า',
                       style: TextStyle(
                         fontSize: 11,
-                        color: AppColors.inkText,
+                        color: AppColors.deepNavy,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -616,8 +616,8 @@ class ProductDetailScreen extends StatelessWidget {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: product.type == ListingType.donate
-                          ? AppColors.greenPrimary
-                          : AppColors.pinkPrimary,
+                          ? AppColors.listingDonate
+                          : AppColors.oceanBlue,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),

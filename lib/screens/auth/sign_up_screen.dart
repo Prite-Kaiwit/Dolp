@@ -64,7 +64,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     hintText: 'เช่น สมชาย ใจดี',
                     prefixIcon: Icon(
                       Icons.person_outline_rounded,
-                      color: AppColors.pinkPrimary,
+                      color: AppColors.oceanBlue,
                     ),
                   ),
                   validator: (value) => value == null || value.trim().isEmpty
@@ -90,7 +90,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     counterText: '',
                     prefixIcon: Icon(
                       Icons.phone_outlined,
-                      color: AppColors.pinkPrimary,
+                      color: AppColors.oceanBlue,
                     ),
                   ),
                   validator: (value) {
@@ -123,7 +123,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     hintText: 'อย่างน้อย 8 ตัวอักษร',
                     prefixIcon: const Icon(
                       Icons.lock_outline_rounded,
-                      color: AppColors.pinkPrimary,
+                      color: AppColors.oceanBlue,
                     ),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -156,7 +156,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     hintText: 'กรอกรหัสผ่านอีกครั้ง',
                     prefixIcon: Icon(
                       Icons.lock_outline_rounded,
-                      color: AppColors.pinkPrimary,
+                      color: AppColors.oceanBlue,
                     ),
                   ),
                   validator: (value) => value != _passwordController.text
@@ -171,7 +171,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   children: [
                     Checkbox(
                       value: _agreedToTerms,
-                      activeColor: AppColors.pinkPrimary,
                       onChanged: (val) =>
                           setState(() => _agreedToTerms = val ?? false),
                     ),
