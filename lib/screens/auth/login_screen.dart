@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import '../../constants/app_info.dart';
 import '../../theme/app_theme.dart';
 import '../../state/app_state.dart';
+import '../../widgets/brand_logo.dart';
 import '../main_navigation_screen.dart';
 import 'location_permission_screen.dart';
 import 'sign_up_screen.dart';
@@ -66,27 +66,8 @@ class _LoginScreenState extends State<LoginScreen> {
               Center(
                 child: Column(
                   children: [
-                    Container(
-                      width: 72,
-                      height: 72,
-                      decoration: BoxDecoration(
-                        color: AppColors.pinkPale,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Center(
-                        child: Text('🛍️', style: TextStyle(fontSize: 36)),
-                      ),
-                    ),
+                    const BrandLogo(size: 72),
                     const SizedBox(height: 12),
-                    Text(
-                      appName,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.pinkPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
                     const Text(
                       'เข้าสู่ระบบด้วยเบอร์โทรศัพท์',
                       style: TextStyle(

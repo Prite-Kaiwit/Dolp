@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_info.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/brand_logo.dart';
 import 'login_screen.dart';
 import 'sign_up_screen.dart';
 import '../main_navigation_screen.dart';
@@ -56,32 +57,13 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // App Logo & Brand
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.pinkPale,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Text(
-                          '🛍️',
-                          style: TextStyle(fontSize: 20),
-                        ),
-                      ),
+                      const BrandLogo(size: 44),
                       const SizedBox(width: 8),
                       const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            appName,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.pinkPrimary,
-                            ),
-                          ),
                           Text(
                             appTagline,
                             style: TextStyle(

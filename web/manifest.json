@@ -1,11 +1,11 @@
 {
-    "name": "[APP_NAME]",
-    "short_name": "[APP_NAME]",
+    "name": "dolp",
+    "short_name": "dolp",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "ตลาดมือสองเพื่อชุมชนใกล้คุณ",
+    "background_color": "#FFFFFF",
+    "theme_color": "#0875E1",
+    "description": "ตลาดมือสองใกล้บ้าน",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -5,11 +5,11 @@ import 'screens/auth/splash_onboarding_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MoorMarketApp());
+  runApp(const DolpApp());
 }
 
-class MoorMarketApp extends StatelessWidget {
-  const MoorMarketApp({super.key});
+class DolpApp extends StatelessWidget {
+  const DolpApp({super.key});
 
   @override
   Widget build(BuildContext context) {
