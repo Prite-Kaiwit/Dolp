@@ -21,7 +21,7 @@ class _ReportScreenState extends State<ReportScreen> {
   final List<String> _reasons = [
     'สินค้าไม่ตรงกับที่ระบุ / ชำรุดเสียหาย',
     'ไม่มาตามนัดหมาย',
-    'พยายามหลอกให้โอนเงินนอกระบบ Escrow',
+    'ชักชวนให้โอนเงินก่อนรับสินค้า',
     'สินค้าลอกเลียนแบบ / ของปลอม / ผิดกฎหมาย',
     'ใช้คำหยาบคาย / คุกคามผ่านช่องแชท',
     'บัญชีผู้ใช้น่าสงสัย / สวมรอย',
@@ -42,9 +42,10 @@ class _ReportScreenState extends State<ReportScreen> {
       return;
     }
 
+    String? error;
     if (widget.orderId != null && widget.orderId!.isNotEmpty) {
       // Order dispute
-      AppState().disputeOrder(widget.orderId!, _selectedReason, details);
+      error = AppState().disputeOrder(widget.orderId!, _selectedReason, details);
     } else {
       AppState().submitReport(
         reportedUser: _targetNameController.text.trim(),
@@ -52,13 +53,16 @@ class _ReportScreenState extends State<ReportScreen> {
         details: details,
       );
     }
+    if (error != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error)));
+      return;
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text(
-          'ส่งรายงานปัญหาเรียบร้อยแล้ว! แอดมินจะตรวจสอบและระงับการโอนเงินทันที',
-        ),
-        backgroundColor: AppColors.error,
+        content: Text('ส่งรายงานแล้ว ทีมงานจะตรวจสอบข้อมูลที่ได้รับ'),
       ),
     );
 
@@ -107,7 +111,7 @@ class _ReportScreenState extends State<ReportScreen> {
                           ),
                           SizedBox(height: 2),
                           Text(
-                            'หากเปิดข้อพิพาทเกี่ยวกับคำสั่งซื้อ ระบบจะระงับการปล่อยเงิน Escrow ชั่วคราวทันทีจนกว่าแอดมินจะตรวจสอบเสร็จสิ้น',
+                            'ระบุรายละเอียดและแนบข้อมูลที่เกี่ยวข้อง เพื่อให้ทีมงานตรวจสอบรายงานได้',
                             style: TextStyle(
                               fontSize: 11,
                               color: AppColors.deepNavy,

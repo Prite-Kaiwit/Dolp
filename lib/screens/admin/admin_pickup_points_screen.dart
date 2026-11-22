@@ -1,7 +1,3 @@
-// The legacy zone field remains until public suggested spots replace this
-// administrative screen in phase 7.
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import '../../models/pickup_point.dart';
 import '../../theme/app_theme.dart';
@@ -13,8 +9,6 @@ class AdminPickupPointsScreen extends StatelessWidget {
   void _showAddPointDialog(BuildContext context, AppState appState) {
     final nameCtrl = TextEditingController();
     final descCtrl = TextEditingController();
-    final zoneCtrl = TextEditingController(text: 'เขตเมือง');
-
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -27,13 +21,6 @@ class AdminPickupPointsScreen extends StatelessWidget {
                 controller: nameCtrl,
                 decoration: const InputDecoration(
                   labelText: 'ชื่อจุดนัดรับสาธารณะ',
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: zoneCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'ย่านหรือเขตพื้นที่',
                 ),
               ),
               const SizedBox(height: 10),
@@ -61,7 +48,6 @@ class AdminPickupPointsScreen extends StatelessWidget {
                     description: descCtrl.text.trim().isNotEmpty
                         ? descCtrl.text.trim()
                         : 'ไม่มีรายละเอียด',
-                    zone: zoneCtrl.text.trim(),
                   ),
                 );
                 Navigator.pop(ctx);
@@ -124,38 +110,15 @@ class AdminPickupPointsScreen extends StatelessWidget {
                           : AppColors.graySecondary,
                     ),
                   ),
-                  title: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          point.name,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: point.isActive
-                                ? AppColors.deepNavy
-                                : AppColors.graySecondary,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.grayBg,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          point.zone,
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: AppColors.graySecondary,
-                          ),
-                        ),
-                      ),
-                    ],
+                  title: Text(
+                    point.name,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: point.isActive
+                          ? AppColors.deepNavy
+                          : AppColors.graySecondary,
+                    ),
                   ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

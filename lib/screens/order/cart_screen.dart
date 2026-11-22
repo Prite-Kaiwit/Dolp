@@ -1,12 +1,11 @@
-// Keep the legacy pickup display until the order-flow migration in phase 6.
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
+
 import '../../models/product.dart';
-import '../../theme/app_theme.dart';
-import '../../widgets/product_image.dart';
 import '../../state/app_state.dart';
-import 'pickup_point_screen.dart';
+import '../../theme/app_theme.dart';
+import '../../utils/distance.dart';
+import '../../widgets/product_image.dart';
+import 'order_summary_screen.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -14,18 +13,14 @@ class CartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = AppState();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('ตะกร้าสินค้าของฉัน'),
         actions: [
           if (appState.cartItems.isNotEmpty)
             TextButton(
-              onPressed: () => appState.clearCart(),
-              child: const Text(
-                'ล้างตะกร้า',
-                style: TextStyle(color: AppColors.error),
-              ),
+              onPressed: appState.clearCart,
+              child: const Text('ล้างตะกร้า'),
             ),
         ],
       ),
@@ -33,24 +28,17 @@ class CartScreen extends StatelessWidget {
         listenable: appState,
         builder: (context, _) {
           if (appState.cartItems.isEmpty) {
-            return Center(
+            return const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: const BoxDecoration(
-                      color: AppColors.aquaPale,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.remove_shopping_cart_outlined,
-                      size: 56,
-                      color: AppColors.oceanBlue,
-                    ),
+                  Icon(
+                    Icons.remove_shopping_cart_outlined,
+                    size: 56,
+                    color: AppColors.graySecondary,
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
+                  SizedBox(height: 16),
+                  Text(
                     'ไม่มีสินค้าในตะกร้า',
                     style: TextStyle(
                       fontSize: 18,
@@ -58,95 +46,180 @@ class CartScreen extends StatelessWidget {
                       color: AppColors.deepNavy,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'เลือกดูสินค้ามือสองและของใช้ใกล้คุณได้ที่หน้าแรก',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.graySecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('กลับไปช้อปปิ้ง'),
-                  ),
+                  SizedBox(height: 6),
+                  Text('เลือกสินค้าที่ต้องการจากหน้าแรก'),
                 ],
               ),
             );
           }
 
+          final groups = <String, List<ProductModel>>{};
+          for (final item in appState.cartItems) {
+            groups.putIfAbsent(item.sellerId, () => []).add(item);
+          }
+          final sellers = groups.keys.toList();
           final total = appState.cartItems.fold<double>(
             0,
             (sum, item) => sum + item.price,
           );
-
           return Column(
             children: [
+              if (groups.length > 1)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.warningPale,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'สินค้าอยู่คนละที่ ต้องนัดรับแยกกัน',
+                    style: TextStyle(
+                      color: AppColors.warningDark,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
               Expanded(
                 child: ListView.separated(
                   padding: const EdgeInsets.all(16),
-                  itemCount: appState.cartItems.length,
+                  itemCount: sellers.length,
                   separatorBuilder: (_, _) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
-                    final item = appState.cartItems[index];
+                    final sellerId = sellers[index];
+                    final items = groups[sellerId]!;
+                    final sellerTotal = items.fold<double>(
+                      0,
+                      (sum, item) => sum + item.price,
+                    );
+                    final unavailable = items.any(
+                      (item) => appState.cartItemUnavailableReason(item) != null,
+                    );
+                    final first = items.first;
+                    final distance = distanceKm(
+                      appState.currentLocation,
+                      first.publicLocation,
+                    );
                     return Card(
                       child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
+                        padding: const EdgeInsets.all(14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: SizedBox(
-                                width: 70,
-                                height: 70,
-                                child: ProductImage.forProduct(item),
+                            Text(
+                              first.sellerName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: AppColors.deepNavy,
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    item.title,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    item.type == ListingType.donate
-                                        ? 'ส่งต่อฟรี'
-                                        : '฿${item.price.toStringAsFixed(0)}',
-                                    style: TextStyle(
-                                      color: item.type == ListingType.donate
-                                          ? AppColors.listingDonate
-                                          : AppColors.oceanBlue,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'จุดรับ: ${item.pickupPoint}',
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.graySecondary,
-                                    ),
-                                  ),
-                                ],
+                            const SizedBox(height: 3),
+                            Text(
+                              'ผู้ขายอยู่ห่างประมาณ ${formatDistance(distance)}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.graySecondary,
                               ),
                             ),
-                            IconButton(
-                              icon: const Icon(
-                                Icons.delete_outline,
-                                color: AppColors.error,
+                            const Divider(height: 20),
+                            ...items.map(
+                              (item) => Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Row(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: SizedBox(
+                                        width: 56,
+                                        height: 56,
+                                        child: ProductImage.forProduct(item),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            item.title,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          Text(
+                                            item.type == ListingType.donate
+                                                ? 'ฟรี'
+                                                : '฿${item.price.toStringAsFixed(2)}',
+                                            style: const TextStyle(
+                                              color: AppColors.oceanBlue,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          if (appState
+                                              .cartItemUnavailableReason(
+                                                item,
+                                              ) case final reason?)
+                                            Text(
+                                              reason,
+                                              style: const TextStyle(
+                                                color: AppColors.error,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'นำออกจากตะกร้า',
+                                      onPressed: () =>
+                                          appState.removeFromCart(item.id),
+                                      icon: const Icon(
+                                        Icons.delete_outline,
+                                        color: AppColors.error,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              onPressed: () => appState.removeFromCart(item.id),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('ยอดรวมผู้ขายนี้'),
+                                Text(
+                                  '฿${sellerTotal.toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    color: AppColors.oceanBlue,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: unavailable
+                                    ? null
+                                    : () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute<void>(
+                                            builder: (_) =>
+                                                OrderSummaryScreen(
+                                                  sellerId: sellerId,
+                                                ),
+                                          ),
+                                        ),
+                                child: const Text(
+                                  'ตกลงซื้อกับผู้ขายนี้',
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -155,84 +228,23 @@ class CartScreen extends StatelessWidget {
                   },
                 ),
               ),
-
-              // Checkout Box
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.deepNavy.withValues(alpha: 0.08),
-                      blurRadius: 10,
-                      offset: const Offset(0, -3),
-                    ),
-                  ],
-                ),
-                child: SafeArea(
-                  child: Column(
+              SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'ยอดรวมทั้งหมด',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            '฿${total.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.oceanBlue,
-                            ),
-                          ),
-                        ],
+                      const Text(
+                        'ยอดรวมในตะกร้า',
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 4),
-                      const Row(
-                        children: [
-                          Icon(
-                            Icons.shield_rounded,
-                            color: AppColors.success,
-                            size: 14,
-                          ),
-                          SizedBox(width: 4),
-                          Text(
-                            'คุ้มครองด้วยระบบพักเงิน Escrow ทุกออเดอร์',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: AppColors.successDark,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            // Proceed with first cart item as checkout demo
-                            final first = appState.cartItems.first;
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    PickupPointScreen(product: first),
-                              ),
-                            );
-                          },
-                          child: const Text(
-                            'ดำเนินการสั่งซื้อ (เลือกจุดนัดรับ)',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                      Text(
+                        '฿${total.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: AppColors.oceanBlue,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],

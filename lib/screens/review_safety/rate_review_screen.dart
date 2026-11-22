@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../models/order.dart';
+import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 
 class RateReviewScreen extends StatefulWidget {
@@ -14,205 +16,142 @@ class RateReviewScreen extends StatefulWidget {
 class _RateReviewScreenState extends State<RateReviewScreen> {
   int _rating = 5;
   final TextEditingController _commentController = TextEditingController();
-
-  final List<String> _tags = [
-    'ตรงต่อเวลามาก',
-    'สินค้าสภาพดีตรงปก',
+  final List<String> _tags = const [
+    'ตรงต่อเวลา',
+    'สินค้าตรงตามที่แจ้ง',
     'สุภาพเป็นกันเอง',
     'ตอบแชทรวดเร็ว',
-    'แนะนำจุดนัดรับสะดวก',
   ];
-  final Set<String> _selectedTags = {'ตรงต่อเวลามาก', 'สินค้าสภาพดีตรงปก'};
+  final Set<String> _selectedTags = {};
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final appState = AppState();
+    final reviewerId = appState.currentUser.id;
+    final revieweeId = reviewerId == widget.order.buyerId
+        ? widget.order.sellerId
+        : widget.order.buyerId;
+    final reviewee = appState.userById(revieweeId);
+    final revieweeName = reviewee?.name ?? revieweeId;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('ให้คะแนนและรีวิวผู้ขาย')),
+      appBar: AppBar(title: const Text('ให้คะแนนและรีวิว')),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: ListView(
           padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Seller avatar & name
-              CircleAvatar(
-                radius: 36,
-                backgroundColor: AppColors.aquaPale,
-                child: Text(
-                  widget.order.sellerName.isNotEmpty
-                      ? widget.order.sellerName[0]
-                      : 'S',
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.oceanBlue,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                widget.order.sellerName,
+          children: [
+            CircleAvatar(
+              radius: 36,
+              backgroundColor: AppColors.aquaPale,
+              child: Text(
+                revieweeName.isEmpty ? 'U' : revieweeName[0],
                 style: const TextStyle(
-                  fontSize: 18,
+                  fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: AppColors.deepNavy,
                 ),
               ),
-              Text(
-                'คำสั่งซื้อ: ${widget.order.productTitle}',
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppColors.graySecondary,
-                ),
-                textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              revieweeName,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.deepNavy,
               ),
-              const SizedBox(height: 24),
-
-              // Star Rating
-              const Text(
-                'ระดับความพึงพอใจในการทำรายการ',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(5, (index) {
-                  final starIndex = index + 1;
-                  return IconButton(
-                    iconSize: 40,
-                    icon: Icon(
-                      starIndex <= _rating
-                          ? Icons.star_rounded
-                          : Icons.star_border_rounded,
-                      color: AppColors.warning,
-                    ),
-                    onPressed: () => setState(() => _rating = starIndex),
-                  );
-                }),
-              ),
-              Text(
-                _getRatingLabel(_rating),
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.deepNavy,
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Feedback Tags
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'จุดเด่นที่ประทับใจ',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _tags.map((tag) {
-                  final isSelected = _selectedTags.contains(tag);
-                  return FilterChip(
-                    label: Text(tag),
-                    selected: isSelected,
-                    selectedColor: AppColors.aquaPale,
-                    backgroundColor: AppColors.grayBg,
-                    labelStyle: TextStyle(
-                      color: isSelected
-                          ? AppColors.deepNavy
-                          : AppColors.deepNavy,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      fontSize: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(
-                        color: isSelected
-                            ? AppColors.oceanBlue
-                            : AppColors.grayLine,
-                      ),
-                    ),
-                    showCheckmark: false,
-                    onSelected: (selected) {
-                      setState(() {
-                        if (selected) {
-                          _selectedTags.add(tag);
-                        } else {
-                          _selectedTags.remove(tag);
-                        }
-                      });
-                    },
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 24),
-
-              // Comment field
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'เขียนความคิดเห็นเพิ่มเติม',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _commentController,
-                maxLines: 4,
-                decoration: InputDecoration(
-                  hintText: 'แชร์ประสบการณ์การซื้อขายและการนัดรับ...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
+            ),
+            Text(
+              'คำสั่งซื้อ ${widget.order.id}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.graySecondary),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'คะแนน $_rating จาก 5',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(5, (index) {
+                final value = index + 1;
+                return IconButton(
+                  iconSize: 38,
+                  onPressed: () => setState(() => _rating = value),
+                  icon: Icon(
+                    value <= _rating
+                        ? Icons.star_rounded
+                        : Icons.star_border_rounded,
+                    color: AppColors.warning,
                   ),
-                ),
+                );
+              }),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'จุดเด่นที่ประทับใจ',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: _tags.map((tag) {
+                final selected = _selectedTags.contains(tag);
+                return FilterChip(
+                  label: Text(tag),
+                  selected: selected,
+                  onSelected: (value) => setState(() {
+                    if (value) {
+                      _selectedTags.add(tag);
+                    } else {
+                      _selectedTags.remove(tag);
+                    }
+                  }),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _commentController,
+              maxLength: 500,
+              maxLines: 4,
+              decoration: const InputDecoration(
+                labelText: 'ความคิดเห็น (ไม่เกิน 500 ตัวอักษร)',
               ),
-              const SizedBox(height: 32),
-
-              // Submit Review CTA
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'ขอบคุณสำหรับการรีวิว! คะแนนของคุณช่วยสร้างชุมชนซื้อขายที่น่าอยู่',
-                        ),
-                        backgroundColor: AppColors.success,
-                      ),
-                    );
-                    Navigator.pop(context);
-                  },
-                  child: const Text(
-                    'ส่งคะแนนรีวิว',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                final error = appState.submitReview(
+                  orderId: widget.order.id,
+                  rating: _rating,
+                  tags: _selectedTags.toList(),
+                  comment: _commentController.text,
+                );
+                if (error != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(error)),
+                  );
+                  return;
+                }
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('บันทึกรีวิวแล้ว')),
+                );
+                Navigator.pop(context);
+              },
+              child: const Text('ส่งรีวิว'),
+            ),
+          ],
         ),
       ),
     );
-  }
-
-  String _getRatingLabel(int stars) {
-    switch (stars) {
-      case 5:
-        return 'ยอดเยี่ยมมาก ⭐⭐⭐⭐⭐';
-      case 4:
-        return 'ดีมาก ⭐⭐⭐⭐';
-      case 3:
-        return 'ปานกลาง ⭐⭐⭐';
-      case 2:
-        return 'ควรปรับปรุง ⭐⭐';
-      default:
-        return 'ไม่ประทับใจ ⭐';
-    }
   }
 }

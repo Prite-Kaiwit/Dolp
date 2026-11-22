@@ -48,11 +48,6 @@ class AdminDashboardScreen extends StatelessWidget {
           final pendingReports = appState.reports
               .where((r) => r.status.index <= 1)
               .length;
-          final totalEscrowVolume = appState.orders.fold<double>(
-            0,
-            (sum, o) => sum + o.productPrice,
-          );
-
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -85,7 +80,7 @@ class AdminDashboardScreen extends StatelessWidget {
                           Text(
                             '🟢 ระบบปกติ',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: AppColors.white,
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
                             ),
@@ -94,9 +89,9 @@ class AdminDashboardScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        'แดชบอร์ดความปลอดภัย & ระบบพักเงิน',
+                        'แดชบอร์ดรายงานและการจัดการคำสั่งซื้อ',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -126,9 +121,15 @@ class AdminDashboardScreen extends StatelessWidget {
                   physics: const NeverScrollableScrollPhysics(),
                   children: [
                     _buildMetricCard(
-                      'ยอดเงินใน Escrow',
-                      '฿${totalEscrowVolume.toStringAsFixed(0)}',
-                      Icons.account_balance_wallet_outlined,
+                      'ออเดอร์รอนัดรับ',
+                      '${appState.pendingOrderCount} รายการ',
+                      Icons.handshake_outlined,
+                      AppColors.warning,
+                    ),
+                    _buildMetricCard(
+                      'ออเดอร์สำเร็จ',
+                      '${appState.completedOrderCount} รายการ',
+                      Icons.task_alt_outlined,
                       AppColors.success,
                     ),
                     _buildMetricCard(
@@ -154,7 +155,6 @@ class AdminDashboardScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // Transactions Trend Chart Simulator
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -165,38 +165,12 @@ class AdminDashboardScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'ปริมาณธุรกรรมพักเงินรายสัปดาห์ (Escrow Volume)',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
-                          ),
-                          Text(
-                            '7 วันล่าสุด',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: AppColors.graySecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          _buildBar('จันทร์', 45, '฿4.5k'),
-                          _buildBar('อังคาร', 60, '฿6.0k'),
-                          _buildBar('พุธ', 35, '฿3.5k'),
-                          _buildBar('พฤหัส', 80, '฿8.0k'),
-                          _buildBar('ศุกร์', 100, '฿10.2k', isHighlight: true),
-                          _buildBar('เสาร์', 55, '฿5.5k'),
-                          _buildBar('อาทิตย์', 40, '฿4.0k'),
-                        ],
+                      const Text(
+                        'TODO เฟส 7: เพิ่มกราฟจำนวนคำสั่งซื้อต่อวัน',
+                        style: TextStyle(
+                          color: AppColors.graySecondary,
+                          fontSize: 13,
+                        ),
                       ),
                     ],
                   ),
@@ -233,14 +207,14 @@ class AdminDashboardScreen extends StatelessWidget {
                       ),
                     ),
                     title: const Text(
-                      'จัดการรายงาน & ข้อพิพาท Escrow',
+                      'จัดการรายงานและปัญหา',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
                     ),
                     subtitle: Text(
-                      'ตรวจสอบหลักฐาน และตัดสินคืนเงิน/ปล่อยเงิน ($pendingReports เคสรอดำเนินการ)',
+                      'ตรวจสอบรายงานจากสมาชิก ($pendingReports เคสรอดำเนินการ)',
                       style: const TextStyle(fontSize: 12),
                     ),
                     trailing: const Icon(
@@ -346,37 +320,4 @@ class AdminDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBar(
-    String day,
-    double height,
-    String value, {
-    bool isHighlight = false,
-  }) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 9,
-            color: isHighlight ? AppColors.oceanBlue : AppColors.graySecondary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Container(
-          width: 22,
-          height: height,
-          decoration: BoxDecoration(
-            color: isHighlight ? AppColors.oceanBlue : AppColors.successLight,
-            borderRadius: BorderRadius.circular(6),
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          day,
-          style: const TextStyle(fontSize: 10, color: AppColors.graySecondary),
-        ),
-      ],
-    );
-  }
 }

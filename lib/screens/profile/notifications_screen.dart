@@ -64,17 +64,17 @@ class NotificationsScreen extends StatelessWidget {
               Color iconColor = AppColors.oceanBlue;
               Color iconBg = AppColors.aquaPale;
 
-              if (type == 'escrow') {
-                icon = Icons.security_rounded;
-                iconColor = AppColors.success;
-                iconBg = AppColors.successPale;
-              } else if (type == 'warning') {
+              if (type == 'warning') {
                 icon = Icons.warning_amber_rounded;
                 iconColor = AppColors.warning;
                 iconBg = AppColors.warningPale;
               } else if (type == 'chat') {
                 icon = Icons.chat_bubble_outline_rounded;
                 iconColor = AppColors.info;
+                iconBg = AppColors.aquaPale;
+              } else if (type == 'order') {
+                icon = Icons.receipt_long_outlined;
+                iconColor = AppColors.oceanBlue;
                 iconBg = AppColors.aquaPale;
               }
 

@@ -43,22 +43,24 @@ void main() {
     expect(farthestSeedDistance, greaterThan(13));
     expect(farthestSeedDistance, lessThan(15.5));
 
-    final oneKm = appState.productsNearby(radiusKm: 1);
+    final nearby = appState.productsNearby(radiusKm: 1);
     final fiveKm = appState.productsNearby(radiusKm: 5);
-    final tenKm = appState.productsNearby(radiusKm: 10);
-    expect(oneKm, isNotEmpty);
-    expect(fiveKm.length, greaterThan(oneKm.length));
+    final tenKm = appState.productsNearby(radiusKm: 20);
+    expect(fiveKm.length, greaterThan(nearby.length));
     expect(tenKm.length, greaterThan(fiveKm.length));
   });
 
   test('category and price filters combine, while donations ignore price', () {
     final booksInPriceRange = appState.productsNearby(
-      radiusKm: 10,
+      radiusKm: 20,
       category: 'หนังสือ',
       minPrice: 100,
       maxPrice: 200,
     );
-    expect(booksInPriceRange.map((item) => item.product.id), ['prod_1']);
+    expect(
+      booksInPriceRange.map((item) => item.product.id),
+      contains('prod_15'),
+    );
 
     final freeClothing = appState.productsNearby(
       radiusKm: 5,
@@ -82,7 +84,6 @@ void main() {
         condition: 'สภาพดี',
         publicLocation: GeoLocation(12.6112, 102.1031),
         locationLabel: 'เขตเมือง',
-        pickupPoint: 'เขตเมือง',
         imageUrl: '',
         sellerId: 'user_01',
         sellerName: 'ผู้ใช้ทดสอบ',

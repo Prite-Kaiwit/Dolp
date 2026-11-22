@@ -3,7 +3,7 @@ import '../models/nearby_product.dart';
 import '../models/product.dart';
 import '../theme/app_theme.dart';
 import '../utils/distance.dart';
-import 'escrow_badge.dart';
+import 'order_status_badge.dart';
 import 'product_image.dart';
 
 class ProductCard extends StatelessWidget {

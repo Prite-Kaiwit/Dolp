@@ -1,165 +1,167 @@
-// Legacy order fields are kept until the order-flow migration in phase 6.
-// ignore_for_file: deprecated_member_use
-
 import 'product.dart';
 import 'product_image_data.dart';
 
-enum OrderStatus {
-  // Legacy escrow states; remove or migrate in phase 6.
-  escrowHolding, // ขั้น 1: พักเงินในระบบแล้ว
-  pickupScheduled, // ขั้น 2: นัดหมายรับสินค้า ณ จุดนัดรับ
-  buyerConfirmed, // ขั้น 3: ผู้ซื้อตรวจสอบและยืนยันรับสินค้า
-  completed, // ขั้น 4: ปล่อยเงินโอนให้ผู้ขาย
-  disputed, // ระงับ/ข้อพิพาท (Dispute)
-  meetupProposed,
-  meetupAccepted,
-  handedOver,
-  cancelled,
-}
+enum OrderStatus { pending, completed, cancelled, disputed }
 
 extension OrderStatusExtension on OrderStatus {
   String get title {
     switch (this) {
-      case OrderStatus.escrowHolding:
-        return 'พักเงินในระบบ (Escrow Protected)';
-      case OrderStatus.pickupScheduled:
-        return 'รอนัดรับสินค้า ณ จุดนัดรับ';
-      case OrderStatus.buyerConfirmed:
-        return 'ผู้ซื้อยืนยันรับสินค้าแล้ว';
+      case OrderStatus.pending:
+        return 'รอนัดรับ';
       case OrderStatus.completed:
-        return 'ธุรกรรมสำเร็จ (โอนเงินให้ผู้ขายแล้ว)';
-      case OrderStatus.disputed:
-        return 'อยู่ระหว่างตรวจสอบข้อพิพาท (Dispute)';
-      case OrderStatus.meetupProposed:
-        return 'รอยืนยันนัดรับ';
-      case OrderStatus.meetupAccepted:
-        return 'ยืนยันนัดรับแล้ว';
-      case OrderStatus.handedOver:
-        return 'ส่งมอบสินค้าแล้ว';
+        return 'สำเร็จ';
       case OrderStatus.cancelled:
-        return 'ยกเลิกคำสั่งซื้อ';
+        return 'ยกเลิก';
+      case OrderStatus.disputed:
+        return 'รอตรวจสอบปัญหา';
     }
   }
+}
 
-  int get stepIndex {
+enum PaymentMethod { cashOnHandover, transferOnHandover }
+
+extension PaymentMethodExtension on PaymentMethod {
+  String get label {
     switch (this) {
-      case OrderStatus.escrowHolding:
-        return 1;
-      case OrderStatus.pickupScheduled:
-        return 2;
-      case OrderStatus.buyerConfirmed:
-        return 3;
-      case OrderStatus.completed:
-        return 4;
-      case OrderStatus.disputed:
-        return -1;
-      case OrderStatus.meetupProposed:
-        return 1;
-      case OrderStatus.meetupAccepted:
-        return 2;
-      case OrderStatus.handedOver:
-        return 3;
-      case OrderStatus.cancelled:
-        return -1;
+      case PaymentMethod.cashOnHandover:
+        return 'เงินสดหน้างาน';
+      case PaymentMethod.transferOnHandover:
+        return 'โอนตอนรับของ';
     }
   }
+}
+
+class OrderItemSnapshot {
+  final String productId;
+  final String title;
+  final double price;
+  final ProductImageData? coverImage;
+  final ListingType listingType;
+
+  const OrderItemSnapshot({
+    required this.productId,
+    required this.title,
+    required this.price,
+    required this.coverImage,
+    required this.listingType,
+  });
+}
+
+class OrderEvent {
+  final DateTime at;
+  final String actorId;
+  final OrderStatus status;
+
+  const OrderEvent({
+    required this.at,
+    required this.actorId,
+    required this.status,
+  });
 }
 
 class OrderModel {
   final String id;
-  final String productId;
-  final String productTitle;
-  final double productPrice;
-  final String productImageUrl;
-  final ProductImageData? productImage;
   final String buyerId;
-  final String buyerName;
   final String sellerId;
-  final String sellerName;
-  @Deprecated(
-    'Use agreedPlaceLabel and pickupType instead; migrate in phase 6.',
-  )
-  final String pickupPoint;
-  @Deprecated('Use agreedTime instead; migrate in phase 6.')
-  final String scheduledTime;
+  final List<OrderItemSnapshot> items;
+  final double totalPrice;
+  final PaymentMethod paymentMethod;
   final PickupType pickupType;
   final String? agreedPlaceLabel;
   final DateTime? agreedTime;
-  final String pickupNote;
-  final String paymentMethod; // PromptPay / Mobile Banking
-  final OrderStatus status;
+  final String? meetupId;
+  final DateTime? handedOverAt;
+  final DateTime? completedAt;
   final DateTime createdAt;
-  @Deprecated('Use pickupNote instead; migrate in phase 6.')
-  final String note;
+  final OrderStatus status;
+  final String? cancelledBy;
+  final String? cancelReason;
+  final DateTime? cancelledAt;
+  final OrderStatus? previousStatus;
+  final List<OrderEvent> events;
 
-  OrderModel({
+  const OrderModel({
     required this.id,
-    required this.productId,
-    required this.productTitle,
-    required this.productPrice,
-    required this.productImageUrl,
-    this.productImage,
     required this.buyerId,
-    required this.buyerName,
     required this.sellerId,
-    required this.sellerName,
-    required this.pickupPoint,
-    required this.scheduledTime,
-    this.pickupType = PickupType.discussInChat,
-    String? agreedPlaceLabel,
+    required this.items,
+    required this.totalPrice,
+    required this.paymentMethod,
+    required this.pickupType,
+    required this.createdAt,
+    required this.status,
+    this.agreedPlaceLabel,
     this.agreedTime,
-    String? pickupNote,
-    this.paymentMethod = 'PromptPay',
-    this.status = OrderStatus.escrowHolding,
-    DateTime? createdAt,
-    this.note = '',
-  }) : agreedPlaceLabel = agreedPlaceLabel ?? pickupPoint,
-       pickupNote = pickupNote ?? note,
-       createdAt = createdAt ?? DateTime.now();
+    this.meetupId,
+    this.handedOverAt,
+    this.completedAt,
+    this.cancelledBy,
+    this.cancelReason,
+    this.cancelledAt,
+    this.previousStatus,
+    this.events = const [],
+  });
 
   OrderModel copyWith({
     String? id,
-    String? productId,
-    String? productTitle,
-    double? productPrice,
-    String? productImageUrl,
-    ProductImageData? productImage,
     String? buyerId,
-    String? buyerName,
     String? sellerId,
-    String? sellerName,
-    String? pickupPoint,
-    String? scheduledTime,
+    List<OrderItemSnapshot>? items,
+    double? totalPrice,
+    PaymentMethod? paymentMethod,
     PickupType? pickupType,
     String? agreedPlaceLabel,
     DateTime? agreedTime,
-    String? pickupNote,
-    String? paymentMethod,
-    OrderStatus? status,
+    String? meetupId,
+    DateTime? handedOverAt,
+    DateTime? completedAt,
     DateTime? createdAt,
-    String? note,
+    OrderStatus? status,
+    String? cancelledBy,
+    String? cancelReason,
+    DateTime? cancelledAt,
+    OrderStatus? previousStatus,
+    bool clearPreviousStatus = false,
+    List<OrderEvent>? events,
   }) {
     return OrderModel(
       id: id ?? this.id,
-      productId: productId ?? this.productId,
-      productTitle: productTitle ?? this.productTitle,
-      productPrice: productPrice ?? this.productPrice,
-      productImageUrl: productImageUrl ?? this.productImageUrl,
-      productImage: productImage ?? this.productImage,
       buyerId: buyerId ?? this.buyerId,
-      buyerName: buyerName ?? this.buyerName,
       sellerId: sellerId ?? this.sellerId,
-      sellerName: sellerName ?? this.sellerName,
-      pickupPoint: pickupPoint ?? this.pickupPoint,
-      scheduledTime: scheduledTime ?? this.scheduledTime,
+      items: items ?? this.items,
+      totalPrice: totalPrice ?? this.totalPrice,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
       pickupType: pickupType ?? this.pickupType,
       agreedPlaceLabel: agreedPlaceLabel ?? this.agreedPlaceLabel,
       agreedTime: agreedTime ?? this.agreedTime,
-      pickupNote: pickupNote ?? note ?? this.pickupNote,
-      paymentMethod: paymentMethod ?? this.paymentMethod,
-      status: status ?? this.status,
+      meetupId: meetupId ?? this.meetupId,
+      handedOverAt: handedOverAt ?? this.handedOverAt,
+      completedAt: completedAt ?? this.completedAt,
       createdAt: createdAt ?? this.createdAt,
-      note: note ?? this.note,
+      status: status ?? this.status,
+      cancelledBy: cancelledBy ?? this.cancelledBy,
+      cancelReason: cancelReason ?? this.cancelReason,
+      cancelledAt: cancelledAt ?? this.cancelledAt,
+      previousStatus: clearPreviousStatus
+          ? null
+          : previousStatus ?? this.previousStatus,
+      events: events ?? this.events,
     );
   }
 }
+
+class OrderCreationResult {
+  final OrderModel? order;
+  final String? error;
+
+  const OrderCreationResult._({this.order, this.error});
+
+  const OrderCreationResult.success(OrderModel value)
+    : this._(order: value);
+
+  const OrderCreationResult.failure(String reason) : this._(error: reason);
+
+  bool get isSuccess => order != null;
+}
+
+enum ReportResolution { close, cancelOrder, accountSuspended }

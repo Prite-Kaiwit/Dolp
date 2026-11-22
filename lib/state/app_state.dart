@@ -10,6 +10,7 @@ import '../models/product_image_data.dart';
 import '../models/geo_location.dart';
 import '../models/nearby_product.dart';
 import '../models/order.dart';
+import '../models/review.dart';
 import '../models/chat.dart';
 import '../models/meetup_agreement.dart';
 import '../models/pickup_point.dart';
@@ -85,8 +86,11 @@ class AppState extends ChangeNotifier {
   bool get isLocationApproximate =>
       currentUser.homeLat == null || currentUser.homeLng == null;
 
-  // Orders (Escrow)
+  // Orders and reviews
   List<OrderModel> orders = [];
+  List<ReviewModel> reviews = [];
+  final Map<String, ListingStatus> _reservedListingPreviousStatus = {};
+  int _orderSequence = 0;
 
   // Chats
   List<ChatConversation> conversations = [];
@@ -104,6 +108,7 @@ class AppState extends ChangeNotifier {
 
   void _initMockData() {
     _exactLocationsByProductId.clear();
+    _reservedListingPreviousStatus.clear();
     meetupAgreements.clear();
     users = [
       UserModel(
@@ -131,6 +136,46 @@ class AppState extends ChangeNotifier {
         rating: 4.9,
         reviewCount: 42,
         successfulDeals: 31,
+      ),
+      UserModel(
+        id: 'user_03',
+        name: 'ณัฐชา เกียรติสกุล',
+        phoneVerified: true,
+        homeLabel: 'อำเภอเมืองจันทบุรี',
+        rating: 5.0,
+        reviewCount: 18,
+      ),
+      UserModel(
+        id: 'user_04',
+        name: 'ธนกฤต มั่นคง',
+        phoneVerified: true,
+        homeLabel: 'อำเภอเมืองจันทบุรี',
+        rating: 4.8,
+        reviewCount: 29,
+      ),
+      UserModel(
+        id: 'user_05',
+        name: 'อภิสิทธิ์ วงศ์วิไล',
+        phoneVerified: true,
+        homeLabel: 'อำเภอเมืองจันทบุรี',
+        rating: 4.7,
+        reviewCount: 15,
+      ),
+      UserModel(
+        id: 'user_06',
+        name: 'มนัสวี โสภณ',
+        phoneVerified: true,
+        homeLabel: 'อำเภอเมืองจันทบุรี',
+        rating: 4.9,
+        reviewCount: 22,
+      ),
+      UserModel(
+        id: 'user_07',
+        name: 'วรภัทร ชาญยุทธ',
+        phoneVerified: true,
+        homeLabel: 'อำเภอท่าใหม่',
+        rating: 4.8,
+        reviewCount: 11,
       ),
       UserModel(
         id: 'admin_01',
@@ -167,7 +212,6 @@ class AppState extends ChangeNotifier {
         id: 'p1',
         name: 'ห้างในย่านเมืองจันทบุรี',
         description: 'พื้นที่สาธารณะสำหรับตกลงนัดรับในย่านเมือง',
-        zone: 'เขตเมือง',
         location: GeoLocation(12.6112, 102.1031),
         type: SuggestedSpotType.mall,
         openHours: '07:30 - 20:00 น.',
@@ -176,7 +220,6 @@ class AppState extends ChangeNotifier {
         id: 'p2',
         name: 'ร้านสะดวกซื้อในย่านท่าใหม่',
         description: 'พื้นที่สาธารณะสำหรับตกลงนัดรับในย่านท่าใหม่',
-        zone: 'ท่าใหม่',
         location: GeoLocation(12.6230, 101.9990),
         type: SuggestedSpotType.convenienceStore,
         openHours: '08:00 - 21:00 น.',
@@ -185,7 +228,6 @@ class AppState extends ChangeNotifier {
         id: 'p3',
         name: 'ปั๊มน้ำมันในย่านขลุง',
         description: 'พื้นที่สาธารณะสำหรับตกลงนัดรับในย่านขลุง',
-        zone: 'ขลุง',
         location: GeoLocation(12.4600, 102.2200),
         type: SuggestedSpotType.gasStation,
         openHours: '08:30 - 18:30 น.',
@@ -194,7 +236,6 @@ class AppState extends ChangeNotifier {
         id: 'p4',
         name: 'ลานสาธารณะในย่านแหลมสิงห์',
         description: 'พื้นที่สาธารณะสำหรับตกลงนัดรับในย่านแหลมสิงห์',
-        zone: 'แหลมสิงห์',
         location: GeoLocation(12.4810, 102.0720),
         type: SuggestedSpotType.other,
         openHours: '08:00 - 22:00 น.',
@@ -203,7 +244,6 @@ class AppState extends ChangeNotifier {
         id: 'p5',
         name: 'ห้างในย่านนายายอาม',
         description: 'พื้นที่สาธารณะสำหรับตกลงนัดรับในย่านนายายอาม',
-        zone: 'นายายอาม',
         location: GeoLocation(12.7800, 101.8300),
         type: SuggestedSpotType.mall,
         openHours: '06:00 - 22:00 น.',
@@ -501,42 +541,54 @@ class AppState extends ChangeNotifier {
       ),
     ];
 
-    // Seed an active Escrow Order (UC-02)
+    reviews = _buildSeedReviews();
+    _recalculateRatings();
+
+    // Sample orders cover each lifecycle state and both participant roles.
     orders = [
-      OrderModel(
+      _seedOrder(
         id: 'ORD-2026-0901',
         productId: 'prod_1',
-        productTitle: 'หนังสือ Calculus 1 สำหรับวิศวกรรมศาสตร์ ฉบับสรุปสอบ',
-        productPrice: 180.0,
-        productImageUrl:
-            'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500',
         buyerId: 'user_01',
-        buyerName: 'กานต์ รัตนพันธ์',
         sellerId: 'user_02',
-        sellerName: 'พีรภัทร ชาญวิทย์',
-        pickupPoint: 'จุดสาธารณะตัวอย่าง เขตเมือง',
-        scheduledTime: 'วันนี้ เวลา 17:30 น.',
-        paymentMethod: 'PromptPay (QR Code)',
-        status: OrderStatus.escrowHolding, // Step 1: Escrow Holding!
-        note: 'นัดรับที่โต๊ะหน้า SCB นะครับ',
+        status: OrderStatus.pending,
+        createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+        agreedPlaceLabel: 'ห้างในย่านเมืองจันทบุรี',
+        agreedTime: DateTime.now().add(const Duration(days: 1)),
       ),
-      OrderModel(
+      _seedOrder(
         id: 'ORD-2026-0814',
         productId: 'prod_5',
-        productTitle: 'iPad Sleeve ซองหนังใส่แท็บเล็ต 11 นิ้ว',
-        productPrice: 120.0,
-        productImageUrl:
-            'https://images.unsplash.com/photo-1544816155-12df9643f363?w=500',
         buyerId: 'user_01',
-        buyerName: 'กานต์ รัตนพันธ์',
         sellerId: 'user_06',
-        sellerName: 'มนัสวี โสภณ',
-        pickupPoint: 'จุดสาธารณะตัวอย่าง ขลุง',
-        scheduledTime: '2 ก.ย. 2026 เวลา 13:00 น.',
-        paymentMethod: 'Mobile Banking',
         status: OrderStatus.completed,
+        createdAt: DateTime.now().subtract(const Duration(days: 10)),
+        completedAt: DateTime.now().subtract(const Duration(days: 9)),
+      ),
+      _seedOrder(
+        id: 'ORD-2026-0808',
+        productId: 'prod_2',
+        buyerId: 'user_01',
+        sellerId: 'user_03',
+        status: OrderStatus.cancelled,
+        createdAt: DateTime.now().subtract(const Duration(days: 14)),
+        cancelledBy: 'user_01',
+        cancelReason: 'เปลี่ยนใจ',
+        cancelledAt: DateTime.now().subtract(const Duration(days: 13)),
+      ),
+      _seedOrder(
+        id: 'ORD-2026-0801',
+        productId: 'prod_14',
+        buyerId: 'user_02',
+        sellerId: 'user_04',
+        status: OrderStatus.disputed,
+        createdAt: DateTime.now().subtract(const Duration(days: 18)),
+        previousStatus: OrderStatus.pending,
       ),
     ];
+    _setSeedListingStatus('prod_1', ListingStatus.reserved);
+    _setSeedListingStatus('prod_14', ListingStatus.reserved);
+    _setSeedListingStatus('prod_5', ListingStatus.sold);
 
     // Seed Conversations (FR-03)
     conversations = [
@@ -616,14 +668,13 @@ class AppState extends ChangeNotifier {
     reports = [
       ReportModel(
         id: 'REP-001',
-        orderId: 'ORD-2026-0899',
+        orderId: 'ORD-2026-0801',
         reporterId: 'user_09',
         reporterName: 'ศราวุธ วงษา',
         reportedUserName: 'ร้านตัวอย่าง (ไม่ระบุตัวตน)',
         reason: 'สินค้าไม่ตรงปก / สภาพเสียหายหนัก',
         details:
-            'ผู้ขายแจ้งว่าสภาพ 90% แต่สินค้าจริงจอแตกใช้งานไม่ได้ ขอระงับการปล่อยเงิน Escrow และขอคืนเงินครับ',
-        amount: 850.0,
+            'ผู้ขายแจ้งว่าสภาพดี แต่สินค้าจริงจอแตกและใช้งานไม่ได้ โปรดช่วยตรวจสอบข้อมูลการนัดรับ',
         status: ReportStatus.pending,
       ),
       ReportModel(
@@ -631,7 +682,7 @@ class AppState extends ChangeNotifier {
         reporterId: 'user_10',
         reporterName: 'กนกวรรณ รุ่งโรจน์',
         reportedUserName: 'user_fake_00',
-        reason: 'พฤติกรรมน่าสงสัย / หลอกให้โอนนอกระบบ Escrow',
+        reason: 'พฤติกรรมน่าสงสัย / ชักชวนให้โอนก่อนรับสินค้า',
         details:
             'ผู้ขายทักแชทมาขอให้โอนเงินนอกช่องทางที่ตกลงกัน โปรดตรวจสอบข้อมูลก่อนทำรายการ',
         status: ReportStatus.investigating,
@@ -641,11 +692,10 @@ class AppState extends ChangeNotifier {
     // Seed Notifications (FR-10)
     notifications = [
       {
-        'title': 'ระบบพักเงิน Escrow คุ้มครองแล้ว',
-        'body':
-            'ยอดเงิน 180.00 บาท ของคำสั่งซื้อ ORD-2026-0901 ถูกพักไว้อย่างปลอดภัย ผู้ขายจะได้รับเงินเมื่อคุณกดยืนยันรับสินค้า',
+        'title': 'มีคำสั่งซื้อใหม่',
+        'body': 'คำสั่งซื้อ ORD-2026-0901 รอนัดรับและชำระเงินหน้างาน',
         'time': '12 นาทีที่แล้ว',
-        'type': 'escrow',
+        'type': 'order',
         'read': false,
       },
       {
@@ -664,6 +714,122 @@ class AppState extends ChangeNotifier {
         'read': true,
       },
     ];
+  }
+
+  List<ReviewModel> _buildSeedReviews() {
+    final seeded = <ReviewModel>[];
+    for (final user in users) {
+      if (user.reviewCount == 0) continue;
+      final fiveStarCount = ((user.rating - 4) * user.reviewCount)
+          .round()
+          .clamp(0, user.reviewCount);
+      for (var index = 0; index < user.reviewCount; index++) {
+        seeded.add(
+          ReviewModel(
+            id: 'seed_review_${user.id}_$index',
+            orderId: 'seed_order_${user.id}_$index',
+            reviewerId: 'seed_reviewer_${user.id}_$index',
+            revieweeId: user.id,
+            rating: index < fiveStarCount ? 5 : 4,
+            tags: const ['รีวิวตัวอย่าง'],
+            comment: 'ตัวอย่างรีวิวจากผู้ใช้ในชุมชน',
+            createdAt: DateTime.now().subtract(Duration(days: index + 1)),
+          ),
+        );
+      }
+    }
+    return seeded;
+  }
+
+  void _recalculateRatings() {
+    users = users.map((user) {
+      final userReviews = reviews
+          .where((review) => review.revieweeId == user.id)
+          .toList();
+      if (userReviews.isEmpty) {
+        return user.copyWith(rating: 0, reviewCount: 0);
+      }
+      final average =
+          userReviews.fold<int>(0, (total, review) => total + review.rating) /
+          userReviews.length;
+      return user.copyWith(
+        rating: average,
+        reviewCount: userReviews.length,
+      );
+    }).toList();
+
+    products = products.map((product) {
+      final seller = users.where((user) => user.id == product.sellerId).firstOrNull;
+      if (seller == null) return product;
+      return product.copyWith(
+        sellerRating: seller.rating,
+        sellerReviewCount: seller.reviewCount,
+      );
+    }).toList();
+    currentUser = users.where((user) => user.id == currentUser.id).firstOrNull ??
+        currentUser;
+  }
+
+  OrderModel _seedOrder({
+    required String id,
+    required String productId,
+    required String buyerId,
+    required String sellerId,
+    required OrderStatus status,
+    required DateTime createdAt,
+    String? agreedPlaceLabel,
+    DateTime? agreedTime,
+    DateTime? completedAt,
+    String? cancelledBy,
+    String? cancelReason,
+    DateTime? cancelledAt,
+    OrderStatus? previousStatus,
+  }) {
+    final product = products.firstWhere((item) => item.id == productId);
+    final events = <OrderEvent>[
+      OrderEvent(at: createdAt, actorId: buyerId, status: OrderStatus.pending),
+    ];
+    if (status != OrderStatus.pending) {
+      events.add(
+        OrderEvent(
+          at: completedAt ?? cancelledAt ?? createdAt.add(const Duration(hours: 1)),
+          actorId: cancelledBy ?? buyerId,
+          status: status,
+        ),
+      );
+    }
+    return OrderModel(
+      id: id,
+      buyerId: buyerId,
+      sellerId: sellerId,
+      items: [
+        OrderItemSnapshot(
+          productId: product.id,
+          title: product.title,
+          price: product.price,
+          coverImage: product.coverImage,
+          listingType: product.type,
+        ),
+      ],
+      totalPrice: product.price,
+      paymentMethod: PaymentMethod.cashOnHandover,
+      pickupType: product.pickupType,
+      agreedPlaceLabel: agreedPlaceLabel,
+      agreedTime: agreedTime,
+      createdAt: createdAt,
+      status: status,
+      completedAt: completedAt,
+      cancelledBy: cancelledBy,
+      cancelReason: cancelReason,
+      cancelledAt: cancelledAt,
+      previousStatus: previousStatus,
+      events: events,
+    );
+  }
+
+  void _setSeedListingStatus(String productId, ListingStatus status) {
+    final index = products.indexWhere((product) => product.id == productId);
+    if (index != -1) products[index] = products[index].copyWith(status: status);
   }
 
   ProductModel _seedProduct({
@@ -699,7 +865,6 @@ class AppState extends ChangeNotifier {
       publicLocation: obfuscate(exactLocation, id),
       locationLabel: locationLabel,
       pickupType: pickupType,
-      pickupPoint: _legacyPickupPointFor(locationLabel),
       imageUrl: imageUrl,
       sellerId: sellerId,
       sellerName: sellerName,
@@ -715,16 +880,6 @@ class AppState extends ChangeNotifier {
       exactLng: exactLocation.lng,
     );
     return product;
-  }
-
-  String _legacyPickupPointFor(String locationLabel) {
-    if (locationLabel.contains('ท่าใหม่')) {
-      return 'จุดสาธารณะตัวอย่าง ท่าใหม่';
-    }
-    if (locationLabel.contains('แหลมสิงห์')) {
-      return 'จุดสาธารณะตัวอย่าง แหลมสิงห์';
-    }
-    return 'จุดสาธารณะตัวอย่าง เขตเมือง';
   }
 
   GeoLocation _offsetFrom(
@@ -974,7 +1129,6 @@ class AppState extends ChangeNotifier {
       publicLocation: obfuscate(exactLocation, id),
       locationLabel: locationLabel.trim(),
       pickupType: pickupType,
-      pickupPoint: '',
       imageUrl: imageUrl,
       productImages: List.unmodifiable(productImages),
       sellerId: currentUser.id,
@@ -1041,17 +1195,26 @@ class AppState extends ChangeNotifier {
     return updated;
   }
 
-  void setListingStatus(String id, ListingStatus newStatus) {
+  String? setListingStatus(String id, ListingStatus newStatus) {
     final index = _ownedListingIndex(id);
+    if (products[index].status == ListingStatus.reserved) {
+      if (newStatus == ListingStatus.hidden) {
+        _reservedListingPreviousStatus[id] = ListingStatus.hidden;
+        notifyListeners();
+        return null;
+      }
+      return 'ประกาศนี้ถูกจองอยู่ จึงเปลี่ยนสถานะไม่ได้';
+    }
     products[index] = products[index].copyWith(status: newStatus);
     notifyListeners();
+    return null;
   }
 
   String? deleteListing(String id) {
     final index = _ownedListingIndex(id);
     final hasUnfinishedOrder = orders.any(
       (order) =>
-          order.productId == id &&
+          order.items.any((item) => item.productId == id) &&
           order.status != OrderStatus.completed &&
           order.status != OrderStatus.cancelled,
     );
@@ -1105,11 +1268,18 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addToCart(ProductModel product) {
-    if (!cartItems.any((item) => item.id == product.id)) {
-      cartItems.add(product);
-      notifyListeners();
+  String? addToCart(ProductModel product) {
+    if (!isLoggedIn) return 'เข้าสู่ระบบก่อนเพิ่มสินค้าลงตะกร้า';
+    final actual = products.where((item) => item.id == product.id).firstOrNull;
+    if (actual == null) return 'ไม่พบสินค้านี้';
+    if (actual.sellerId == currentUser.id) {
+      return 'เพิ่มประกาศของตัวเองลงตะกร้าไม่ได้';
     }
+    if (actual.status != ListingStatus.active) return 'สินค้านี้ไม่พร้อมขาย';
+    if (cartItems.any((item) => item.id == actual.id)) return null;
+    cartItems.add(actual);
+    notifyListeners();
+    return null;
   }
 
   void removeFromCart(String productId) {
@@ -1122,110 +1292,240 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Create Order (UC-02)
-  OrderModel createOrder({
-    required ProductModel product,
-    required String pickupPoint,
-    required String scheduledTime,
-    required String paymentMethod,
-    String note = '',
+  String? cartItemUnavailableReason(ProductModel cartItem) {
+    final current = products
+        .where((product) => product.id == cartItem.id)
+        .firstOrNull;
+    if (current == null || current.status != ListingStatus.active) {
+      return 'ไม่พร้อมขาย';
+    }
+    return null;
+  }
+
+  OrderCreationResult createOrderForSeller(
+    String sellerId, {
+    required PaymentMethod paymentMethod,
   }) {
-    final newOrder = OrderModel(
-      id: 'ORD-2026-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
-      productId: product.id,
-      productTitle: product.title,
-      productPrice: product.price,
-      productImageUrl: product.imageUrl,
-      productImage: product.coverImage,
+    if (!isLoggedIn) {
+      return const OrderCreationResult.failure('เข้าสู่ระบบก่อนสั่งซื้อ');
+    }
+    final sellerCartItems = cartItems
+        .where((item) => item.sellerId == sellerId)
+        .toList();
+    if (sellerCartItems.isEmpty) {
+      return const OrderCreationResult.failure('ไม่มีสินค้าของผู้ขายรายนี้ในตะกร้า');
+    }
+
+    final currentProducts = <ProductModel>[];
+    for (final item in sellerCartItems) {
+      final current = products.where((product) => product.id == item.id).firstOrNull;
+      if (current == null ||
+          current.sellerId != sellerId ||
+          current.status != ListingStatus.active) {
+        return OrderCreationResult.failure(
+          'สินค้า "${item.title}" ไม่พร้อมขายแล้ว กรุณานำออกจากตะกร้า',
+        );
+      }
+      if (current.sellerId == currentUser.id) {
+        return const OrderCreationResult.failure('ซื้อประกาศของตัวเองไม่ได้');
+      }
+      currentProducts.add(current);
+    }
+
+    final itemIds = currentProducts.map((item) => item.id).toSet();
+    final meetup = acceptedMeetupForSeller(sellerId, itemIds);
+    final now = DateTime.now();
+    final order = OrderModel(
+      id: 'ORD-${now.microsecondsSinceEpoch}-${_orderSequence++}',
       buyerId: currentUser.id,
-      buyerName: currentUser.name,
-      sellerId: product.sellerId,
-      sellerName: product.sellerName,
-      pickupPoint: pickupPoint,
-      scheduledTime: scheduledTime,
-      pickupType: product.pickupType,
-      agreedPlaceLabel: pickupPoint,
-      pickupNote: note,
+      sellerId: sellerId,
+      items: currentProducts
+          .map(
+            (product) => OrderItemSnapshot(
+              productId: product.id,
+              title: product.title,
+              price: product.price,
+              coverImage: product.coverImage,
+              listingType: product.type,
+            ),
+          )
+          .toList(growable: false),
+      totalPrice: currentProducts.fold(0, (total, product) => total + product.price),
       paymentMethod: paymentMethod,
-      status: OrderStatus.escrowHolding,
-      note: note,
+      pickupType: meetup?.pickupType ?? currentProducts.first.pickupType,
+      agreedPlaceLabel: meetup?.placeLabel,
+      agreedTime: meetup?.scheduledAt,
+      meetupId: meetup?.id,
+      createdAt: now,
+      status: OrderStatus.pending,
+      events: [OrderEvent(at: now, actorId: currentUser.id, status: OrderStatus.pending)],
     );
 
-    orders.insert(0, newOrder);
-    // Add notification
+    for (final product in currentProducts) {
+      final index = products.indexWhere((item) => item.id == product.id);
+      _reservedListingPreviousStatus[product.id] = product.status;
+      products[index] = product.copyWith(status: ListingStatus.reserved);
+    }
+    orders.insert(0, order);
+    cartItems.removeWhere((item) => item.sellerId == sellerId);
     notifications.insert(0, {
-      'title': 'คำสั่งซื้อใหม่เข้าระบบ Escrow แล้ว',
-      'body':
-          'คำสั่งซื้อ ${newOrder.id} ได้รับการคุ้มครองด้วยระบบพักเงินแล้ว นัดรับได้ที่ $pickupPoint',
+      'title': 'มีคำสั่งซื้อใหม่',
+      'body': '${currentUser.name} ตกลงซื้อสินค้า ${order.items.length} รายการ',
       'time': 'เมื่อสักครู่',
-      'type': 'escrow',
+      'type': 'order',
       'read': false,
     });
-
     notifyListeners();
-    return newOrder;
+    return OrderCreationResult.success(order);
   }
 
-  // Escrow State Progression (UC-02)
-  void setOrderPickupScheduled(String orderId) {
-    final index = orders.indexWhere((o) => o.id == orderId);
-    if (index != -1) {
-      orders[index] = orders[index].copyWith(
-        status: OrderStatus.pickupScheduled,
-      );
-      notifyListeners();
-    }
-  }
-
-  void confirmBuyerReceived(String orderId) {
-    final index = orders.indexWhere((o) => o.id == orderId);
-    if (index != -1) {
-      // Transition from buyerConfirmed to completed
-      orders[index] = orders[index].copyWith(status: OrderStatus.completed);
-      notifications.insert(0, {
-        'title': 'ปล่อยเงิน Escrow สำเร็จ!',
-        'body':
-            'คุณได้กดยืนยันรับสินค้าสำหรับคำสั่งซื้อ $orderId เรียบร้อยแล้ว ระบบได้โอนเงินให้ผู้ขายแล้ว',
-        'time': 'เมื่อสักครู่',
-        'type': 'escrow',
-        'read': false,
+  MeetupAgreement? acceptedMeetupForSeller(
+    String sellerId,
+    Set<String> productIds,
+  ) {
+    final accepted = meetupAgreements.where((agreement) {
+      if (agreement.status != MeetupStatus.accepted ||
+          !productIds.contains(agreement.productId)) {
+        return false;
+      }
+      final conversation = conversations
+          .where((item) => item.id == agreement.conversationId)
+          .firstOrNull;
+      return conversation != null &&
+          conversation.buyerId == currentUser.id &&
+          conversation.sellerId == sellerId;
+    }).toList()
+      ..sort((a, b) {
+        final aAt = a.respondedAt ?? a.createdAt;
+        final bAt = b.respondedAt ?? b.createdAt;
+        return bAt.compareTo(aAt);
       });
-      notifyListeners();
-    }
+    return accepted.firstOrNull;
   }
 
-  void disputeOrder(String orderId, String reason, String details) {
-    final index = orders.indexWhere((o) => o.id == orderId);
-    if (index != -1) {
-      final order = orders[index];
-      orders[index] = order.copyWith(status: OrderStatus.disputed);
-
-      // Create a report for admin
-      reports.insert(
-        0,
-        ReportModel(
-          id: 'DISP-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}',
-          orderId: orderId,
-          reporterId: currentUser.id,
-          reporterName: currentUser.name,
-          reportedUserName: order.sellerName,
-          reason: reason,
-          details: details,
-          amount: order.productPrice,
-          status: ReportStatus.pending,
-        ),
-      );
-
-      notifications.insert(0, {
-        'title': 'เปิดข้อพิพาทและระงับการจ่ายเงิน Escrow',
-        'body': 'คำสั่งซื้อ $orderId มีรายงานปัญหา ทีมดูแลกำลังตรวจสอบ',
-        'time': 'เมื่อสักครู่',
-        'type': 'warning',
-        'read': false,
-      });
-
-      notifyListeners();
+  String? markOrderHandedOver(String orderId) {
+    final index = orders.indexWhere((order) => order.id == orderId);
+    if (index == -1) return 'ไม่พบคำสั่งซื้อนี้';
+    final order = orders[index];
+    if (!isLoggedIn || currentUser.id != order.sellerId) {
+      return 'เฉพาะผู้ขายของคำสั่งซื้อนี้เท่านั้นที่ยืนยันส่งมอบได้';
     }
+    if (order.status != OrderStatus.pending) {
+      return 'คำสั่งซื้อนี้ไม่ได้อยู่ในสถานะรอนัดรับ';
+    }
+    orders[index] = order.copyWith(handedOverAt: DateTime.now());
+    notifyListeners();
+    return null;
+  }
+
+  String? completeOrder(String orderId) {
+    final index = orders.indexWhere((order) => order.id == orderId);
+    if (index == -1) return 'ไม่พบคำสั่งซื้อนี้';
+    final order = orders[index];
+    if (!isLoggedIn || currentUser.id != order.buyerId) {
+      return 'เฉพาะผู้ซื้อของคำสั่งซื้อนี้เท่านั้นที่ยืนยันรับสินค้าได้';
+    }
+    if (order.status != OrderStatus.pending) {
+      return 'เปลี่ยนสถานะได้เฉพาะคำสั่งซื้อที่รอนัดรับ';
+    }
+    final now = DateTime.now();
+    orders[index] = order.copyWith(
+      status: OrderStatus.completed,
+      completedAt: now,
+      events: [
+        ...order.events,
+        OrderEvent(at: now, actorId: currentUser.id, status: OrderStatus.completed),
+      ],
+    );
+    for (final item in order.items) {
+      final productIndex = products.indexWhere((p) => p.id == item.productId);
+      if (productIndex != -1) {
+        products[productIndex] = products[productIndex].copyWith(
+          status: ListingStatus.sold,
+        );
+      }
+      _reservedListingPreviousStatus.remove(item.productId);
+    }
+    _incrementSuccessfulDeals(order);
+    notifyListeners();
+    return null;
+  }
+
+  String? cancelOrder(String orderId, String reason) {
+    final index = orders.indexWhere((order) => order.id == orderId);
+    if (index == -1) return 'ไม่พบคำสั่งซื้อนี้';
+    final order = orders[index];
+    if (!isLoggedIn ||
+        (currentUser.id != order.buyerId && currentUser.id != order.sellerId)) {
+      return 'คุณไม่มีสิทธิ์ยกเลิกคำสั่งซื้อนี้';
+    }
+    if (order.status != OrderStatus.pending) {
+      return 'ยกเลิกได้เฉพาะคำสั่งซื้อที่รอนัดรับ';
+    }
+    final trimmedReason = reason.trim();
+    if (trimmedReason.isEmpty) return 'กรุณาระบุเหตุผลในการยกเลิก';
+    if (trimmedReason.length > 200) return 'เหตุผลต้องไม่เกิน 200 ตัวอักษร';
+    final now = DateTime.now();
+    orders[index] = order.copyWith(
+      status: OrderStatus.cancelled,
+      cancelledBy: currentUser.id,
+      cancelReason: trimmedReason,
+      cancelledAt: now,
+      events: [
+        ...order.events,
+        OrderEvent(at: now, actorId: currentUser.id, status: OrderStatus.cancelled),
+      ],
+    );
+    _restoreReservedProducts(order);
+    notifyListeners();
+    return null;
+  }
+
+  String? disputeOrder(String orderId, String reason, String details) {
+    final index = orders.indexWhere((order) => order.id == orderId);
+    if (index == -1) return 'ไม่พบคำสั่งซื้อนี้';
+    final order = orders[index];
+    if (!isLoggedIn ||
+        (currentUser.id != order.buyerId && currentUser.id != order.sellerId)) {
+      return 'เฉพาะผู้ซื้อหรือผู้ขายของคำสั่งซื้อนี้เท่านั้นที่รายงานได้';
+    }
+    if (order.status != OrderStatus.pending) {
+      return 'รายงานปัญหาได้เฉพาะคำสั่งซื้อที่รอนัดรับ';
+    }
+    final now = DateTime.now();
+    final targetId = currentUser.id == order.buyerId
+        ? order.sellerId
+        : order.buyerId;
+    final target = users.where((user) => user.id == targetId).firstOrNull;
+    orders[index] = order.copyWith(
+      status: OrderStatus.disputed,
+      previousStatus: order.status,
+      events: [
+        ...order.events,
+        OrderEvent(at: now, actorId: currentUser.id, status: OrderStatus.disputed),
+      ],
+    );
+    reports.insert(
+      0,
+      ReportModel(
+        id: 'DISP-${now.microsecondsSinceEpoch}',
+        orderId: orderId,
+        reporterId: currentUser.id,
+        reporterName: currentUser.name,
+        reportedUserName: target?.name ?? targetId,
+        reason: reason,
+        details: details,
+      ),
+    );
+    notifications.insert(0, {
+      'title': 'รายงานปัญหาคำสั่งซื้อ',
+      'body': 'คำสั่งซื้อ $orderId ถูกส่งให้ทีมดูแลตรวจสอบ',
+      'time': 'เมื่อสักครู่',
+      'type': 'warning',
+      'read': false,
+    });
+    notifyListeners();
+    return null;
   }
 
   void submitReport({
@@ -1248,35 +1548,225 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Admin Resolution (FR-11)
-  void resolveDispute(String reportId, ReportStatus resolution) {
+  String? resolveDispute(String reportId, ReportResolution resolution) {
+    if (!isAdmin) return 'เฉพาะผู้ดูแลระบบเท่านั้นที่จัดการรายงานได้';
     final repIndex = reports.indexWhere((r) => r.id == reportId);
-    if (repIndex != -1) {
-      final report = reports[repIndex];
-      reports[repIndex] = report.copyWith(status: resolution);
-
-      // If associated with an order
-      if (report.orderId.isNotEmpty) {
-        final ordIndex = orders.indexWhere((o) => o.id == report.orderId);
-        if (ordIndex != -1) {
-          if (resolution == ReportStatus.refunded) {
-            // Refund buyer
-            orders[ordIndex] = orders[ordIndex].copyWith(
-              status: OrderStatus.completed,
-              note: 'คืนเงินให้ผู้ซื้อเรียบร้อยตามคำตัดสินข้อพิพาท',
-            );
-          } else if (resolution == ReportStatus.released) {
-            // Release to seller
-            orders[ordIndex] = orders[ordIndex].copyWith(
-              status: OrderStatus.completed,
-              note: 'ปล่อยเงินให้ผู้ขายเรียบร้อยตามคำตัดสินข้อพิพาท',
-            );
-          }
-        }
-      }
+    if (repIndex == -1) return 'ไม่พบรายงานนี้';
+    final report = reports[repIndex];
+    final now = DateTime.now();
+    if (resolution == ReportResolution.accountSuspended) {
+      reports[repIndex] = report.copyWith(
+        status: ReportStatus.accountSuspended,
+      );
       notifyListeners();
+      return null;
+    }
+
+    final orderIndex = orders.indexWhere((order) => order.id == report.orderId);
+    if (orderIndex != -1) {
+      final order = orders[orderIndex];
+      if (order.status != OrderStatus.disputed) {
+        return 'คำสั่งซื้อนี้ไม่ได้อยู่ระหว่างตรวจสอบปัญหา';
+      }
+      if (resolution == ReportResolution.close) {
+        final restoredStatus = order.previousStatus ?? OrderStatus.pending;
+        orders[orderIndex] = order.copyWith(
+          status: restoredStatus,
+          clearPreviousStatus: true,
+          events: [
+            ...order.events,
+            OrderEvent(at: now, actorId: currentUser.id, status: restoredStatus),
+          ],
+        );
+      } else {
+        orders[orderIndex] = order.copyWith(
+          status: OrderStatus.cancelled,
+          cancelledBy: currentUser.id,
+          cancelReason: 'ยกเลิกโดยผู้ดูแลระบบหลังตรวจสอบรายงาน',
+          cancelledAt: now,
+          clearPreviousStatus: true,
+          events: [
+            ...order.events,
+            OrderEvent(at: now, actorId: currentUser.id, status: OrderStatus.cancelled),
+          ],
+        );
+        _restoreReservedProducts(order);
+      }
+    }
+    reports[repIndex] = report.copyWith(status: ReportStatus.resolved);
+    notifyListeners();
+    return null;
+  }
+
+  void _restoreReservedProducts(OrderModel order) {
+    for (final item in order.items) {
+      final index = products.indexWhere(
+        (product) => product.id == item.productId,
+      );
+      if (index == -1 || products[index].status != ListingStatus.reserved) {
+        _reservedListingPreviousStatus.remove(item.productId);
+        continue;
+      }
+      final previousStatus =
+          _reservedListingPreviousStatus.remove(item.productId) ??
+          ListingStatus.active;
+      products[index] = products[index].copyWith(status: previousStatus);
     }
   }
+
+  void _incrementSuccessfulDeals(OrderModel order) {
+    users = users.map((user) {
+      if (user.id == order.buyerId || user.id == order.sellerId) {
+        return user.copyWith(successfulDeals: user.successfulDeals + 1);
+      }
+      return user;
+    }).toList();
+    currentUser =
+        users.where((user) => user.id == currentUser.id).firstOrNull ??
+        currentUser;
+  }
+
+  UserModel? userById(String userId) =>
+      users.where((user) => user.id == userId).firstOrNull;
+
+  List<ReviewModel> reviewsForUser(String userId) {
+    final result = reviews
+        .where((review) => review.revieweeId == userId)
+        .toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return result;
+  }
+
+  bool hasReviewedOrder(String orderId, String reviewerId) => reviews.any(
+    (review) => review.orderId == orderId && review.reviewerId == reviewerId,
+  );
+
+  String? submitReview({
+    required String orderId,
+    required int rating,
+    required List<String> tags,
+    required String comment,
+  }) {
+    if (!isLoggedIn) return 'เข้าสู่ระบบก่อนส่งรีวิว';
+    final order = orders.where((item) => item.id == orderId).firstOrNull;
+    if (order == null) return 'ไม่พบคำสั่งซื้อนี้';
+    if (order.status != OrderStatus.completed) {
+      return 'รีวิวได้หลังคำสั่งซื้อสำเร็จเท่านั้น';
+    }
+    if (currentUser.id != order.buyerId && currentUser.id != order.sellerId) {
+      return 'คุณไม่ใช่ผู้ซื้อหรือผู้ขายของคำสั่งซื้อนี้';
+    }
+    if (hasReviewedOrder(orderId, currentUser.id)) {
+      return 'คุณรีวิวคำสั่งซื้อนี้ไปแล้ว';
+    }
+    if (rating < 1 || rating > 5) return 'คะแนนต้องอยู่ระหว่าง 1 ถึง 5';
+    if (comment.length > 500) return 'ความคิดเห็นต้องไม่เกิน 500 ตัวอักษร';
+    final revieweeId = currentUser.id == order.buyerId
+        ? order.sellerId
+        : order.buyerId;
+    reviews.add(
+      ReviewModel(
+        id: 'review_${DateTime.now().microsecondsSinceEpoch}',
+        orderId: orderId,
+        reviewerId: currentUser.id,
+        revieweeId: revieweeId,
+        rating: rating,
+        tags: List.unmodifiable(tags),
+        comment: comment.trim(),
+        createdAt: DateTime.now(),
+      ),
+    );
+    _recalculateRatings();
+    notifyListeners();
+    return null;
+  }
+
+  ChatConversation? conversationForOrder(String orderId) {
+    final order = orders.where((item) => item.id == orderId).firstOrNull;
+    if (order == null ||
+        (currentUser.id != order.buyerId && currentUser.id != order.sellerId)) {
+      return null;
+    }
+    for (final item in order.items) {
+      final existing = conversations.where(
+        (conversation) =>
+            conversation.productId == item.productId &&
+            conversation.buyerId == order.buyerId &&
+            conversation.sellerId == order.sellerId,
+      ).firstOrNull;
+      if (existing != null) return existing;
+    }
+    final product = products
+        .where((item) => item.id == order.items.first.productId)
+        .firstOrNull;
+    if (product == null) return null;
+    final buyer = userById(order.buyerId);
+    final seller = userById(order.sellerId);
+    final now = DateTime.now();
+    final conversation = ChatConversation(
+      id: _nextChatId('chat'),
+      peerId: currentUser.id == order.buyerId ? order.sellerId : order.buyerId,
+      peerName: currentUser.id == order.buyerId
+          ? seller?.name ?? product.sellerName
+          : buyer?.name ?? 'ผู้ซื้อ',
+      peerAvatar: currentUser.id == order.buyerId
+          ? seller?.avatarUrl ?? ''
+          : buyer?.avatarUrl ?? '',
+      productId: product.id,
+      productTitle: product.title,
+      productPrice: product.price,
+      productImageUrl: product.imageUrl,
+      productImage: product.coverImage,
+      buyerId: order.buyerId,
+      sellerId: order.sellerId,
+      lastMessage: 'อย่าโอนเงินก่อนเห็นสินค้า และนัดในที่สาธารณะถ้าเป็นไปได้',
+      lastMessageTime: now,
+      unreadByUser: {order.buyerId: 0, order.sellerId: 0},
+      messages: [
+        ChatMessage(
+          id: _nextChatId('msg'),
+          senderId: 'system',
+          text: 'อย่าโอนเงินก่อนเห็นสินค้า และนัดในที่สาธารณะถ้าเป็นไปได้',
+          timestamp: now,
+          isMe: false,
+          isSystemPrompt: true,
+          type: ChatMessageType.system,
+        ),
+      ],
+    );
+    conversations.insert(0, conversation);
+    notifyListeners();
+    return conversation;
+  }
+
+  String? sharedAddressForOrder(String orderId) {
+    final order = orders.where((item) => item.id == orderId).firstOrNull;
+    if (order == null || currentUser.id != order.buyerId) return null;
+    for (final item in order.items) {
+      final conversation = conversations.where(
+        (chat) =>
+            chat.productId == item.productId &&
+            chat.buyerId == order.buyerId &&
+            chat.sellerId == order.sellerId,
+      ).firstOrNull;
+      if (conversation == null) continue;
+      final address = conversation.messages
+          .where(
+            (message) =>
+                message.type == ChatMessageType.addressShare &&
+                message.recipientId == currentUser.id,
+          )
+          .lastOrNull;
+      if (address != null) return address.text;
+    }
+    return null;
+  }
+
+  int get pendingOrderCount =>
+      orders.where((order) => order.status == OrderStatus.pending).length;
+
+  int get completedOrderCount =>
+      orders.where((order) => order.status == OrderStatus.completed).length;
 
   // Pickup Points Management (FR-11)
   void addPickupPoint(SuggestedSpot point) {

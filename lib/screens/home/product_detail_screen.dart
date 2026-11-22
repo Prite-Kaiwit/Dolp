@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import '../../models/product.dart';
 import '../../theme/app_theme.dart';
 import '../../state/app_state.dart';
-import '../../widgets/escrow_badge.dart';
+import '../../widgets/order_status_badge.dart';
 import '../../widgets/nearby_products_map.dart';
 import '../../widgets/product_image.dart';
 import '../../utils/distance.dart';
 import '../chat/chat_room_screen.dart';
 import '../auth/login_screen.dart';
-import '../order/pickup_point_screen.dart';
+import '../order/cart_screen.dart';
 import '../review_safety/report_screen.dart';
+import '../profile/public_user_profile_screen.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final ProductModel product;
@@ -290,12 +291,23 @@ class ProductDetailScreen extends StatelessWidget {
                             children: [
                               Row(
                                 children: [
-                                  Text(
-                                    product.sellerName,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                      color: AppColors.deepNavy,
+                                  InkWell(
+                                    onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute<void>(
+                                        builder: (_) =>
+                                            PublicUserProfileScreen(
+                                              userId: product.sellerId,
+                                            ),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      product.sellerName,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                        color: AppColors.deepNavy,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(width: 4),
@@ -562,11 +574,16 @@ class ProductDetailScreen extends StatelessWidget {
               // Add to cart button
               OutlinedButton(
                 onPressed: () {
-                  appState.addToCart(product);
+                  final error = appState.addToCart(product);
+                  if (error != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(error)),
+                    );
+                    return;
+                  }
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('เพิ่ม "${product.title}" ลงตะกร้าแล้ว'),
-                      backgroundColor: AppColors.oceanBlue,
                     ),
                   );
                 },
@@ -607,10 +624,17 @@ class ProductDetailScreen extends StatelessWidget {
                   height: 48,
                   child: ElevatedButton(
                     onPressed: () {
+                      final error = appState.addToCart(product);
+                      if (error != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(error)),
+                        );
+                        return;
+                      }
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) => PickupPointScreen(product: product),
+                        MaterialPageRoute<void>(
+                          builder: (_) => const CartScreen(),
                         ),
                       );
                     },

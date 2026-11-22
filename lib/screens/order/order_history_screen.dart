@@ -1,12 +1,12 @@
-// Legacy order fields remain until the order-flow migration in phase 6.
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
+
 import '../../models/order.dart';
-import '../../theme/app_theme.dart';
-import '../../widgets/product_image.dart';
+import '../../models/product.dart';
 import '../../state/app_state.dart';
-import 'escrow_status_screen.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/order_status_badge.dart';
+import '../../widgets/product_image.dart';
+import 'order_status_screen.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
   const OrderHistoryScreen({super.key});
@@ -17,7 +17,8 @@ class OrderHistoryScreen extends StatefulWidget {
 
 class _OrderHistoryScreenState extends State<OrderHistoryScreen>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+  late final TabController _tabController;
+  bool _showingPurchases = true;
 
   @override
   void initState() {
@@ -34,49 +35,73 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
   @override
   Widget build(BuildContext context) {
     final appState = AppState();
-
     return ListenableBuilder(
       listenable: appState,
       builder: (context, _) {
-        final allOrders = appState.orders;
-        final holdingOrders = allOrders
+        final userId = appState.currentUser.id;
+        final orders = appState.orders.where((order) {
+          return _showingPurchases
+              ? order.buyerId == userId
+              : order.sellerId == userId;
+        }).toList();
+        final pending = orders
+            .where((order) => order.status == OrderStatus.pending)
+            .toList();
+        final completed = orders
+            .where((order) => order.status == OrderStatus.completed)
+            .toList();
+        final closed = orders
             .where(
-              (o) =>
-                  o.status == OrderStatus.escrowHolding ||
-                  o.status == OrderStatus.pickupScheduled,
+              (order) =>
+                  order.status == OrderStatus.cancelled ||
+                  order.status == OrderStatus.disputed,
             )
             .toList();
-        final completedOrders = allOrders
-            .where((o) => o.status == OrderStatus.completed)
-            .toList();
-        final disputedOrders = allOrders
-            .where((o) => o.status == OrderStatus.disputed)
-            .toList();
+        final tabs = [
+          ('ทั้งหมด', orders),
+          ('รอนัดรับ', pending),
+          ('สำเร็จ', completed),
+          ('ยกเลิก-มีปัญหา', closed),
+        ];
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('ประวัติคำสั่งซื้อ & Escrow'),
+            title: const Text('ประวัติการซื้อขาย'),
             bottom: TabBar(
               controller: _tabController,
               isScrollable: true,
-              indicatorColor: AppColors.oceanBlue,
-              labelColor: AppColors.oceanBlue,
-              unselectedLabelColor: AppColors.graySecondary,
               tabs: [
-                Tab(text: 'ทั้งหมด (${allOrders.length})'),
-                Tab(text: 'พักเงิน/รอนัดรับ (${holdingOrders.length})'),
-                Tab(text: 'สำเร็จแล้ว (${completedOrders.length})'),
-                Tab(text: 'มีข้อพิพาท (${disputedOrders.length})'),
+                for (final (label, list) in tabs)
+                  Tab(text: '$label (${list.length})'),
               ],
             ),
           ),
-          body: TabBarView(
-            controller: _tabController,
+          body: Column(
             children: [
-              _buildOrdersList(allOrders),
-              _buildOrdersList(holdingOrders),
-              _buildOrdersList(completedOrders),
-              _buildOrdersList(disputedOrders),
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: SegmentedButton<bool>(
+                  segments: const [
+                    ButtonSegment(value: true, label: Text('ที่ฉันซื้อ')),
+                    ButtonSegment(value: false, label: Text('ที่ฉันขาย')),
+                  ],
+                  selected: {_showingPurchases},
+                  onSelectionChanged: (value) {
+                    setState(() => _showingPurchases = value.first);
+                  },
+                ),
+              ),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildOrdersList(orders, appState),
+                    _buildOrdersList(pending, appState),
+                    _buildOrdersList(completed, appState),
+                    _buildOrdersList(closed, appState),
+                  ],
+                ),
+              ),
             ],
           ),
         );
@@ -84,155 +109,109 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
     );
   }
 
-  Widget _buildOrdersList(List<OrderModel> orders) {
+  Widget _buildOrdersList(List<OrderModel> orders, AppState appState) {
     if (orders.isEmpty) {
       return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.receipt_long_outlined,
-              size: 54,
-              color: AppColors.graySecondary,
-            ),
-            SizedBox(height: 12),
-            Text(
-              'ไม่พบรายการคำสั่งซื้อ',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: AppColors.deepNavy,
-              ),
-            ),
-          ],
+        child: Text(
+          'ไม่พบรายการคำสั่งซื้อ',
+          style: TextStyle(color: AppColors.graySecondary),
         ),
       );
     }
-
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: orders.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final order = orders[index];
-        final isCompleted = order.status == OrderStatus.completed;
-        final isDisputed = order.status == OrderStatus.disputed;
-
-        return GestureDetector(
-          onTap: () {
-            Navigator.push(
+        final firstItem = order.items.first;
+        final otherPartyId = _showingPurchases
+            ? order.sellerId
+            : order.buyerId;
+        final otherParty = appState.userById(otherPartyId);
+        return Card(
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => EscrowStatusScreen(orderId: order.id),
+              MaterialPageRoute<void>(
+                builder: (_) => OrderStatusScreen(orderId: order.id),
               ),
-            );
-          },
-          child: Card(
+            ),
             child: Padding(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Order ID & Status Pill
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        order.id,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                          color: AppColors.deepNavy,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDisputed
-                              ? AppColors.error.withValues(alpha: 0.1)
-                              : isCompleted
-                              ? AppColors.successPale
-                              : AppColors.warningPale,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                      Expanded(
                         child: Text(
-                          isDisputed
-                              ? 'มีข้อพิพาท'
-                              : isCompleted
-                              ? 'สำเร็จ'
-                              : 'พักเงิน Escrow',
-                          style: TextStyle(
-                            fontSize: 11,
+                          order.id,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: isDisputed
-                                ? AppColors.error
-                                : isCompleted
-                                ? AppColors.successDark
-                                : AppColors.warningDark,
+                            color: AppColors.deepNavy,
                           ),
                         ),
                       ),
+                      OrderStatusBadge(status: order.status),
                     ],
                   ),
                   const Divider(height: 16),
-
-                  // Item info
                   Row(
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: SizedBox(
-                          width: 56,
-                          height: 56,
+                          width: 58,
+                          height: 58,
                           child: ProductImage(
-                            source: order.productImage,
-                            fallbackUrl: order.productImageUrl,
+                            source: firstItem.coverImage,
+                            fallbackUrl: firstItem.coverImage?.url ?? '',
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              order.productTitle,
-                              maxLines: 1,
+                              order.items.length == 1
+                                  ? firstItem.title
+                                  : '${firstItem.title} และอีก ${order.items.length - 1} รายการ',
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(height: 2),
                             Text(
-                              'ยอดชำระ: ฿${order.productPrice.toStringAsFixed(2)}',
+                              'คู่รายการ: ${otherParty?.name ?? otherPartyId}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.graySecondary,
+                              ),
+                            ),
+                            Text(
+                              'ยอดรวม ฿${order.totalPrice.toStringAsFixed(2)}',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.oceanBlue,
-                                fontSize: 13,
-                              ),
-                            ),
-                            Text(
-                              'จุดนัดรับ: ${order.pickupPoint}',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: AppColors.graySecondary,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        size: 14,
-                        color: AppColors.graySecondary,
-                      ),
                     ],
                   ),
+                  const SizedBox(height: 8),
+                  Text('ประเภทจุดรับ: ${order.pickupType.label}'),
+                  if (order.agreedPlaceLabel != null)
+                    Text('สถานที่: ${order.agreedPlaceLabel}'),
+                  if (order.agreedTime != null)
+                    Text('เวลานัด: ${_formatDateTime(order.agreedTime!)}'),
                 ],
               ),
             ),
@@ -240,5 +219,12 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
         );
       },
     );
+  }
+
+  String _formatDateTime(DateTime value) {
+    final local = value.toLocal();
+    final hour = local.hour.toString().padLeft(2, '0');
+    final minute = local.minute.toString().padLeft(2, '0');
+    return '${local.day}/${local.month}/${local.year} $hour:$minute';
   }
 }

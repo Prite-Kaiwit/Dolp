@@ -13,11 +13,13 @@ void main() {
   final appState = AppState();
   late List<ProductModel> originalProducts;
   late List<OrderModel> originalOrders;
+  late List<ProductModel> originalCart;
   late List<Map<String, dynamic>> originalNotifications;
 
   setUp(() {
     originalProducts = List<ProductModel>.of(appState.products);
     originalOrders = List<OrderModel>.of(appState.orders);
+    originalCart = List<ProductModel>.of(appState.cartItems);
     originalNotifications = List<Map<String, dynamic>>.of(
       appState.notifications,
     );
@@ -32,6 +34,7 @@ void main() {
   tearDown(() {
     appState.products = originalProducts;
     appState.orders = originalOrders;
+    appState.cartItems = originalCart;
     appState.notifications = originalNotifications;
     appState.loginWithPhoneAndPassword('0800000001', 'password123');
     appState.updateCurrentUserArea(
@@ -139,12 +142,12 @@ void main() {
   test('deleteListing blocks products with unfinished orders', () {
     final listing = addListing(appState, kDefaultCenter);
     appState.loginWithPhoneAndPassword('0800000002', 'password123');
-    appState.createOrder(
-      product: listing,
-      pickupPoint: 'จุดที่ตกลงกัน',
-      scheduledTime: 'พรุ่งนี้',
-      paymentMethod: 'เงินสดหน้างาน',
+    expect(appState.addToCart(listing), isNull);
+    final result = appState.createOrderForSeller(
+      'user_01',
+      paymentMethod: PaymentMethod.cashOnHandover,
     );
+    expect(result.isSuccess, isTrue);
     appState.loginWithPhoneAndPassword('0800000001', 'password123');
 
     expect(appState.deleteListing(listing.id), contains('ออเดอร์'));
@@ -152,6 +155,8 @@ void main() {
       appState.products.any((product) => product.id == listing.id),
       isTrue,
     );
+    appState.loginWithPhoneAndPassword('0800000002', 'password123');
+    expect(appState.cancelOrder(result.order!.id, 'ยกเลิกในชุดทดสอบ'), isNull);
   });
 }
 

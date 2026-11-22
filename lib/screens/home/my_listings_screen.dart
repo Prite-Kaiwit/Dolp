@@ -23,7 +23,7 @@ class _MyListingsScreenState extends State<MyListingsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -69,6 +69,9 @@ class _MyListingsScreenState extends State<MyListingsScreen>
         final active = myProducts
             .where((product) => product.status == ListingStatus.active)
             .toList();
+        final reserved = myProducts
+            .where((product) => product.status == ListingStatus.reserved)
+            .toList();
         final sold = myProducts
             .where((product) => product.status == ListingStatus.sold)
             .toList();
@@ -86,6 +89,7 @@ class _MyListingsScreenState extends State<MyListingsScreen>
               unselectedLabelColor: AppColors.graySecondary,
               tabs: [
                 Tab(text: 'กำลังขาย (${active.length})'),
+                Tab(text: 'จอง (${reserved.length})'),
                 Tab(text: 'ขายแล้ว (${sold.length})'),
                 Tab(text: 'ซ่อน (${hidden.length})'),
               ],
@@ -107,6 +111,7 @@ class _MyListingsScreenState extends State<MyListingsScreen>
             controller: _tabController,
             children: [
               _buildProductList(active, ListingStatus.active),
+              _buildProductList(reserved, ListingStatus.reserved),
               _buildProductList(sold, ListingStatus.sold),
               _buildProductList(hidden, ListingStatus.hidden),
             ],
@@ -231,15 +236,17 @@ class _MyListingsScreenState extends State<MyListingsScreen>
                         value: _ListingAction.show,
                         child: Text('แสดงอีกครั้ง'),
                       ),
-                    if (status != ListingStatus.sold)
+                    if (status == ListingStatus.active ||
+                        status == ListingStatus.hidden)
                       const PopupMenuItem(
                         value: _ListingAction.sold,
                         child: Text('ทำเครื่องหมายว่าขายแล้ว'),
                       ),
-                    const PopupMenuItem(
-                      value: _ListingAction.delete,
-                      child: Text('ลบประกาศ'),
-                    ),
+                    if (status != ListingStatus.reserved)
+                      const PopupMenuItem(
+                        value: _ListingAction.delete,
+                        child: Text('ลบประกาศ'),
+                      ),
                   ],
                 ),
               ],

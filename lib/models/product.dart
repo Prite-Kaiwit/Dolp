@@ -1,6 +1,3 @@
-// The legacy pickupPoint field remains until listing and order screens migrate.
-// ignore_for_file: deprecated_member_use
-
 import 'geo_location.dart';
 import 'product_image_data.dart';
 
@@ -36,7 +33,7 @@ extension ListingTypeExtension on ListingType {
   }
 }
 
-enum ListingStatus { active, sold, hidden }
+enum ListingStatus { active, reserved, sold, hidden }
 
 class ProductModel {
   final String id;
@@ -50,8 +47,6 @@ class ProductModel {
   final GeoLocation publicLocation;
   final String locationLabel;
   final PickupType pickupType;
-  @Deprecated('Use locationLabel and pickupType; remove after phase 6.')
-  final String pickupPoint;
   final String imageUrl;
   final List<String> images;
   final List<ProductImageData> productImages;
@@ -77,7 +72,6 @@ class ProductModel {
     required this.publicLocation,
     this.locationLabel = '',
     this.pickupType = PickupType.discussInChat,
-    required this.pickupPoint,
     required this.imageUrl,
     this.images = const [],
     this.productImages = const [],
@@ -104,7 +98,6 @@ class ProductModel {
     GeoLocation? publicLocation,
     String? locationLabel,
     PickupType? pickupType,
-    String? pickupPoint,
     String? imageUrl,
     List<String>? images,
     List<ProductImageData>? productImages,
@@ -130,7 +123,6 @@ class ProductModel {
       publicLocation: publicLocation ?? this.publicLocation,
       locationLabel: locationLabel ?? this.locationLabel,
       pickupType: pickupType ?? this.pickupType,
-      pickupPoint: pickupPoint ?? this.pickupPoint,
       imageUrl: imageUrl ?? this.imageUrl,
       images: images ?? this.images,
       productImages: productImages ?? this.productImages,

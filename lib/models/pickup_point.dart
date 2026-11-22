@@ -1,6 +1,3 @@
-// The legacy zone field remains through the pickup flow and admin migration.
-// ignore_for_file: deprecated_member_use
-
 import '../constants/app_info.dart';
 import 'geo_location.dart';
 
@@ -12,9 +9,7 @@ class SuggestedSpot {
   final String description;
   final GeoLocation location;
   final SuggestedSpotType type;
-  @Deprecated(
-    'Migrate pickup screens in phase 5 and remove the admin zone in phase 7.',
-  )
+  @Deprecated('Remove in phase 7.')
   final String zone;
   final bool isActive;
   final String openHours;
