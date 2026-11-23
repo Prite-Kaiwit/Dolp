@@ -1,8 +1,9 @@
 # dolp data model
 
 The models are typed Dart objects intended to map to backend records later.
-`AppState` is the current in-memory repository and is reset from seed data on
-initialization; this is not durable storage.
+`AppState` is the in-memory repository facade backed by an injectable local
+persistence store. Local storage is prototype-only: it does not sync to a
+backend/PostgreSQL and the complete payload is not encrypted.
 
 ## Identity and trust
 
@@ -62,11 +63,41 @@ initialization; this is not durable storage.
 ## AppState collections and private state
 
 `AppState` owns users, products, cart items, orders, reviews, reports,
-conversations, meetup agreements, suggested spots, and notifications. It also
-keeps in-memory phone credentials, private listing locations, prior listing
-status while reserved, block pairs, area-alert subscriptions, and the testable
-clock. Mutations and their authorization/validation checks are centralized in
-AppState methods.
+conversations, meetup agreements, suggested spots, notifications, phone
+credentials, private listing locations, prior listing status while reserved,
+block pairs, suspension reasons, safety acknowledgments, area-alert
+subscriptions, and sequence counters. Mutations and their
+authorization/validation checks are centralized in AppState methods. A
+logged-in user ID is restored on restart; Guest sessions are not persisted.
+OTP state is temporary and is never stored.
+
+## Local persistence format
+
+- The SharedPreferences key is `dolp.persistence.v1`; its JSON envelope has
+  `schemaVersion: 1`. Missing schema versions are treated as version 0 and
+  migrated through the version-1 migration hook. Unsupported future versions
+  are backed up and cause the app to start from seed data.
+- The envelope stores users, salted mock credential hashes, the optional
+  signed-in user ID, public product data, a separate `privateProductLocations`
+  map, cart product IDs, orders and events, reviews, conversations/messages,
+  meetups, suggested spots, reports, blocks, suspension reasons, safety-tip
+  acknowledgments, notifications, alert subscriptions, and sequence counters.
+- Product and chat image bytes are stored separately from the JSON. On
+  Android/iOS, image files live under the application-support
+  `dolp_media` directory and JSON stores their generated file keys. On web,
+  image bytes are memory-only and are lost on reload; other JSON-backed data
+  remains persisted.
+- A failed JSON restore backs up the original payload under a
+  `dolp.persistence.corrupted.<timestamp>` preference key, then seeds the
+  prototype. Writes are debounced and flushed when the app enters the
+  background.
+- Private exact listing addresses/coordinates are never serialized inside a
+  `ProductModel`; they are stored only in the separate private-location map.
+- Mock passwords are stored as salted SHA-256 hashes, not plaintext. This is
+  not production-grade authentication: real credentials must be verified and
+  securely stored on a server. Local app data is not encrypted as a whole.
+- There is no backend synchronization, PostgreSQL integration, or real push
+  notification delivery (FCM/APNs).
 
 ## Important relationships
 

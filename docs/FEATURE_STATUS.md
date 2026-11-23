@@ -27,12 +27,22 @@ The existing `Seed Conversations (FR-03)` comment supports the FR-03 mapping.
 |---|---|
 | Privacy | Public product coordinates are offset by about 100–300 m, within a 500 m preview radius. Exact listing location/address is held in an AppState private map and may be shared to the accepted meetup partner only. No exact-address navigation feature is provided. |
 | Security | Prototype-only. Data and mock credentials are local/in-memory; admin checks run in the client and are not suitable for production authorization. |
-| Persistence | Not implemented. App restart resets accounts, content, orders, reports, notifications, and settings to seed data. |
-| Auditability | Order status changes record `OrderEvent`; report decisions record the admin and resolution time. These records are still in-memory and can be lost. |
+| Persistence | Partially implemented on-device with schema-versioned local JSON. Data does not sync, use PostgreSQL, or encrypt the complete stored payload. |
+| Auditability | Order status changes record `OrderEvent`; report decisions record the admin and resolution time. Records persist locally but are not server-audited. |
 | Compatibility | Flutter test suite covers core flows. Physical Pixel 6/device validation has not been performed in this environment. |
 | Accessibility | Ocean-blue brand theme and contrast tests exist. Screen-reader and physical display validation remain outstanding. |
 | Scalability/performance | No backend, pagination, or load testing. Data sets are small local prototype fixtures. |
-| Notifications | Nearby and transactional notifications are generated locally. Delivery while the app is closed is not supported. |
+| Notifications | Nearby and transactional notifications are generated locally and persist on-device. Delivery while the app is closed is not supported. |
+
+### Local persistence limitations
+
+The prototype stores structured state in local device preferences and image
+bytes in app support files on Android/iOS. Web builds persist structured state
+but keep image bytes in memory only, so image uploads do not survive a web
+reload. Local data is not synchronized, is not encrypted as a whole, and is
+not a substitute for backend storage or authorization. Mock passwords are
+salted and hashed locally; production authentication must verify credentials
+server-side. OTP state is temporary and is not persisted.
 
 ## Verification
 

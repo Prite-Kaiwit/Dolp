@@ -1,7 +1,8 @@
 # dolp prototype test accounts
 
-All data below is local mock data. It is not a real account system. The app
-resets its state to seed fixtures when AppState is initialized.
+All data below is local mock data. It is not a real account system. On first
+launch the app initializes from seed fixtures; later launches restore saved
+local data instead of overwriting it.
 
 ## Sign-in accounts
 
@@ -25,8 +26,18 @@ or submit a report.
 
 - These credentials are intentionally predictable and must never be reused in
   production.
-- Passwords and account state are held only in the local AppState mock.
+- Mock password credentials are salted hashes in local storage; this is not
+  production authentication. Account state is stored on the device.
 - Admin role checks are not a substitute for authenticated server-side access
   control.
-- Seed fixtures can be changed by tests during a run and are restored by
-  reinitializing AppState.
+- Seed fixtures can be changed by tests during a run. Reinitializing AppState
+  restores persisted state rather than reseeding it.
+
+## Resetting local data for QA
+
+- In debug builds, open the profile screen and use **Reset sample data**. This
+  clears local persistence and returns the app to its seeded Guest state.
+- Alternatively, clear the app's storage/data from the device or emulator's
+  system app settings, then relaunch to create a fresh seeded state.
+- Web image bytes are memory-only and do not survive a reload; structured
+  local data persists in browser storage.
