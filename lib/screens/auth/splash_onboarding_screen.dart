@@ -18,6 +18,28 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final appState = AppState();
+      if (appState.isLoggedIn) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute<void>(builder: (_) => const MainNavigationScreen()),
+        );
+        return;
+      }
+      final warning = appState.takePersistenceWarning();
+      if (warning != null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(warning)));
+      }
+    });
+  }
+
   final List<Map<String, String>> _onboardingData = [
     {
       'title': 'ยินดีต้อนรับสู่ $appName',

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../constants/app_info.dart';
 import '../../models/user.dart';
@@ -285,6 +286,45 @@ class ProfileScreen extends StatelessWidget {
                     );
                   },
                 ),
+                if (kDebugMode)
+                  _buildMenuItem(
+                    icon: Icons.restart_alt,
+                    title: 'รีเซ็ตข้อมูลตัวอย่าง (Debug)',
+                    subtitle: 'ล้างข้อมูลในเครื่องและสร้างข้อมูลตัวอย่างใหม่',
+                    onTap: () async {
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('รีเซ็ตข้อมูลตัวอย่าง?'),
+                          content: const Text(
+                            'ข้อมูลบัญชี ประกาศ แชท และออเดอร์ในเครื่องจะถูกล้าง',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('ยกเลิก'),
+                            ),
+                            FilledButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text('รีเซ็ต'),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (confirmed != true) return;
+                      final succeeded = await appState.resetSampleData();
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            succeeded
+                                ? 'รีเซ็ตข้อมูลตัวอย่างแล้ว'
+                                : 'รีเซ็ตไม่สำเร็จ ตรวจสอบข้อผิดพลาดในโหมด debug',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 _buildMenuItem(
                   icon: Icons.help_outline_rounded,
                   title: 'ช่วยเหลือ & ติดต่อทีมงาน',

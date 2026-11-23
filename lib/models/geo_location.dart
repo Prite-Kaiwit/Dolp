@@ -1,3 +1,5 @@
+import '../utils/json_helpers.dart';
+
 class GeoLocation {
   final double lat;
   final double lng;
@@ -13,6 +15,20 @@ class GeoLocation {
   }
 
   const GeoLocation._(this.lat, this.lng);
+
+  Map<String, Object> toJson() => {'lat': lat, 'lng': lng};
+
+  factory GeoLocation.fromJson(Map<String, dynamic> json) {
+    final latitude = jsonDouble(json['lat']);
+    final longitude = jsonDouble(json['lng']);
+    if (latitude < -90 ||
+        latitude > 90 ||
+        longitude < -180 ||
+        longitude > 180) {
+      return GeoLocation(0, 0);
+    }
+    return GeoLocation(latitude, longitude);
+  }
 
   @override
   bool operator ==(Object other) =>

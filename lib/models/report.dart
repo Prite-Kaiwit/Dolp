@@ -1,3 +1,5 @@
+import '../utils/json_helpers.dart';
+
 enum ReportReason {
   damagedItem,
   missedMeetup,
@@ -104,4 +106,34 @@ class ReportModel {
       resolvedAt: resolvedAt ?? this.resolvedAt,
     );
   }
+
+  Map<String, Object?> toJson() => {
+    'id': id,
+    'reporterId': reporterId,
+    'reportedUserId': reportedUserId,
+    'orderId': orderId,
+    'productId': productId,
+    'reason': reason.name,
+    'detail': detail,
+    'status': status.name,
+    'createdAt': createdAt.toUtc().toIso8601String(),
+    'adminId': adminId,
+    'adminNote': adminNote,
+    'resolvedAt': resolvedAt?.toUtc().toIso8601String(),
+  };
+
+  factory ReportModel.fromJson(Map<String, dynamic> json) => ReportModel(
+    id: jsonString(json['id'], 'missing-report'),
+    reporterId: jsonString(json['reporterId']),
+    reportedUserId: jsonString(json['reportedUserId']),
+    reason: jsonEnum(ReportReason.values, json['reason'], ReportReason.other),
+    detail: jsonString(json['detail']),
+    createdAt: jsonDateTime(json['createdAt']),
+    orderId: json['orderId'] is String ? json['orderId'] as String : null,
+    productId: json['productId'] is String ? json['productId'] as String : null,
+    status: jsonEnum(ReportStatus.values, json['status'], ReportStatus.open),
+    adminId: json['adminId'] is String ? json['adminId'] as String : null,
+    adminNote: json['adminNote'] is String ? json['adminNote'] as String : null,
+    resolvedAt: jsonNullableDateTime(json['resolvedAt']),
+  );
 }

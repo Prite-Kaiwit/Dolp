@@ -1,5 +1,6 @@
 import 'geo_location.dart';
 import 'product_image_data.dart';
+import '../utils/json_helpers.dart';
 
 enum ListingType { sell, trade, donate }
 
@@ -85,6 +86,68 @@ class ProductModel {
     this.viewCount = 45,
     this.favoriteCount = 6,
   }) : createdAt = createdAt ?? DateTime.now();
+
+  Map<String, Object?> toJson() => {
+    'id': id,
+    'title': title,
+    'description': description,
+    'price': price,
+    'tradeFor': tradeFor,
+    'type': type.name,
+    'category': category,
+    'condition': condition,
+    'publicLocation': publicLocation.toJson(),
+    'locationLabel': locationLabel,
+    'pickupType': pickupType.name,
+    'imageUrl': imageUrl,
+    'images': images,
+    'productImages': productImages.map((image) => image.toJson()).toList(),
+    'sellerId': sellerId,
+    'sellerName': sellerName,
+    'sellerAreaLabel': sellerAreaLabel,
+    'sellerRating': sellerRating,
+    'sellerReviewCount': sellerReviewCount,
+    'status': status.name,
+    'createdAt': createdAt.toUtc().toIso8601String(),
+    'viewCount': viewCount,
+    'favoriteCount': favoriteCount,
+  };
+
+  factory ProductModel.fromJson(Map<String, dynamic> json) => ProductModel(
+    id: jsonString(json['id'], 'missing-product'),
+    title: jsonString(json['title'], 'ประกาศสินค้า'),
+    description: jsonString(json['description']),
+    price: jsonDouble(json['price']),
+    tradeFor: jsonString(json['tradeFor']),
+    type: jsonEnum(ListingType.values, json['type'], ListingType.sell),
+    category: jsonString(json['category'], 'อื่น ๆ'),
+    condition: jsonString(json['condition'], 'ไม่ระบุ'),
+    publicLocation: GeoLocation.fromJson(jsonObject(json['publicLocation'])),
+    locationLabel: jsonString(json['locationLabel']),
+    pickupType: jsonEnum(
+      PickupType.values,
+      json['pickupType'],
+      PickupType.discussInChat,
+    ),
+    imageUrl: jsonString(json['imageUrl']),
+    images: jsonList(json['images']).whereType<String>().toList(),
+    productImages: jsonList(
+      json['productImages'],
+    ).map((image) => ProductImageData.fromJson(jsonObject(image))).toList(),
+    sellerId: jsonString(json['sellerId']),
+    sellerName: jsonString(json['sellerName'], 'ผู้ขาย'),
+    sellerAreaLabel: jsonString(json['sellerAreaLabel']),
+    sellerRating: jsonDouble(json['sellerRating']),
+    sellerReviewCount: jsonInt(json['sellerReviewCount']),
+    status: jsonEnum(
+      ListingStatus.values,
+      json['status'],
+      ListingStatus.active,
+    ),
+    createdAt: jsonDateTime(json['createdAt']),
+    viewCount: jsonInt(json['viewCount']),
+    favoriteCount: jsonInt(json['favoriteCount']),
+  );
 
   ProductModel copyWith({
     String? id,

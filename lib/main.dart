@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'persistence/shared_preferences_persistence_store.dart';
 import 'constants/app_info.dart';
 import 'theme/app_theme.dart';
 import 'screens/auth/splash_onboarding_screen.dart';
+import 'state/app_state.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  AppState.configurePersistenceStore(SharedPreferencesPersistenceStore());
+  await AppState().initialize();
   runApp(const DolpApp());
 }
 

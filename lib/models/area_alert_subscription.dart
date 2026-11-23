@@ -1,4 +1,5 @@
 import 'geo_location.dart';
+import '../utils/json_helpers.dart';
 
 class AreaAlertSubscription {
   final String userId;
@@ -30,4 +31,21 @@ class AreaAlertSubscription {
       center: center ?? this.center,
     );
   }
+
+  Map<String, Object?> toJson() => {
+    'userId': userId,
+    'enabled': enabled,
+    'radiusKm': radiusKm,
+    'categories': categories,
+    'center': center.toJson(),
+  };
+
+  factory AreaAlertSubscription.fromJson(Map<String, dynamic> json) =>
+      AreaAlertSubscription(
+        userId: jsonString(json['userId']),
+        enabled: jsonBool(json['enabled']),
+        radiusKm: jsonDouble(json['radiusKm'], 5).clamp(1, 20).toDouble(),
+        categories: jsonList(json['categories']).whereType<String>().toList(),
+        center: GeoLocation.fromJson(jsonObject(json['center'])),
+      );
 }

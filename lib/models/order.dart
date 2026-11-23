@@ -1,5 +1,6 @@
 import 'product.dart';
 import 'product_image_data.dart';
+import '../utils/json_helpers.dart';
 
 enum OrderStatus { pending, completed, cancelled, disputed }
 
@@ -45,6 +46,29 @@ class OrderItemSnapshot {
     required this.coverImage,
     required this.listingType,
   });
+
+  Map<String, Object?> toJson() => {
+    'productId': productId,
+    'title': title,
+    'price': price,
+    'coverImage': coverImage?.toJson(),
+    'listingType': listingType.name,
+  };
+
+  factory OrderItemSnapshot.fromJson(Map<String, dynamic> json) =>
+      OrderItemSnapshot(
+        productId: jsonString(json['productId']),
+        title: jsonString(json['title'], 'สินค้า'),
+        price: jsonDouble(json['price']),
+        coverImage: json['coverImage'] is Map
+            ? ProductImageData.fromJson(jsonObject(json['coverImage']))
+            : null,
+        listingType: jsonEnum(
+          ListingType.values,
+          json['listingType'],
+          ListingType.sell,
+        ),
+      );
 }
 
 class OrderEvent {
@@ -57,6 +81,18 @@ class OrderEvent {
     required this.actorId,
     required this.status,
   });
+
+  Map<String, Object> toJson() => {
+    'at': at.toUtc().toIso8601String(),
+    'actorId': actorId,
+    'status': status.name,
+  };
+
+  factory OrderEvent.fromJson(Map<String, dynamic> json) => OrderEvent(
+    at: jsonDateTime(json['at']),
+    actorId: jsonString(json['actorId']),
+    status: jsonEnum(OrderStatus.values, json['status'], OrderStatus.pending),
+  );
 }
 
 class OrderModel {
@@ -101,6 +137,74 @@ class OrderModel {
     this.previousStatus,
     this.events = const [],
   });
+
+  Map<String, Object?> toJson() => {
+    'id': id,
+    'buyerId': buyerId,
+    'sellerId': sellerId,
+    'items': items.map((item) => item.toJson()).toList(),
+    'totalPrice': totalPrice,
+    'paymentMethod': paymentMethod.name,
+    'pickupType': pickupType.name,
+    'agreedPlaceLabel': agreedPlaceLabel,
+    'agreedTime': agreedTime?.toUtc().toIso8601String(),
+    'meetupId': meetupId,
+    'handedOverAt': handedOverAt?.toUtc().toIso8601String(),
+    'completedAt': completedAt?.toUtc().toIso8601String(),
+    'createdAt': createdAt.toUtc().toIso8601String(),
+    'status': status.name,
+    'cancelledBy': cancelledBy,
+    'cancelReason': cancelReason,
+    'cancelledAt': cancelledAt?.toUtc().toIso8601String(),
+    'previousStatus': previousStatus?.name,
+    'events': events.map((event) => event.toJson()).toList(),
+  };
+
+  factory OrderModel.fromJson(Map<String, dynamic> json) => OrderModel(
+    id: jsonString(json['id'], 'missing-order'),
+    buyerId: jsonString(json['buyerId']),
+    sellerId: jsonString(json['sellerId']),
+    items: jsonList(
+      json['items'],
+    ).map((item) => OrderItemSnapshot.fromJson(jsonObject(item))).toList(),
+    totalPrice: jsonDouble(json['totalPrice']),
+    paymentMethod: jsonEnum(
+      PaymentMethod.values,
+      json['paymentMethod'],
+      PaymentMethod.cashOnHandover,
+    ),
+    pickupType: jsonEnum(
+      PickupType.values,
+      json['pickupType'],
+      PickupType.discussInChat,
+    ),
+    agreedPlaceLabel: json['agreedPlaceLabel'] is String
+        ? json['agreedPlaceLabel'] as String
+        : null,
+    agreedTime: jsonNullableDateTime(json['agreedTime']),
+    meetupId: json['meetupId'] is String ? json['meetupId'] as String : null,
+    handedOverAt: jsonNullableDateTime(json['handedOverAt']),
+    completedAt: jsonNullableDateTime(json['completedAt']),
+    createdAt: jsonDateTime(json['createdAt']),
+    status: jsonEnum(OrderStatus.values, json['status'], OrderStatus.pending),
+    cancelledBy: json['cancelledBy'] is String
+        ? json['cancelledBy'] as String
+        : null,
+    cancelReason: json['cancelReason'] is String
+        ? json['cancelReason'] as String
+        : null,
+    cancelledAt: jsonNullableDateTime(json['cancelledAt']),
+    previousStatus: json['previousStatus'] == null
+        ? null
+        : jsonEnum(
+            OrderStatus.values,
+            json['previousStatus'],
+            OrderStatus.pending,
+          ),
+    events: jsonList(
+      json['events'],
+    ).map((event) => OrderEvent.fromJson(jsonObject(event))).toList(),
+  );
 
   OrderModel copyWith({
     String? id,
@@ -156,8 +260,7 @@ class OrderCreationResult {
 
   const OrderCreationResult._({this.order, this.error});
 
-  const OrderCreationResult.success(OrderModel value)
-    : this._(order: value);
+  const OrderCreationResult.success(OrderModel value) : this._(order: value);
 
   const OrderCreationResult.failure(String reason) : this._(error: reason);
 

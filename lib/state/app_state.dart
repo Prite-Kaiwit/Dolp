@@ -1,7 +1,10 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'dart:typed_data';
 import '../constants/chat_limits.dart';
 import '../constants/app_info.dart';
 import '../constants/trust_safety_limits.dart';
@@ -19,6 +22,9 @@ import '../models/meetup_agreement.dart';
 import '../models/pickup_point.dart';
 import '../models/report.dart';
 import '../utils/distance.dart';
+import '../utils/json_helpers.dart';
+import '../persistence/in_memory_persistence_store.dart';
+import '../persistence/persistence_store.dart';
 
 class ExactProductLocation {
   final String exactAddress;
@@ -46,10 +52,20 @@ class _PrivateProductLocation {
 
 class _MockCredential {
   final String userId;
-  // ห้ามใช้จริง ต้องเปลี่ยนเป็น hash ฝั่ง server
-  final String password;
+  final String salt;
+  final String passwordHash;
 
-  const _MockCredential({required this.userId, required this.password});
+  const _MockCredential({
+    required this.userId,
+    required this.salt,
+    required this.passwordHash,
+  });
+
+  Map<String, String> toJson() => {
+    'userId': userId,
+    'salt': salt,
+    'passwordHash': passwordHash,
+  };
 }
 
 class AdminQueryResult<T> {
@@ -57,18 +73,46 @@ class AdminQueryResult<T> {
   final String? error;
 
   const AdminQueryResult.success(T result) : value = result, error = null;
-  const AdminQueryResult.failure(String message) : value = null, error = message;
+  const AdminQueryResult.failure(String message)
+    : value = null,
+      error = message;
 
   bool get isSuccess => value != null;
 }
 
-class AppState extends ChangeNotifier {
-  static final AppState _instance = AppState._internal();
-  factory AppState() => _instance;
+class AppState extends ChangeNotifier with WidgetsBindingObserver {
+  static AppState? _instance;
+  static PersistenceStore? _configuredStore;
 
-  AppState._internal() {
+  factory AppState() => _instance ??= AppState._internal(
+    _configuredStore ?? InMemoryPersistenceStore(),
+  );
+
+  static void configurePersistenceStore(PersistenceStore store) {
+    if (_instance != null) {
+      throw StateError(
+        'Persistence must be configured before AppState access.',
+      );
+    }
+    _configuredStore = store;
+  }
+
+  @visibleForTesting
+  factory AppState.createForTesting({required PersistenceStore store}) =>
+      AppState._internal(store);
+
+  AppState._internal(PersistenceStore store) : _store = store {
     _initMockData();
   }
+
+  static const int schemaVersion = 1;
+  static const Duration _saveDebounce = Duration(milliseconds: 300);
+  final PersistenceStore _store;
+  Timer? _saveTimer;
+  Future<void> _writeQueue = Future<void>.value();
+  bool _initialized = false;
+  String? lastPersistenceError;
+  String? _persistenceWarning;
 
   // Mock-only credentials; never use plaintext passwords outside this prototype.
   final Map<String, _MockCredential> _credentialsByPhone = {};
@@ -131,7 +175,473 @@ class AppState extends ChangeNotifier {
     _clock = clock;
   }
 
+  @override
+  void notifyListeners() {
+    super.notifyListeners();
+    if (_initialized) _schedulePersistence();
+  }
+
+  Future<void> initialize() async {
+    if (_initialized) return;
+    WidgetsBinding.instance.addObserver(this);
+    String? raw;
+    try {
+      raw = await _store.load();
+    } catch (error, stackTrace) {
+      lastPersistenceError = '$error';
+      _persistenceWarning =
+          'โหลดข้อมูลในเครื่องไม่สำเร็จ จึงเริ่มข้อมูลตัวอย่าง';
+      debugPrint('Persistence load failed: $error\n$stackTrace');
+    }
+
+    if (raw == null) {
+      currentUser = _guestUser();
+      _initialized = true;
+      await flush();
+      return;
+    }
+
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map<String, dynamic>) {
+        throw const FormatException('Persistence root must be a JSON object.');
+      }
+      await _restoreFromJson(_migrate(decoded));
+      _initialized = true;
+      if (_sessionUserMissing) {
+        _persistenceWarning = 'ไม่พบบัญชีที่บันทึกไว้ กรุณาเข้าสู่ระบบอีกครั้ง';
+      }
+      if (_sessionUserSuspended) {
+        _persistenceWarning = 'บัญชีนี้ถูกระงับ กรุณาติดต่อผู้ดูแลระบบ';
+      }
+      await flush();
+    } on Object catch (error, stackTrace) {
+      lastPersistenceError = '$error';
+      _persistenceWarning = 'ข้อมูลในเครื่องเสียหาย จึงสำรองข้อมูลและเริ่มใหม่';
+      debugPrint('Persistence restore failed: $error\n$stackTrace');
+      try {
+        await _store.backupCorrupted(raw);
+      } catch (backupError, backupStackTrace) {
+        lastPersistenceError = '$backupError';
+        debugPrint(
+          'Persistence backup failed: $backupError\n$backupStackTrace',
+        );
+      }
+      _initMockData();
+      currentUser = _guestUser();
+      _initialized = true;
+      await flush();
+    }
+  }
+
+  bool _sessionUserMissing = false;
+  bool _sessionUserSuspended = false;
+
+  String? takePersistenceWarning() {
+    final warning = _persistenceWarning;
+    _persistenceWarning = null;
+    return warning;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached ||
+        state == AppLifecycleState.hidden) {
+      unawaited(flush());
+    }
+  }
+
+  void _schedulePersistence() {
+    _saveTimer?.cancel();
+    _saveTimer = Timer(_saveDebounce, () => unawaited(flush()));
+  }
+
+  Future<void> flush() async {
+    _saveTimer?.cancel();
+    if (!_initialized) return;
+    _writeQueue = _writeQueue.then((_) async {
+      try {
+        final referencedImages = <String>{};
+        final data = await _toPersistenceJson(referencedImages);
+        await _store.save(jsonEncode(data));
+        await _store.deleteUnreferencedImages(referencedImages);
+        lastPersistenceError = null;
+      } catch (error, stackTrace) {
+        lastPersistenceError = '$error';
+        debugPrint('Persistence write failed: $error\n$stackTrace');
+      }
+    });
+    await _writeQueue;
+  }
+
+  Future<bool> resetSampleData() async {
+    if (!kDebugMode) return false;
+    try {
+      await _store.clear();
+      _initMockData();
+      currentUser = _guestUser();
+      _initialized = true;
+      await flush();
+      notifyListeners();
+      return true;
+    } catch (error, stackTrace) {
+      lastPersistenceError = '$error';
+      debugPrint('Sample data reset failed: $error\n$stackTrace');
+      return false;
+    }
+  }
+
+  @override
+  void dispose() {
+    _saveTimer?.cancel();
+    if (_initialized) WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  Map<String, dynamic> _migrate(Map<String, dynamic> source) {
+    final data = Map<String, dynamic>.of(source);
+    final version = data['schemaVersion'] is num
+        ? (data['schemaVersion'] as num).toInt()
+        : 0;
+    if (version < 0 || version > schemaVersion) {
+      throw FormatException('Unsupported persistence schema version: $version');
+    }
+    if (version == 0) {
+      data['schemaVersion'] = 1;
+    }
+    return data;
+  }
+
+  Future<Map<String, Object?>> _toPersistenceJson(
+    Set<String> referencedImages,
+  ) async {
+    Future<ProductImageData?> saveImage(ProductImageData? image) async {
+      if (image == null) return null;
+      if (kIsWeb && image.bytes != null) {
+        return const ProductImageData.network(null);
+      }
+      if (image.bytes == null) {
+        if (image.storageKey != null) referencedImages.add(image.storageKey!);
+        return image;
+      }
+      final key = 'img_${sha256.convert(image.bytes!).toString()}.bin';
+      referencedImages.add(key);
+      await _store.saveImage(key, image.bytes!);
+      return ProductImageData.local(storageKey: key);
+    }
+
+    final persistedProducts = <ProductModel>[];
+    for (final product in products) {
+      final images = <ProductImageData>[];
+      for (final image in product.productImages) {
+        final saved = await saveImage(image);
+        if (saved != null) images.add(saved);
+      }
+      persistedProducts.add(product.copyWith(productImages: images));
+    }
+    final persistedOrders = <OrderModel>[];
+    for (final order in orders) {
+      final items = <OrderItemSnapshot>[];
+      for (final item in order.items) {
+        items.add(
+          OrderItemSnapshot(
+            productId: item.productId,
+            title: item.title,
+            price: item.price,
+            coverImage: await saveImage(item.coverImage),
+            listingType: item.listingType,
+          ),
+        );
+      }
+      persistedOrders.add(order.copyWith(items: items));
+    }
+    final persistedConversations = <ChatConversation>[];
+    for (final conversation in conversations) {
+      final messages = <ChatMessage>[];
+      for (final message in conversation.messages) {
+        messages.add(
+          ChatMessage(
+            id: message.id,
+            senderId: message.senderId,
+            text: message.text,
+            timestamp: message.timestamp,
+            isMe: message.isMe,
+            isSystemPrompt: message.isSystemPrompt,
+            type: message.type,
+            image: await saveImage(message.image),
+            meetupId: message.meetupId,
+            recipientId: message.recipientId,
+          ),
+        );
+      }
+      persistedConversations.add(
+        conversation.copyWith(
+          productImage: await saveImage(conversation.productImage),
+          messages: messages,
+        ),
+      );
+    }
+
+    return {
+      'schemaVersion': schemaVersion,
+      'currentUserId': isLoggedIn ? currentUser.id : null,
+      'users': users.map((user) => user.toJson()).toList(),
+      'credentials': {
+        for (final entry in _credentialsByPhone.entries)
+          entry.key: entry.value.toJson(),
+      },
+      'products': persistedProducts.map((item) => item.toJson()).toList(),
+      'privateProductLocations': {
+        for (final entry in _exactLocationsByProductId.entries)
+          entry.key: {
+            'address': entry.value.address,
+            'exactLat': entry.value.exactLat,
+            'exactLng': entry.value.exactLng,
+          },
+      },
+      'cartItems': cartItems.map((item) => item.id).toList(),
+      'orders': persistedOrders.map((item) => item.toJson()).toList(),
+      'reservedListingPreviousStatus': {
+        for (final entry in _reservedListingPreviousStatus.entries)
+          entry.key: entry.value.name,
+      },
+      'reviews': reviews.map((item) => item.toJson()).toList(),
+      'conversations': persistedConversations
+          .map((item) => item.toJson())
+          .toList(),
+      'meetupAgreements': meetupAgreements
+          .map((item) => item.toJson())
+          .toList(),
+      'pickupPoints': pickupPoints.map((item) => item.toJson()).toList(),
+      'reports': reports.map((item) => item.toJson()).toList(),
+      'blockedUserPairs': _blockedUserPairs.toList(),
+      'suspendedUserReasons': _suspendedUserReasons,
+      'safetyTipsAcknowledgedBy': _safetyTipsAcknowledgedBy.toList(),
+      'notifications': notifications.map((item) => item.toJson()).toList(),
+      'areaAlertSubscriptions': {
+        for (final entry in _areaAlertSubscriptions.entries)
+          entry.key: entry.value.toJson(),
+      },
+      'notificationSequence': _notificationSequence,
+      'orderSequence': _orderSequence,
+      'chatSequence': _chatSequence,
+    };
+  }
+
+  Future<ProductImageData?> _restoreImage(ProductImageData? image) async {
+    if (image?.storageKey == null) return image;
+    final bytes = await _store.loadImage(image!.storageKey!);
+    return ProductImageData.local(storageKey: image.storageKey, bytes: bytes);
+  }
+
+  Future<void> _restoreFromJson(Map<String, dynamic> data) async {
+    users = jsonList(
+      data['users'],
+    ).map((item) => UserModel.fromJson(jsonObject(item))).toList();
+    products = jsonList(
+      data['products'],
+    ).map((item) => ProductModel.fromJson(jsonObject(item))).toList();
+    final productIds = products.map((product) => product.id).toSet();
+    final productImages = <ProductModel>[];
+    for (final product in products) {
+      final images = <ProductImageData>[];
+      for (final image in product.productImages) {
+        final restored = await _restoreImage(image);
+        if (restored != null) images.add(restored);
+      }
+      productImages.add(product.copyWith(productImages: images));
+    }
+    products = productImages;
+    cartItems = jsonList(data['cartItems'])
+        .whereType<String>()
+        .map((id) => products.where((product) => product.id == id).firstOrNull)
+        .whereType<ProductModel>()
+        .toList();
+
+    _credentialsByPhone.clear();
+    final credentialData = jsonObject(data['credentials']);
+    for (final entry in credentialData.entries) {
+      final value = jsonObject(entry.value);
+      final userId = jsonString(value['userId']);
+      if (userId.isEmpty) continue;
+      final salt = jsonString(value['salt']);
+      final storedHash = jsonString(value['passwordHash']);
+      if (salt.isNotEmpty && storedHash.isNotEmpty) {
+        _credentialsByPhone[entry.key] = _MockCredential(
+          userId: userId,
+          salt: salt,
+          passwordHash: storedHash,
+        );
+      } else if (value['password'] is String) {
+        _credentialsByPhone[entry.key] = _createCredential(
+          userId,
+          value['password'] as String,
+        );
+      }
+    }
+
+    _exactLocationsByProductId.clear();
+    for (final entry in jsonObject(data['privateProductLocations']).entries) {
+      if (!productIds.contains(entry.key)) continue;
+      final value = jsonObject(entry.value);
+      if (value['exactLat'] is! num || value['exactLng'] is! num) continue;
+      _exactLocationsByProductId[entry.key] = _PrivateProductLocation(
+        address: jsonString(value['address']),
+        exactLat: jsonDouble(value['exactLat']),
+        exactLng: jsonDouble(value['exactLng']),
+      );
+    }
+    _reservedListingPreviousStatus
+      ..clear()
+      ..addAll({
+        for (final entry in jsonObject(
+          data['reservedListingPreviousStatus'],
+        ).entries)
+          entry.key: jsonEnum(
+            ListingStatus.values,
+            entry.value,
+            ListingStatus.active,
+          ),
+      });
+
+    orders = jsonList(
+      data['orders'],
+    ).map((item) => OrderModel.fromJson(jsonObject(item))).toList();
+    final ordersWithImages = <OrderModel>[];
+    for (final order in orders) {
+      final items = <OrderItemSnapshot>[];
+      for (final item in order.items) {
+        items.add(
+          OrderItemSnapshot(
+            productId: item.productId,
+            title: item.title,
+            price: item.price,
+            coverImage: await _restoreImage(item.coverImage),
+            listingType: item.listingType,
+          ),
+        );
+      }
+      ordersWithImages.add(order.copyWith(items: items));
+    }
+    orders = ordersWithImages;
+    reviews = jsonList(
+      data['reviews'],
+    ).map((item) => ReviewModel.fromJson(jsonObject(item))).toList();
+    conversations = jsonList(
+      data['conversations'],
+    ).map((item) => ChatConversation.fromJson(jsonObject(item))).toList();
+    final restoredConversations = <ChatConversation>[];
+    for (final conversation in conversations) {
+      final messages = <ChatMessage>[];
+      for (final message in conversation.messages) {
+        messages.add(
+          ChatMessage(
+            id: message.id,
+            senderId: message.senderId,
+            text: message.text,
+            timestamp: message.timestamp,
+            isMe: message.isMe,
+            isSystemPrompt: message.isSystemPrompt,
+            type: message.type,
+            image: await _restoreImage(message.image),
+            meetupId: message.meetupId,
+            recipientId: message.recipientId,
+          ),
+        );
+      }
+      restoredConversations.add(
+        conversation.copyWith(
+          productImage: await _restoreImage(conversation.productImage),
+          messages: messages,
+        ),
+      );
+    }
+    conversations = restoredConversations;
+    meetupAgreements = jsonList(
+      data['meetupAgreements'],
+    ).map((item) => MeetupAgreement.fromJson(jsonObject(item))).toList();
+    pickupPoints = jsonList(
+      data['pickupPoints'],
+    ).map((item) => SuggestedSpot.fromJson(jsonObject(item))).toList();
+    reports = jsonList(
+      data['reports'],
+    ).map((item) => ReportModel.fromJson(jsonObject(item))).toList();
+    notifications = jsonList(
+      data['notifications'],
+    ).map((item) => AppNotification.fromJson(jsonObject(item))).toList();
+    _areaAlertSubscriptions
+      ..clear()
+      ..addAll({
+        for (final entry in jsonObject(data['areaAlertSubscriptions']).entries)
+          entry.key: AreaAlertSubscription.fromJson(jsonObject(entry.value)),
+      });
+    _blockedUserPairs
+      ..clear()
+      ..addAll(jsonList(data['blockedUserPairs']).whereType<String>());
+    _suspendedUserReasons
+      ..clear()
+      ..addAll({
+        for (final entry in jsonObject(data['suspendedUserReasons']).entries)
+          if (entry.value is String) entry.key: entry.value as String,
+      });
+    _safetyTipsAcknowledgedBy
+      ..clear()
+      ..addAll(jsonList(data['safetyTipsAcknowledgedBy']).whereType<String>());
+    _notificationSequence = jsonInt(data['notificationSequence']);
+    _orderSequence = jsonInt(data['orderSequence']);
+    _chatSequence = jsonInt(data['chatSequence']);
+
+    _recalculateRatings();
+    _recalculateSuccessfulDeals();
+    final sessionUserId = data['currentUserId'];
+    _sessionUserMissing = false;
+    _sessionUserSuspended = false;
+    if (sessionUserId is String) {
+      final user = users.where((item) => item.id == sessionUserId).firstOrNull;
+      if (user == null) {
+        _sessionUserMissing = true;
+        currentUser = _guestUser();
+      } else if (user.isSuspended) {
+        _sessionUserSuspended = true;
+        currentUser = _guestUser();
+      } else {
+        currentUser = user;
+      }
+    } else {
+      currentUser = _guestUser();
+    }
+  }
+
+  UserModel _guestUser() => UserModel(
+    id: 'guest_01',
+    name: 'ผู้เยี่ยมชม',
+    role: UserRole.guest,
+    rating: 0,
+    reviewCount: 0,
+    successfulDeals: 0,
+  );
+
+  // This salted hash is only mock credential handling; production passwords
+  // must be hashed and verified by a trusted server.
+  _MockCredential _createCredential(String userId, String password) {
+    final random = math.Random.secure();
+    final salt = base64UrlEncode(
+      List<int>.generate(16, (_) => random.nextInt(256)),
+    );
+    return _MockCredential(
+      userId: userId,
+      salt: salt,
+      passwordHash: _passwordDigest(salt, password),
+    );
+  }
+
+  String _passwordDigest(String salt, String password) =>
+      sha256.convert(utf8.encode('$salt:$password')).toString();
+
   void _initMockData() {
+    _credentialsByPhone.clear();
     _exactLocationsByProductId.clear();
     _reservedListingPreviousStatus.clear();
     _blockedUserPairs.clear();
@@ -140,6 +650,13 @@ class AppState extends ChangeNotifier {
     _areaAlertSubscriptions.clear();
     _notificationSequence = 0;
     _orderSequence = 0;
+    _chatSequence = 0;
+    cartItems = [];
+    orders = [];
+    reviews = [];
+    conversations = [];
+    reports = [];
+    notifications = [];
     meetupAgreements.clear();
     users = [
       UserModel(
@@ -223,18 +740,9 @@ class AppState extends ChangeNotifier {
       ),
     ];
     _credentialsByPhone.addAll({
-      '0800000001': const _MockCredential(
-        userId: 'user_01',
-        password: 'password123',
-      ),
-      '0800000002': const _MockCredential(
-        userId: 'user_02',
-        password: 'password123',
-      ),
-      '0800000009': const _MockCredential(
-        userId: 'admin_01',
-        password: 'password123',
-      ),
+      '0800000001': _createCredential('user_01', 'password123'),
+      '0800000002': _createCredential('user_02', 'password123'),
+      '0800000009': _createCredential('admin_01', 'password123'),
     });
     currentUser = users.first;
     _areaAlertSubscriptions['user_01'] = AreaAlertSubscription(
@@ -806,21 +1314,21 @@ class AppState extends ChangeNotifier {
       final average =
           userReviews.fold<int>(0, (total, review) => total + review.rating) /
           userReviews.length;
-      return user.copyWith(
-        rating: average,
-        reviewCount: userReviews.length,
-      );
+      return user.copyWith(rating: average, reviewCount: userReviews.length);
     }).toList();
 
     products = products.map((product) {
-      final seller = users.where((user) => user.id == product.sellerId).firstOrNull;
+      final seller = users
+          .where((user) => user.id == product.sellerId)
+          .firstOrNull;
       if (seller == null) return product;
       return product.copyWith(
         sellerRating: seller.rating,
         sellerReviewCount: seller.reviewCount,
       );
     }).toList();
-    currentUser = users.where((user) => user.id == currentUser.id).firstOrNull ??
+    currentUser =
+        users.where((user) => user.id == currentUser.id).firstOrNull ??
         currentUser;
   }
 
@@ -846,7 +1354,10 @@ class AppState extends ChangeNotifier {
     if (status != OrderStatus.pending) {
       events.add(
         OrderEvent(
-          at: completedAt ?? cancelledAt ?? createdAt.add(const Duration(hours: 1)),
+          at:
+              completedAt ??
+              cancelledAt ??
+              createdAt.add(const Duration(hours: 1)),
           actorId: cancelledBy ?? buyerId,
           status: status,
         ),
@@ -971,7 +1482,8 @@ class AppState extends ChangeNotifier {
 
   bool loginWithPhoneAndPassword(String phone, String password) {
     final credential = _credentialsByPhone[phone];
-    if (credential == null || credential.password != password) {
+    if (credential == null ||
+        credential.passwordHash != _passwordDigest(credential.salt, password)) {
       lastLoginError = 'เบอร์โทรหรือรหัสผ่านไม่ถูกต้อง';
       return false;
     }
@@ -1008,10 +1520,7 @@ class AppState extends ChangeNotifier {
       role: UserRole.member,
     );
     users.add(user);
-    _credentialsByPhone[phone] = _MockCredential(
-      userId: user.id,
-      password: password,
-    );
+    _credentialsByPhone[phone] = _createCredential(user.id, password);
     currentUser = user;
     lastLoginError = null;
     notifyListeners();
@@ -1041,16 +1550,10 @@ class AppState extends ChangeNotifier {
   }
 
   void loginAsGuest() {
-    currentUser = UserModel(
-      id: 'guest_01',
-      name: 'ผู้เยี่ยมชม',
-      role: UserRole.guest,
-      rating: 0,
-      reviewCount: 0,
-      successfulDeals: 0,
-    );
+    currentUser = _guestUser();
     lastLoginError = null;
     notifyListeners();
+    if (_initialized) unawaited(flush());
   }
 
   bool get isCurrentUserSuspended => currentUser.isSuspended;
@@ -1110,11 +1613,11 @@ class AppState extends ChangeNotifier {
   int get unreadNotificationCount => !isLoggedIn
       ? 0
       : notifications
-          .where(
-            (notification) =>
-                notification.userId == currentUser.id && !notification.isRead,
-          )
-          .length;
+            .where(
+              (notification) =>
+                  notification.userId == currentUser.id && !notification.isRead,
+            )
+            .length;
 
   void markNotificationRead(String notificationId) {
     final index = notifications.indexWhere(
@@ -1123,7 +1626,9 @@ class AppState extends ChangeNotifier {
           notification.userId == currentUser.id,
     );
     if (index == -1 || notifications[index].isRead) return;
-    notifications[index] = notifications[index].copyWith(readAt: DateTime.now());
+    notifications[index] = notifications[index].copyWith(
+      readAt: DateTime.now(),
+    );
     notifyListeners();
   }
 
@@ -1193,10 +1698,7 @@ class AppState extends ChangeNotifier {
     );
   }
 
-  void _notifyOrderParticipants(
-    OrderModel order, {
-    required String body,
-  }) {
+  void _notifyOrderParticipants(OrderModel order, {required String body}) {
     for (final userId in {order.buyerId, order.sellerId}) {
       _notifyUser(
         userId: userId,
@@ -1218,8 +1720,7 @@ class AppState extends ChangeNotifier {
       return normalized.isEmpty ||
           user.name.toLowerCase().contains(normalized) ||
           user.phone.contains(normalized);
-    }).toList()
-      ..sort((a, b) => a.name.compareTo(b.name));
+    }).toList()..sort((a, b) => a.name.compareTo(b.name));
     return AdminQueryResult.success(List.unmodifiable(result));
   }
 
@@ -1696,7 +2197,9 @@ class AppState extends ChangeNotifier {
         .where((item) => item.sellerId == sellerId)
         .toList();
     if (sellerCartItems.isEmpty) {
-      return const OrderCreationResult.failure('ไม่มีสินค้าของผู้ขายรายนี้ในตะกร้า');
+      return const OrderCreationResult.failure(
+        'ไม่มีสินค้าของผู้ขายรายนี้ในตะกร้า',
+      );
     }
     if (areUsersBlocked(currentUser.id, sellerId)) {
       return const OrderCreationResult.failure(
@@ -1709,7 +2212,9 @@ class AppState extends ChangeNotifier {
 
     final currentProducts = <ProductModel>[];
     for (final item in sellerCartItems) {
-      final current = products.where((product) => product.id == item.id).firstOrNull;
+      final current = products
+          .where((product) => product.id == item.id)
+          .firstOrNull;
       if (current == null ||
           current.sellerId != sellerId ||
           current.status != ListingStatus.active) {
@@ -1741,7 +2246,10 @@ class AppState extends ChangeNotifier {
             ),
           )
           .toList(growable: false),
-      totalPrice: currentProducts.fold(0, (total, product) => total + product.price),
+      totalPrice: currentProducts.fold(
+        0,
+        (total, product) => total + product.price,
+      ),
       paymentMethod: paymentMethod,
       pickupType: meetup?.pickupType ?? currentProducts.first.pickupType,
       agreedPlaceLabel: meetup?.placeLabel,
@@ -1749,7 +2257,13 @@ class AppState extends ChangeNotifier {
       meetupId: meetup?.id,
       createdAt: now,
       status: OrderStatus.pending,
-      events: [OrderEvent(at: now, actorId: currentUser.id, status: OrderStatus.pending)],
+      events: [
+        OrderEvent(
+          at: now,
+          actorId: currentUser.id,
+          status: OrderStatus.pending,
+        ),
+      ],
     );
 
     for (final product in currentProducts) {
@@ -1775,23 +2289,23 @@ class AppState extends ChangeNotifier {
     String sellerId,
     Set<String> productIds,
   ) {
-    final accepted = meetupAgreements.where((agreement) {
-      if (agreement.status != MeetupStatus.accepted ||
-          !productIds.contains(agreement.productId)) {
-        return false;
-      }
-      final conversation = conversations
-          .where((item) => item.id == agreement.conversationId)
-          .firstOrNull;
-      return conversation != null &&
-          conversation.buyerId == currentUser.id &&
-          conversation.sellerId == sellerId;
-    }).toList()
-      ..sort((a, b) {
-        final aAt = a.respondedAt ?? a.createdAt;
-        final bAt = b.respondedAt ?? b.createdAt;
-        return bAt.compareTo(aAt);
-      });
+    final accepted =
+        meetupAgreements.where((agreement) {
+          if (agreement.status != MeetupStatus.accepted ||
+              !productIds.contains(agreement.productId)) {
+            return false;
+          }
+          final conversation = conversations
+              .where((item) => item.id == agreement.conversationId)
+              .firstOrNull;
+          return conversation != null &&
+              conversation.buyerId == currentUser.id &&
+              conversation.sellerId == sellerId;
+        }).toList()..sort((a, b) {
+          final aAt = a.respondedAt ?? a.createdAt;
+          final bAt = b.respondedAt ?? b.createdAt;
+          return bAt.compareTo(aAt);
+        });
     return accepted.firstOrNull;
   }
 
@@ -1830,7 +2344,11 @@ class AppState extends ChangeNotifier {
       completedAt: now,
       events: [
         ...order.events,
-        OrderEvent(at: now, actorId: currentUser.id, status: OrderStatus.completed),
+        OrderEvent(
+          at: now,
+          actorId: currentUser.id,
+          status: OrderStatus.completed,
+        ),
       ],
     );
     for (final item in order.items) {
@@ -1872,7 +2390,11 @@ class AppState extends ChangeNotifier {
       cancelledAt: now,
       events: [
         ...order.events,
-        OrderEvent(at: now, actorId: currentUser.id, status: OrderStatus.cancelled),
+        OrderEvent(
+          at: now,
+          actorId: currentUser.id,
+          status: OrderStatus.cancelled,
+        ),
       ],
     );
     _restoreReservedProducts(order);
@@ -1915,7 +2437,11 @@ class AppState extends ChangeNotifier {
       previousStatus: order.status,
       events: [
         ...order.events,
-        OrderEvent(at: now, actorId: currentUser.id, status: OrderStatus.disputed),
+        OrderEvent(
+          at: now,
+          actorId: currentUser.id,
+          status: OrderStatus.disputed,
+        ),
       ],
     );
     reports.insert(
@@ -1938,9 +2464,10 @@ class AppState extends ChangeNotifier {
     return null;
   }
 
-  ReportReason _reportReasonFromLabel(String label) => ReportReason.values
-      .where((reason) => reason.label == label)
-      .firstOrNull ??
+  ReportReason _reportReasonFromLabel(String label) =>
+      ReportReason.values
+          .where((reason) => reason.label == label)
+          .firstOrNull ??
       ReportReason.other;
 
   String? submitReport({
@@ -1970,7 +2497,9 @@ class AppState extends ChangeNotifier {
       }
     }
     if (productId != null) {
-      final product = products.where((item) => item.id == productId).firstOrNull;
+      final product = products
+          .where((item) => item.id == productId)
+          .firstOrNull;
       if (product == null || product.sellerId != reportedUserId) {
         return 'สินค้าไม่ตรงกับผู้ใช้ที่ถูกรายงาน';
       }
@@ -2069,7 +2598,9 @@ class AppState extends ChangeNotifier {
         orders[orderIndex] = order.copyWith(
           status: nextStatus,
           cancelledBy: shouldCancel ? currentUser.id : order.cancelledBy,
-          cancelReason: shouldCancel ? 'ยกเลิกโดยผู้ดูแลหลังตรวจสอบรายงาน' : null,
+          cancelReason: shouldCancel
+              ? 'ยกเลิกโดยผู้ดูแลหลังตรวจสอบรายงาน'
+              : null,
           cancelledAt: shouldCancel ? now : order.cancelledAt,
           clearPreviousStatus: true,
           events: [
@@ -2202,9 +2733,8 @@ class AppState extends ChangeNotifier {
     }
     users = users
         .map(
-          (user) => user.copyWith(
-            successfulDeals: completedByUser[user.id] ?? 0,
-          ),
+          (user) =>
+              user.copyWith(successfulDeals: completedByUser[user.id] ?? 0),
         )
         .toList();
     currentUser =
@@ -2216,10 +2746,9 @@ class AppState extends ChangeNotifier {
       users.where((user) => user.id == userId).firstOrNull;
 
   List<ReviewModel> reviewsForUser(String userId) {
-    final result = reviews
-        .where((review) => review.revieweeId == userId)
-        .toList()
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final result =
+        reviews.where((review) => review.revieweeId == userId).toList()
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return result;
   }
 
@@ -2274,12 +2803,14 @@ class AppState extends ChangeNotifier {
       return null;
     }
     for (final item in order.items) {
-      final existing = conversations.where(
-        (conversation) =>
-            conversation.productId == item.productId &&
-            conversation.buyerId == order.buyerId &&
-            conversation.sellerId == order.sellerId,
-      ).firstOrNull;
+      final existing = conversations
+          .where(
+            (conversation) =>
+                conversation.productId == item.productId &&
+                conversation.buyerId == order.buyerId &&
+                conversation.sellerId == order.sellerId,
+          )
+          .firstOrNull;
       if (existing != null) return existing;
     }
     final product = products
@@ -2329,12 +2860,14 @@ class AppState extends ChangeNotifier {
     final order = orders.where((item) => item.id == orderId).firstOrNull;
     if (order == null || currentUser.id != order.buyerId) return null;
     for (final item in order.items) {
-      final conversation = conversations.where(
-        (chat) =>
-            chat.productId == item.productId &&
-            chat.buyerId == order.buyerId &&
-            chat.sellerId == order.sellerId,
-      ).firstOrNull;
+      final conversation = conversations
+          .where(
+            (chat) =>
+                chat.productId == item.productId &&
+                chat.buyerId == order.buyerId &&
+                chat.sellerId == order.sellerId,
+          )
+          .firstOrNull;
       if (conversation == null) continue;
       final address = conversation.messages
           .where(

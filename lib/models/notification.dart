@@ -1,3 +1,5 @@
+import '../utils/json_helpers.dart';
+
 enum AppNotificationType {
   newListingNearby,
   newMessage,
@@ -32,6 +34,35 @@ class AppNotification {
   });
 
   bool get isRead => readAt != null;
+
+  Map<String, Object?> toJson() => {
+    'id': id,
+    'userId': userId,
+    'type': type.name,
+    'title': title,
+    'body': body,
+    'refType': refType,
+    'refId': refId,
+    'createdAt': createdAt.toUtc().toIso8601String(),
+    'readAt': readAt?.toUtc().toIso8601String(),
+  };
+
+  factory AppNotification.fromJson(Map<String, dynamic> json) =>
+      AppNotification(
+        id: jsonString(json['id'], 'missing-notification'),
+        userId: jsonString(json['userId']),
+        type: jsonEnum(
+          AppNotificationType.values,
+          json['type'],
+          AppNotificationType.system,
+        ),
+        title: jsonString(json['title']),
+        body: jsonString(json['body']),
+        createdAt: jsonDateTime(json['createdAt']),
+        refType: json['refType'] is String ? json['refType'] as String : null,
+        refId: json['refId'] is String ? json['refId'] as String : null,
+        readAt: jsonNullableDateTime(json['readAt']),
+      );
 
   AppNotification copyWith({
     String? id,
