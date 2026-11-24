@@ -55,7 +55,6 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
 
   void _resendCode() {
     if (_resendSeconds > 0) return;
-    // TODO: Replace the mock resend action with an SMS provider.
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('ส่งรหัส OTP ใหม่แล้ว (โหมดทดสอบ)')),
     );

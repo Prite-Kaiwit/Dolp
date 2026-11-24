@@ -43,26 +43,24 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
   final List<Map<String, String>> _onboardingData = [
     {
       'title': 'ยินดีต้อนรับสู่ $appName',
-      'subtitle': appTagline,
-      'desc': 'ตลาดซื้อ ขาย แลกเปลี่ยน และแบ่งปันสิ่งของในชุมชนใกล้คุณ',
-      'icon': '🏘️',
-      'badge': 'ตลาดชุมชนใกล้บ้าน',
-    },
-    {
-      'title': 'ซื้อขายอย่างระมัดระวัง',
-      'subtitle': 'พูดคุยและตกลงรายละเอียดก่อนนัดรับ',
+      'subtitle': 'ตลาดชุมชนใกล้บ้าน',
       'desc':
-          'ตรวจสอบสินค้า นัดพบในสถานที่ที่เหมาะสม และเลือกวิธีชำระเงินที่ตกลงร่วมกัน',
-      'icon': '🤝',
-      'badge': 'ใส่ใจทุกขั้นตอน',
+          'เลือกพื้นที่ใกล้คุณ พบสินค้าที่ต้องการ และซื้อขายแลกเปลี่ยนกับคนในชุมชน',
+      'badge': 'ตลาดชุมชนใกล้บ้าน',
     },
     {
       'title': 'ค้นหาสิ่งของใกล้ตัว',
       'subtitle': 'นัดรับตามที่ตกลงกัน',
       'desc':
-          'เลือกพื้นที่ใกล้คุณ พูดคุยกับผู้ขาย แล้วนัดรับที่บ้านหรือสถานที่ที่ทั้งสองฝ่ายสะดวก',
-      'icon': '📍',
-      'badge': 'ตลาดของคนในชุมชน',
+          'เลือกสินค้าตามระยะที่คุณต้องการ พูดคุยกับผู้ขาย แล้วนัดรับในสถานที่สะดวก',
+      'badge': 'ตลาดของคนใกล้บ้าน',
+    },
+    {
+      'title': 'ซื้อขายอย่างระมัดระวัง',
+      'subtitle': 'พูดคุยและตกลงรายละเอียดก่อนนัดรับ',
+      'desc':
+          'ตรวจสอบสินค้า นัดพบในสถานที่ปลอดภัย และเลือกวิธีชำระเงินที่ตกลงร่วมกัน',
+      'badge': 'ใส่ใจทุกขั้นตอน',
     },
   ];
 
@@ -73,50 +71,60 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Top Bar with Skip & Guest Entry
+            // Header inspired by the community-app prototype
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final showTagline = constraints.maxWidth >= 360;
+                  return Row(
                     children: [
-                      const BrandLogo(size: 44),
-                      const SizedBox(width: 8),
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
+                      const BrandLogo(size: 50),
+                      if (showTagline) ...[
+                        const SizedBox(width: 10),
+                        Container(
+                          width: 1,
+                          height: 38,
+                          color: AppColors.grayLine,
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Text(
                             appTagline,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontSize: 11,
-                              color: AppColors.graySecondary,
+                              fontSize: 13,
+                              color: AppColors.deepNavy,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
-                        ],
+                        ),
+                        const SizedBox(width: 8),
+                      ] else
+                        const Spacer(),
+                      TextButton(
+                        onPressed: () {
+                          AppState().loginAsGuest();
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const MainNavigationScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'เข้าชมแบบ Guest >',
+                          style: TextStyle(
+                            color: AppColors.oceanBlue,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
                     ],
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      AppState().loginAsGuest();
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const MainNavigationScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'เข้าชมแบบ Guest >',
-                      style: TextStyle(
-                        color: AppColors.graySecondary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ],
+                  );
+                },
               ),
             ),
 
@@ -131,28 +139,17 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Large Graphic Icon Container
-                        Container(
-                          width: 170,
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
                           height: 170,
-                          decoration: BoxDecoration(
-                            color: AppColors.aquaPale,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.aquaLight,
-                              width: 3,
-                            ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              item['icon']!,
-                              style: const TextStyle(fontSize: 76),
-                            ),
+                          child: CustomPaint(
+                            painter: _OnboardingPainter(index),
                           ),
                         ),
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 12),
 
                         // Badge
                         Container(
@@ -309,4 +306,287 @@ class _SplashOnboardingScreenState extends State<SplashOnboardingScreen> {
       ),
     );
   }
+}
+
+class _OnboardingPainter extends CustomPainter {
+  const _OnboardingPainter(this.pageIndex);
+
+  final int pageIndex;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height * 0.54);
+    final paleBlue = Paint()..color = AppColors.aquaPale;
+    final blue = Paint()..color = AppColors.oceanBlue;
+    final green = Paint()..color = AppColors.successLight;
+    final greenDark = Paint()..color = AppColors.success;
+    final navy = Paint()
+      ..color = AppColors.deepNavy
+      ..strokeWidth = 5
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final blob = Path()
+      ..moveTo(size.width * 0.08, size.height * 0.58)
+      ..cubicTo(
+        size.width * 0.01,
+        size.height * 0.28,
+        size.width * 0.22,
+        size.height * 0.17,
+        size.width * 0.42,
+        size.height * 0.25,
+      )
+      ..cubicTo(
+        size.width * 0.63,
+        size.height * 0.34,
+        size.width * 0.71,
+        size.height * 0.05,
+        size.width * 0.91,
+        size.height * 0.24,
+      )
+      ..cubicTo(
+        size.width * 1.02,
+        size.height * 0.43,
+        size.width * 0.88,
+        size.height * 0.72,
+        size.width * 0.72,
+        size.height * 0.78,
+      )
+      ..cubicTo(
+        size.width * 0.48,
+        size.height * 0.88,
+        size.width * 0.24,
+        size.height * 0.78,
+        size.width * 0.08,
+        size.height * 0.58,
+      )
+      ..close();
+    canvas.drawPath(blob, paleBlue);
+
+    canvas.drawLine(
+      Offset(size.width * 0.08, size.height * 0.82),
+      Offset(size.width * 0.92, size.height * 0.82),
+      navy..strokeWidth = 4,
+    );
+
+    if (pageIndex == 0) {
+      _drawHouse(canvas, center, size, blue, green, greenDark, navy);
+    } else if (pageIndex == 1) {
+      _drawMap(canvas, center, size, blue, green, greenDark);
+    } else {
+      _drawHandshake(canvas, center, size, blue, green, greenDark);
+    }
+  }
+
+  void _drawHouse(
+    Canvas canvas,
+    Offset center,
+    Size size,
+    Paint blue,
+    Paint green,
+    Paint greenDark,
+    Paint navy,
+  ) {
+    final orange = Paint()..color = const Color(0xFFFF8A4C);
+    final wall = Paint()..color = AppColors.white;
+    final houseRect = Rect.fromCenter(
+      center: Offset(center.dx, size.height * 0.59),
+      width: size.width * 0.48,
+      height: size.height * 0.38,
+    );
+    canvas.drawRect(houseRect, wall);
+
+    final roof = Path()
+      ..moveTo(size.width * 0.21, size.height * 0.42)
+      ..lineTo(size.width * 0.50, size.height * 0.22)
+      ..lineTo(size.width * 0.79, size.height * 0.42)
+      ..lineTo(size.width * 0.74, size.height * 0.49)
+      ..lineTo(size.width * 0.50, size.height * 0.31)
+      ..lineTo(size.width * 0.26, size.height * 0.49)
+      ..close();
+    canvas.drawPath(roof, orange);
+
+    final doorRect = Rect.fromCenter(
+      center: Offset(center.dx, size.height * 0.68),
+      width: size.width * 0.12,
+      height: size.height * 0.22,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(doorRect, const Radius.circular(5)),
+      blue,
+    );
+    canvas.drawCircle(
+      Offset(center.dx - size.width * 0.026, size.height * 0.68),
+      3,
+      Paint()..color = AppColors.white,
+    );
+    canvas.drawCircle(
+      Offset(center.dx + size.width * 0.026, size.height * 0.68),
+      3,
+      Paint()..color = AppColors.white,
+    );
+
+    for (final x in [0.28, 0.66]) {
+      final windowRect = Rect.fromLTWH(
+        size.width * x,
+        size.height * 0.55,
+        size.width * 0.10,
+        size.height * 0.13,
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(windowRect, const Radius.circular(4)),
+        Paint()..color = AppColors.aqua,
+      );
+    }
+
+    canvas.drawCircle(
+      Offset(size.width * 0.11, size.height * 0.69),
+      size.height * 0.07,
+      green,
+    );
+    canvas.drawCircle(
+      Offset(size.width * 0.89, size.height * 0.69),
+      size.height * 0.07,
+      green,
+    );
+    canvas.drawLine(
+      Offset(size.width * 0.11, size.height * 0.69),
+      Offset(size.width * 0.11, size.height * 0.82),
+      navy..strokeWidth = 4,
+    );
+    canvas.drawLine(
+      Offset(size.width * 0.89, size.height * 0.69),
+      Offset(size.width * 0.89, size.height * 0.82),
+      navy..strokeWidth = 4,
+    );
+  }
+
+  void _drawMap(
+    Canvas canvas,
+    Offset center,
+    Size size,
+    Paint blue,
+    Paint green,
+    Paint greenDark,
+  ) {
+    final map = Paint()..color = AppColors.white;
+    final mapRect = Rect.fromCenter(
+      center: Offset(center.dx, size.height * 0.58),
+      width: size.width * 0.64,
+      height: size.height * 0.30,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(mapRect, const Radius.circular(12)),
+      map,
+    );
+    final road = Paint()
+      ..color = AppColors.aqua
+      ..strokeWidth = 8
+      ..style = PaintingStyle.stroke;
+    final path = Path()
+      ..moveTo(size.width * 0.22, size.height * 0.66)
+      ..lineTo(size.width * 0.40, size.height * 0.56)
+      ..lineTo(size.width * 0.55, size.height * 0.67)
+      ..lineTo(size.width * 0.78, size.height * 0.52);
+    canvas.drawPath(path, road);
+
+    final pin = Paint()..color = const Color(0xFFFF5252);
+    canvas.drawCircle(
+      Offset(center.dx, size.height * 0.48),
+      size.height * 0.07,
+      pin,
+    );
+    final pinPath = Path()
+      ..moveTo(center.dx - size.width * 0.06, size.height * 0.48)
+      ..lineTo(center.dx, size.height * 0.70)
+      ..lineTo(center.dx + size.width * 0.06, size.height * 0.48)
+      ..close();
+    canvas.drawPath(pinPath, pin);
+    canvas.drawCircle(
+      Offset(center.dx, size.height * 0.47),
+      size.height * 0.025,
+      Paint()..color = AppColors.white,
+    );
+
+    canvas.drawCircle(
+      Offset(size.width * 0.12, size.height * 0.68),
+      size.height * 0.055,
+      green,
+    );
+    canvas.drawCircle(
+      Offset(size.width * 0.88, size.height * 0.68),
+      size.height * 0.055,
+      green,
+    );
+  }
+
+  void _drawHandshake(
+    Canvas canvas,
+    Offset center,
+    Size size,
+    Paint blue,
+    Paint green,
+    Paint greenDark,
+  ) {
+    final orange = Paint()..color = const Color(0xFFFFB07C);
+    final darkBlue = Paint()..color = const Color(0xFF2057A3);
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          size.width * 0.17,
+          size.height * 0.46,
+          size.width * 0.20,
+          size.height * 0.12,
+        ),
+        const Radius.circular(8),
+      ),
+      blue,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          size.width * 0.63,
+          size.height * 0.46,
+          size.width * 0.20,
+          size.height * 0.12,
+        ),
+        const Radius.circular(8),
+      ),
+      darkBlue,
+    );
+
+    final hand = RRect.fromRectAndRadius(
+      Rect.fromCenter(
+        center: Offset(center.dx, size.height * 0.58),
+        width: size.width * 0.42,
+        height: size.height * 0.13,
+      ),
+      const Radius.circular(20),
+    );
+    canvas.drawRRect(hand, orange);
+    canvas.drawLine(
+      Offset(size.width * 0.34, size.height * 0.58),
+      Offset(size.width * 0.66, size.height * 0.58),
+      Paint()
+        ..color = const Color(0xFFEF8A58)
+        ..strokeWidth = 5
+        ..strokeCap = StrokeCap.round,
+    );
+
+    canvas.drawCircle(
+      Offset(size.width * 0.12, size.height * 0.68),
+      size.height * 0.055,
+      green,
+    );
+    canvas.drawCircle(
+      Offset(size.width * 0.88, size.height * 0.68),
+      size.height * 0.055,
+      green,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _OnboardingPainter oldDelegate) =>
+      oldDelegate.pageIndex != pageIndex;
 }

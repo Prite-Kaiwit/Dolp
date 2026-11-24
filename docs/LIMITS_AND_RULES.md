@@ -64,8 +64,8 @@ applicable; UI limits are not a substitute for server-side validation.
   seller, suspended users, and blocked pairs.
 - In-app notifications have per-user read state; unread messages in a chat are
   aggregated to one notification per recipient/conversation.
-- Push notifications and background delivery are not implemented. State is
-  in-memory and resets on restart.
+- Push notifications and background delivery are not implemented. Other
+  prototype state persists locally; it does not sync to a backend.
 
 ## Other prototype constraints
 
