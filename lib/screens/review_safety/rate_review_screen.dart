@@ -137,9 +137,9 @@ class _RateReviewScreenState extends State<RateReviewScreen> {
                   comment: _commentController.text,
                 );
                 if (error != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(error)),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(error)));
                   return;
                 }
                 ScaffoldMessenger.of(context).showSnackBar(

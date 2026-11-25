@@ -52,10 +52,7 @@ class NotificationsScreen extends StatelessWidget {
                   SizedBox(height: 12),
                   Text(
                     'ยังไม่มีการแจ้งเตือน',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ],
               ),
@@ -135,19 +132,13 @@ class NotificationsScreen extends StatelessWidget {
       Icons.chat_bubble_outline_rounded,
       AppColors.info,
     ),
-    AppNotificationType.meetupProposed ||
-    AppNotificationType.meetupResponded => (
-      Icons.handshake_outlined,
-      AppColors.warningDark,
-    ),
+    AppNotificationType.meetupProposed || AppNotificationType.meetupResponded =>
+      (Icons.handshake_outlined, AppColors.warningDark),
     AppNotificationType.orderStatusChanged => (
       Icons.receipt_long_outlined,
       AppColors.oceanBlue,
     ),
-    AppNotificationType.reportUpdated => (
-      Icons.flag_outlined,
-      AppColors.error,
-    ),
+    AppNotificationType.reportUpdated => (Icons.flag_outlined, AppColors.error),
     AppNotificationType.system => (
       Icons.notifications_outlined,
       AppColors.deepNavy,

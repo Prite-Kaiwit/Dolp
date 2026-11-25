@@ -31,11 +31,9 @@ class _AreaAlertSettingsScreenState extends State<AreaAlertSettingsScreen> {
       _categories = subscription.categories.toSet();
       _initialized = true;
     }
-    final categories = appState.products
-        .map((product) => product.category)
-        .toSet()
-        .toList()
-      ..sort();
+    final categories =
+        appState.products.map((product) => product.category).toSet().toList()
+          ..sort();
     return Scaffold(
       appBar: AppBar(title: const Text('แจ้งเตือนสินค้าใกล้พื้นที่')),
       body: ListView(
@@ -103,9 +101,9 @@ class _AreaAlertSettingsScreenState extends State<AreaAlertSettingsScreen> {
                 categories: _categories.toList(),
               );
               if (error != null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(error)),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(error)));
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('บันทึกการตั้งค่าแล้ว')),

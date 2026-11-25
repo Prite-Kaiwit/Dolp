@@ -45,7 +45,8 @@ Future<void> shareOrderMeetupPlan(AppState appState, OrderModel order) async {
       : order.buyerId;
   final partner = appState.userById(otherUserId);
   final title = order.items.map((item) => item.title).join(', ');
-  final place = order.agreedPlaceLabel ??
+  final place =
+      order.agreedPlaceLabel ??
       (order.pickupType == PickupType.sellerHome
           ? 'บ้านผู้ขาย'
           : 'ยังไม่ได้ระบุสถานที่');

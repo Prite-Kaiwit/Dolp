@@ -130,9 +130,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     onTap: () => Navigator.push<void>(
                       context,
                       MaterialPageRoute<void>(
-                        builder: (_) => PublicUserProfileScreen(
-                          userId: peerUserId,
-                        ),
+                        builder: (_) =>
+                            PublicUserProfileScreen(userId: peerUserId),
                       ),
                     ),
                     child: Text(
@@ -155,9 +154,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     Navigator.push<void>(
                       context,
                       MaterialPageRoute<void>(
-                        builder: (_) => PublicUserProfileScreen(
-                          userId: peerUserId,
-                        ),
+                        builder: (_) =>
+                            PublicUserProfileScreen(userId: peerUserId),
                       ),
                     );
                   } else if (value == 'report') {
@@ -183,9 +181,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     value: 'profile',
                     child: Text('ดูโปรไฟล์ผู้ใช้'),
                   ),
-                  const PopupMenuItem(value: 'report', child: Text('รายงานผู้ใช้')),
+                  const PopupMenuItem(
+                    value: 'report',
+                    child: Text('รายงานผู้ใช้'),
+                  ),
                   if (!appState.isBlocked(peerUserId))
-                    const PopupMenuItem(value: 'block', child: Text('บล็อกผู้ใช้')),
+                    const PopupMenuItem(
+                      value: 'block',
+                      child: Text('บล็อกผู้ใช้'),
+                    ),
                   const PopupMenuItem(
                     value: 'safety',
                     child: Text('คำแนะนำก่อนนัดรับ'),
@@ -349,9 +353,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                         final appState = AppState();
                         await shareMeetupAgreement(
                           agreement: agreement,
-                          partnerName: appState
-                                  .userById(conversation.peerId)
-                                  ?.name ??
+                          partnerName:
+                              appState.userById(conversation.peerId)?.name ??
                               conversation.peerName,
                           productTitle: conversation.productTitle,
                         );

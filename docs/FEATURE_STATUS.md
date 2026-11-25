@@ -1,6 +1,6 @@
 # dolp feature status
 
-Status snapshot for the current `community-pivot` prototype after Phase 8
+Status snapshot for the current dolp prototype after Phase 8
 (local persistence). The repository has no source SRS document, so FR-01–FR-11
 below are a provisional crosswalk based on the phase requirements and current
 code, not a reconstruction of missing SRS wording. The implementation includes

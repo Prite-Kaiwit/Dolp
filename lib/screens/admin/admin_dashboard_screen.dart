@@ -33,7 +33,11 @@ class AdminDashboardScreen extends StatelessWidget {
             ),
             child: const Row(
               children: [
-                Icon(Icons.admin_panel_settings, size: 15, color: AppColors.successDark),
+                Icon(
+                  Icons.admin_panel_settings,
+                  size: 15,
+                  color: AppColors.successDark,
+                ),
                 SizedBox(width: 4),
                 Text(
                   'ผู้ดูแลระบบ',
@@ -66,8 +70,11 @@ class AdminDashboardScreen extends StatelessWidget {
               .where((product) => !product.createdAt.isBefore(today))
               .length;
           final counts = List<int>.generate(7, (index) {
-            final day = DateTime(now.year, now.month, now.day)
-                .subtract(Duration(days: 6 - index));
+            final day = DateTime(
+              now.year,
+              now.month,
+              now.day,
+            ).subtract(Duration(days: 6 - index));
             final nextDay = day.add(const Duration(days: 1));
             return appState.products
                 .where(
@@ -119,13 +126,48 @@ class AdminDashboardScreen extends StatelessWidget {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
-                  _metric('ผู้ใช้', '${appState.users.length}', Icons.people_outline, AppColors.oceanBlue),
-                  _metric('รายงานรอตรวจ', '$openReports', Icons.flag_outlined, AppColors.warningDark),
-                  _metric('ข้อพิพาทรอจัดการ', '$disputed', Icons.gavel_outlined, AppColors.error),
-                  _metric('ประกาศกำลังขาย', '$activeListings', Icons.storefront_outlined, AppColors.oceanBlue),
-                  _metric('สินค้าใหม่วันนี้', '$newToday', Icons.fiber_new_outlined, AppColors.aqua),
-                  _metric('ออเดอร์รอนัดรับ', '${appState.pendingOrderCount}', Icons.handshake_outlined, AppColors.warningDark),
-                  _metric('ออเดอร์สำเร็จ', '${appState.completedOrderCount}', Icons.task_alt_outlined, AppColors.successDark),
+                  _metric(
+                    'ผู้ใช้',
+                    '${appState.users.length}',
+                    Icons.people_outline,
+                    AppColors.oceanBlue,
+                  ),
+                  _metric(
+                    'รายงานรอตรวจ',
+                    '$openReports',
+                    Icons.flag_outlined,
+                    AppColors.warningDark,
+                  ),
+                  _metric(
+                    'ข้อพิพาทรอจัดการ',
+                    '$disputed',
+                    Icons.gavel_outlined,
+                    AppColors.error,
+                  ),
+                  _metric(
+                    'ประกาศกำลังขาย',
+                    '$activeListings',
+                    Icons.storefront_outlined,
+                    AppColors.oceanBlue,
+                  ),
+                  _metric(
+                    'สินค้าใหม่วันนี้',
+                    '$newToday',
+                    Icons.fiber_new_outlined,
+                    AppColors.aqua,
+                  ),
+                  _metric(
+                    'ออเดอร์รอนัดรับ',
+                    '${appState.pendingOrderCount}',
+                    Icons.handshake_outlined,
+                    AppColors.warningDark,
+                  ),
+                  _metric(
+                    'ออเดอร์สำเร็จ',
+                    '${appState.completedOrderCount}',
+                    Icons.task_alt_outlined,
+                    AppColors.successDark,
+                  ),
                 ],
               ),
               const SizedBox(height: 20),
@@ -142,9 +184,14 @@ class AdminDashboardScreen extends StatelessWidget {
                       const SizedBox(height: 12),
                       for (var index = 0; index < counts.length; index++)
                         _DailyBar(
-                          label: _dayLabel(now.subtract(Duration(days: 6 - index))),
+                          label: _dayLabel(
+                            now.subtract(Duration(days: 6 - index)),
+                          ),
                           count: counts[index],
-                          maxCount: counts.fold<int>(0, (a, b) => a > b ? a : b),
+                          maxCount: counts.fold<int>(
+                            0,
+                            (a, b) => a > b ? a : b,
+                          ),
                         ),
                     ],
                   ),
@@ -157,9 +204,14 @@ class AdminDashboardScreen extends StatelessWidget {
               ),
               Card(
                 child: ListTile(
-                  leading: const Icon(Icons.flag_outlined, color: AppColors.error),
+                  leading: const Icon(
+                    Icons.flag_outlined,
+                    color: AppColors.error,
+                  ),
                   title: const Text('รายงานและข้อพิพาท'),
-                  subtitle: Text('$openReports รายงานรอตรวจ · $disputed ข้อพิพาท'),
+                  subtitle: Text(
+                    '$openReports รายงานรอตรวจ · $disputed ข้อพิพาท',
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => Navigator.push<void>(
                     context,
@@ -171,7 +223,10 @@ class AdminDashboardScreen extends StatelessWidget {
               ),
               Card(
                 child: ListTile(
-                  leading: const Icon(Icons.manage_accounts_outlined, color: AppColors.oceanBlue),
+                  leading: const Icon(
+                    Icons.manage_accounts_outlined,
+                    color: AppColors.oceanBlue,
+                  ),
                   title: const Text('จัดการผู้ใช้'),
                   subtitle: const Text('ค้นหา ระงับ และปลดระงับบัญชี'),
                   trailing: const Icon(Icons.chevron_right),
@@ -227,8 +282,7 @@ class AdminDashboardScreen extends StatelessWidget {
     );
   }
 
-  String _dayLabel(DateTime value) =>
-      '${value.day}/${value.month}';
+  String _dayLabel(DateTime value) => '${value.day}/${value.month}';
 }
 
 class _DailyBar extends StatelessWidget {
@@ -249,7 +303,10 @@ class _DailyBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          SizedBox(width: 42, child: Text(label, style: const TextStyle(fontSize: 11))),
+          SizedBox(
+            width: 42,
+            child: Text(label, style: const TextStyle(fontSize: 11)),
+          ),
           Expanded(
             child: LinearProgressIndicator(
               value: fraction,
@@ -257,10 +314,7 @@ class _DailyBar extends StatelessWidget {
               backgroundColor: AppColors.aquaPale,
             ),
           ),
-          SizedBox(
-            width: 26,
-            child: Text('$count', textAlign: TextAlign.end),
-          ),
+          SizedBox(width: 26, child: Text('$count', textAlign: TextAlign.end)),
         ],
       ),
     );

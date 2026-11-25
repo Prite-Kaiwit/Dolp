@@ -21,9 +21,7 @@ void main() {
     originalProducts = List<ProductModel>.of(appState.products);
     originalOrders = List<OrderModel>.of(appState.orders);
     originalCart = List<ProductModel>.of(appState.cartItems);
-    originalNotifications = List<AppNotification>.of(
-      appState.notifications,
-    );
+    originalNotifications = List<AppNotification>.of(appState.notifications);
     appState.loginWithPhoneAndPassword('0800000001', 'password123');
     appState.updateCurrentUserArea(
       latitude: kDefaultCenter.lat,

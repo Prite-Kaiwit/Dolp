@@ -125,9 +125,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
       itemBuilder: (context, index) {
         final order = orders[index];
         final firstItem = order.items.first;
-        final otherPartyId = _showingPurchases
-            ? order.sellerId
-            : order.buyerId;
+        final otherPartyId = _showingPurchases ? order.sellerId : order.buyerId;
         final otherParty = appState.userById(otherPartyId);
         return Card(
           child: InkWell(

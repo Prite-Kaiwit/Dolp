@@ -26,10 +26,7 @@ class AdminRouteGuard extends StatelessWidget {
       body: Center(
         child: Text(
           'ไม่มีสิทธิ์เข้าถึงหน้านี้',
-          style: TextStyle(
-            color: AppColors.error,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold),
         ),
       ),
     );

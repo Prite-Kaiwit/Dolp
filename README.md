@@ -1,19 +1,65 @@
-# dolp
+# dolp — ตลาดมือสองใกล้บ้าน
 
-A new Flutter project.
+dolp is a Flutter prototype of a neighborhood marketplace for selling, trading,
+and donating second-hand items. Buyers find listings within a chosen radius,
+chat with the seller, agree on a meetup, and pay cash or transfer at handover.
 
-## Getting Started
+> **Prototype only.** There is no backend. Data is stored locally on the
+> device, OTP and credentials are mocks, and admin checks run in the client.
+> See [docs/FEATURE_STATUS.md](docs/FEATURE_STATUS.md) for what is and isn't
+> implemented.
 
-This project is a starting point for a Flutter application.
+## Features
 
-A few resources to get you started if this is your first Flutter project:
+- Phone sign-in and registration (mock OTP `123456`), plus guest browsing
+- Nearby listings by distance/radius on an OpenStreetMap map; public listing
+  locations are offset ~100–300 m for privacy
+- Sale, trade, and donation listings with photos
+- Buyer–seller chat with images, meetup proposals, and address sharing after
+  an accepted agreement
+- Cart with one order per seller; items are reserved until completion or
+  cancellation
+- Reviews, blocking, reports, disputes, and account suspension
+- In-app notifications and area alerts for new nearby listings
+- Admin dashboard for users, reports, and disputes
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Getting started
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-"# Dolp" 
-"# Dolp" 
+Requires the Flutter SDK (Dart `^3.12.1`).
+
+```sh
+flutter pub get
+flutter run
+```
+
+Test accounts (password `password123`): member `0800000001`, seller
+`0800000002`, admin `0800000009`. Details in
+[docs/TEST_ACCOUNTS.md](docs/TEST_ACCOUNTS.md).
+
+## Checks
+
+```sh
+flutter analyze
+flutter test
+```
+
+## Project layout
+
+| Path | Contents |
+|---|---|
+| `lib/state/` | `AppState`, the single app-wide `ChangeNotifier`. The core file holds fields, persistence, and lifecycle; feature logic lives in `part` files (`app_state_auth`, `_listings`, `_orders`, `_chat`, `_notifications`, `_trust_safety`, `_seed`). |
+| `lib/models/` | Typed models with JSON serialization |
+| `lib/persistence/` | Pluggable stores: in-memory (tests) and SharedPreferences + media files (app) |
+| `lib/screens/` | UI by area: auth, home, chat, order, profile, review_safety, admin |
+| `lib/widgets/` | Shared widgets (product card, map, location picker, …) |
+| `lib/constants/` | Limits and app constants |
+| `test/` | Unit and widget tests |
+| `docs/` | Data model, feature status, business rules, test accounts |
+
+## Documentation
+
+- [Data model](docs/DATA_MODEL.md)
+- [Feature status](docs/FEATURE_STATUS.md)
+- [Limits and business rules](docs/LIMITS_AND_RULES.md)
+- [Test accounts](docs/TEST_ACCOUNTS.md)
+- [Survey (24 Nov 2026 snapshot, written under the former name MoorMarket)](docs/MOORMARKET_CURRENT_SURVEY.md)

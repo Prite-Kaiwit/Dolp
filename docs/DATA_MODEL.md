@@ -67,7 +67,9 @@ conversations, meetup agreements, suggested spots, notifications, phone
 credentials, private listing locations, prior listing status while reserved,
 block pairs, suspension reasons, safety acknowledgments, area-alert
 subscriptions, and sequence counters. Mutations and their
-authorization/validation checks are centralized in AppState methods. A
+authorization/validation checks are centralized in AppState methods, which
+are grouped by feature into `part` files under `lib/state/` (auth,
+notifications, listings, orders, chat, trust & safety, and seed data). A
 logged-in user ID is restored on restart; Guest sessions are not persisted.
 OTP state is temporary and is never stored.
 

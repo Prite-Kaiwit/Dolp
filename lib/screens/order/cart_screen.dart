@@ -94,7 +94,8 @@ class CartScreen extends StatelessWidget {
                       (sum, item) => sum + item.price,
                     );
                     final unavailable = items.any(
-                      (item) => appState.cartItemUnavailableReason(item) != null,
+                      (item) =>
+                          appState.cartItemUnavailableReason(item) != null,
                     );
                     final first = items.first;
                     final distance = distanceKm(
@@ -161,9 +162,10 @@ class CartScreen extends StatelessWidget {
                                             ),
                                           ),
                                           if (appState
-                                              .cartItemUnavailableReason(
-                                                item,
-                                              ) case final reason?)
+                                                  .cartItemUnavailableReason(
+                                                    item,
+                                                  )
+                                              case final reason?)
                                             Text(
                                               reason,
                                               style: const TextStyle(
@@ -208,17 +210,14 @@ class CartScreen extends StatelessWidget {
                                 onPressed: unavailable
                                     ? null
                                     : () => Navigator.push(
-                                          context,
-                                          MaterialPageRoute<void>(
-                                            builder: (_) =>
-                                                OrderSummaryScreen(
-                                                  sellerId: sellerId,
-                                                ),
+                                        context,
+                                        MaterialPageRoute<void>(
+                                          builder: (_) => OrderSummaryScreen(
+                                            sellerId: sellerId,
                                           ),
                                         ),
-                                child: const Text(
-                                  'ตกลงซื้อกับผู้ขายนี้',
-                                ),
+                                      ),
+                                child: const Text('ตกลงซื้อกับผู้ขายนี้'),
                               ),
                             ),
                           ],

@@ -15,10 +15,13 @@ class MyReportsScreen extends StatelessWidget {
       body: ListenableBuilder(
         listenable: appState,
         builder: (context, _) {
-          final reports = appState.reports
-              .where((report) => report.reporterId == appState.currentUser.id)
-              .toList()
-            ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          final reports =
+              appState.reports
+                  .where(
+                    (report) => report.reporterId == appState.currentUser.id,
+                  )
+                  .toList()
+                ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
           if (reports.isEmpty) {
             return const Center(child: Text('ยังไม่มีรายงาน'));
           }
@@ -68,7 +71,9 @@ class _ReportCard extends StatelessWidget {
                 Text(
                   isOpen ? 'รอตรวจสอบ' : 'ปิดแล้ว',
                   style: TextStyle(
-                    color: isOpen ? AppColors.warningDark : AppColors.successDark,
+                    color: isOpen
+                        ? AppColors.warningDark
+                        : AppColors.successDark,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

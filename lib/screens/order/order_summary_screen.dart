@@ -32,7 +32,9 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
               .where((item) => item.sellerId == widget.sellerId)
               .toList();
           if (items.isEmpty) {
-            return const Center(child: Text('รายการนี้ไม่มีสินค้าในตะกร้าแล้ว'));
+            return const Center(
+              child: Text('รายการนี้ไม่มีสินค้าในตะกร้าแล้ว'),
+            );
           }
           final sellerName = items.first.sellerName;
           final total = items.fold<double>(0, (sum, item) => sum + item.price);
@@ -73,7 +75,9 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
                               ),
                               if (meetup != null) ...[
                                 Text('สถานที่: ${meetup.placeLabel}'),
-                                Text('เวลา: ${_formatDateTime(meetup.scheduledAt)}'),
+                                Text(
+                                  'เวลา: ${_formatDateTime(meetup.scheduledAt)}',
+                                ),
                               ] else ...[
                                 const Text('ยังไม่ได้นัดรับ ไปตกลงในแชท'),
                                 Align(
@@ -202,9 +206,11 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
           ),
         ),
         title: Text(item.title, maxLines: 2, overflow: TextOverflow.ellipsis),
-        subtitle: Text(item.type == ListingType.donate
-            ? 'ฟรี'
-            : '฿${item.price.toStringAsFixed(2)}'),
+        subtitle: Text(
+          item.type == ListingType.donate
+              ? 'ฟรี'
+              : '฿${item.price.toStringAsFixed(2)}',
+        ),
       ),
     );
   }
@@ -230,7 +236,9 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   String _formatDateTime(DateTime value) {

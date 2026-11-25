@@ -147,7 +147,9 @@ class OrderStatusScreen extends StatelessWidget {
                         if (order.agreedPlaceLabel != null)
                           Text('สถานที่: ${order.agreedPlaceLabel}'),
                         if (order.agreedTime != null)
-                          Text('เวลานัด: ${_formatDateTime(order.agreedTime!)}'),
+                          Text(
+                            'เวลานัด: ${_formatDateTime(order.agreedTime!)}',
+                          ),
                         if (order.cancelReason != null)
                           Text(
                             'เหตุผลยกเลิก: ${order.cancelReason}',
@@ -205,7 +207,8 @@ class OrderStatusScreen extends StatelessWidget {
                     child: const Text('ยืนยันส่งมอบ'),
                   ),
                   OutlinedButton(
-                    onPressed: () => _showCancelDialog(context, appState, order),
+                    onPressed: () =>
+                        _showCancelDialog(context, appState, order),
                     child: const Text('ยกเลิก'),
                   ),
                 ],
@@ -217,7 +220,8 @@ class OrderStatusScreen extends StatelessWidget {
                   ),
                 if (order.status == OrderStatus.pending && isBuyer)
                   OutlinedButton(
-                    onPressed: () => _showCancelDialog(context, appState, order),
+                    onPressed: () =>
+                        _showCancelDialog(context, appState, order),
                     child: const Text('ยกเลิก'),
                   ),
                 if (hasDisputeWindow && isParticipant)
@@ -268,10 +272,7 @@ class OrderStatusScreen extends StatelessWidget {
   Widget _buildTimeline(OrderModel order) {
     final steps = [
       ('ตกลงแล้ว', true),
-      (
-        'นัดรับ',
-        order.meetupId != null || order.agreedPlaceLabel != null,
-      ),
+      ('นัดรับ', order.meetupId != null || order.agreedPlaceLabel != null),
       ('รับของแล้ว', order.handedOverAt != null || order.completedAt != null),
       ('รีวิว', order.status == OrderStatus.completed),
     ];
@@ -359,10 +360,8 @@ class OrderStatusScreen extends StatelessWidget {
                 initialValue: reason,
                 items: reasons
                     .map(
-                      (value) => DropdownMenuItem(
-                        value: value,
-                        child: Text(value),
-                      ),
+                      (value) =>
+                          DropdownMenuItem(value: value, child: Text(value)),
                     )
                     .toList(),
                 onChanged: (value) {
@@ -425,7 +424,9 @@ class OrderStatusScreen extends StatelessWidget {
   void _showResult(BuildContext context, String? error, String success) {
     final message = error ?? success;
     if (message.isEmpty) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   String _formatDateTime(DateTime value) {

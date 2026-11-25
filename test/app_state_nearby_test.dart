@@ -37,9 +37,7 @@ void main() {
         )
         .toList();
     expect(seedDistances.reduce((a, b) => a < b ? a : b), lessThan(1));
-    final farthestSeedDistance = seedDistances.reduce(
-      (a, b) => a > b ? a : b,
-    );
+    final farthestSeedDistance = seedDistances.reduce((a, b) => a > b ? a : b);
     expect(farthestSeedDistance, greaterThan(13));
     expect(farthestSeedDistance, lessThan(15.5));
 
@@ -121,9 +119,7 @@ void main() {
     final ownerLocation = appState.getExactLocationFor('prod_1', 'user_02');
     expect(ownerLocation, isNotNull);
     expect(ownerLocation!.exactAddress, contains('ตัวอย่าง'));
-    final product = appState.products.firstWhere(
-      (item) => item.id == 'prod_1',
-    );
+    final product = appState.products.firstWhere((item) => item.id == 'prod_1');
     expect(
       distanceKm(
             GeoLocation(ownerLocation.exactLat, ownerLocation.exactLng),

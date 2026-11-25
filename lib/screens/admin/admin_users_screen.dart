@@ -34,7 +34,9 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         builder: (context, _) {
           final result = appState.adminUsers(query: _searchController.text);
           if (!result.isSuccess) {
-            return Center(child: Text(result.error ?? 'โหลดข้อมูลผู้ใช้ไม่ได้'));
+            return Center(
+              child: Text(result.error ?? 'โหลดข้อมูลผู้ใช้ไม่ได้'),
+            );
           }
           final users = result.value!;
           return Column(
@@ -132,15 +134,15 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     controller.dispose();
     if (reason == null || !context.mounted) return;
     final error = appState.suspendUser(user.id, reason);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error ?? 'ระงับบัญชีแล้ว')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(error ?? 'ระงับบัญชีแล้ว')));
   }
 
   void _unsuspend(BuildContext context, AppState appState, String userId) {
     final error = appState.unsuspendUser(userId);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error ?? 'ปลดระงับบัญชีแล้ว')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(error ?? 'ปลดระงับบัญชีแล้ว')));
   }
 }

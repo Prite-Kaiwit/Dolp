@@ -51,11 +51,15 @@ class _AdminDisputesScreenState extends State<AdminDisputesScreen>
             controller: _tabs,
             children: [
               _reportList(
-                reports.where((report) => report.status == ReportStatus.open).toList(),
+                reports
+                    .where((report) => report.status == ReportStatus.open)
+                    .toList(),
                 appState,
               ),
               _reportList(
-                reports.where((report) => report.status != ReportStatus.open).toList(),
+                reports
+                    .where((report) => report.status != ReportStatus.open)
+                    .toList(),
                 appState,
               ),
             ],
@@ -78,8 +82,8 @@ class _AdminDisputesScreenState extends State<AdminDisputesScreen>
         final order = report.orderId == null
             ? null
             : appState.orders
-                .where((item) => item.id == report.orderId)
-                .firstOrNull;
+                  .where((item) => item.id == report.orderId)
+                  .firstOrNull;
         return Card(
           child: ListTile(
             title: Text(report.reason.label),
@@ -170,10 +174,8 @@ class _AdminDisputesScreenState extends State<AdminDisputesScreen>
               child: const Text('กลับ'),
             ),
             ElevatedButton(
-              onPressed: () => Navigator.pop(
-                dialogContext,
-                (action, noteController.text),
-              ),
+              onPressed: () =>
+                  Navigator.pop(dialogContext, (action, noteController.text)),
               child: const Text('บันทึกผล'),
             ),
           ],
@@ -187,9 +189,9 @@ class _AdminDisputesScreenState extends State<AdminDisputesScreen>
       action: result.$1,
       adminNote: result.$2,
     );
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error ?? 'บันทึกผลการตรวจสอบแล้ว')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(error ?? 'บันทึกผลการตรวจสอบแล้ว')));
   }
 
   void _showDetails(
@@ -211,8 +213,11 @@ class _AdminDisputesScreenState extends State<AdminDisputesScreen>
               const SizedBox(height: 10),
               Text('สถานะ: ${report.status.label}'),
               if (report.adminId != null)
-                Text('ผู้ดำเนินการ: ${appState.userById(report.adminId!)?.name ?? report.adminId}'),
-              if (report.adminNote != null) Text('บันทึกแอดมิน: ${report.adminNote}'),
+                Text(
+                  'ผู้ดำเนินการ: ${appState.userById(report.adminId!)?.name ?? report.adminId}',
+                ),
+              if (report.adminNote != null)
+                Text('บันทึกแอดมิน: ${report.adminNote}'),
             ],
           ),
         ),
@@ -236,8 +241,8 @@ class _AdminDisputesScreenState extends State<AdminDisputesScreen>
     final product = report.productId == null
         ? null
         : appState.products
-            .where((item) => item.id == report.productId)
-            .firstOrNull;
+              .where((item) => item.id == report.productId)
+              .firstOrNull;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

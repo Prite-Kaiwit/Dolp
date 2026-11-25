@@ -65,10 +65,7 @@ class _ReportScreenState extends State<ReportScreen> {
 
     if (error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: AppColors.error,
-          content: Text(error),
-        ),
+        SnackBar(backgroundColor: AppColors.error, content: Text(error)),
       );
       return;
     }

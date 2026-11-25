@@ -15,7 +15,8 @@ class BlockedUsersScreen extends StatelessWidget {
         listenable: appState,
         builder: (context, _) {
           final users = appState.blockedUsersForCurrentUser();
-          if (users.isEmpty) return const Center(child: Text('ไม่มีผู้ใช้ที่บล็อก'));
+          if (users.isEmpty)
+            return const Center(child: Text('ไม่มีผู้ใช้ที่บล็อก'));
           return ListView.builder(
             itemCount: users.length,
             itemBuilder: (context, index) {
@@ -30,9 +31,9 @@ class BlockedUsersScreen extends StatelessWidget {
                   onPressed: () {
                     final error = appState.unblockUser(user.id);
                     if (error != null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(error)),
-                      );
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(error)));
                     }
                   },
                   child: const Text('ปลดบล็อก'),

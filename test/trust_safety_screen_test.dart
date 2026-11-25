@@ -55,42 +55,38 @@ void main() {
     tester,
   ) async {
     appState.currentUser = appState.userById('admin_01')!;
-    await tester.pumpWidget(
-      const MaterialApp(home: AdminDashboardScreen()),
-    );
+    await tester.pumpWidget(const MaterialApp(home: AdminDashboardScreen()));
     await tester.pumpAndSettle();
     expect(find.text('ผู้ใช้'), findsOneWidget);
     expect(find.text('${appState.users.length}'), findsAtLeastNWidgets(1));
-    expect(
-      find.text('${appState.pendingOrderCount}'),
-      findsAtLeastNWidgets(1),
-    );
+    expect(find.text('${appState.pendingOrderCount}'), findsAtLeastNWidgets(1));
     expect(
       find.text('${appState.completedOrderCount}'),
       findsAtLeastNWidgets(1),
     );
   });
 
-  testWidgets('area alert settings save the selected radius and enabled state', (
-    tester,
-  ) async {
-    appState.currentUser = appState.userById('user_01')!;
-    await tester.pumpWidget(
-      const MaterialApp(home: AreaAlertSettingsScreen()),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.byType(SwitchListTile));
-    await tester.pump();
-    await tester.drag(find.byType(Slider), const Offset(130, 0));
-    await tester.pump();
-    await tester.drag(find.byType(ListView), const Offset(0, -900));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('บันทึกการตั้งค่า'));
-    await tester.pumpAndSettle();
-    final subscription = appState.areaAlertSubscriptionFor('user_01');
-    expect(subscription.enabled, isFalse);
-    expect(subscription.radiusKm, greaterThan(5));
-  });
+  testWidgets(
+    'area alert settings save the selected radius and enabled state',
+    (tester) async {
+      appState.currentUser = appState.userById('user_01')!;
+      await tester.pumpWidget(
+        const MaterialApp(home: AreaAlertSettingsScreen()),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(SwitchListTile));
+      await tester.pump();
+      await tester.drag(find.byType(Slider), const Offset(130, 0));
+      await tester.pump();
+      await tester.drag(find.byType(ListView), const Offset(0, -900));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('บันทึกการตั้งค่า'));
+      await tester.pumpAndSettle();
+      final subscription = appState.areaAlertSubscriptionFor('user_01');
+      expect(subscription.enabled, isFalse);
+      expect(subscription.radiusKm, greaterThan(5));
+    },
+  );
 
   testWidgets('public profile hides phone and area and exposes trust details', (
     tester,

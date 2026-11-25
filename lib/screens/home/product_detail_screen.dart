@@ -296,10 +296,9 @@ class ProductDetailScreen extends StatelessWidget {
                                     onTap: () => Navigator.push(
                                       context,
                                       MaterialPageRoute<void>(
-                                        builder: (_) =>
-                                            PublicUserProfileScreen(
-                                              userId: product.sellerId,
-                                            ),
+                                        builder: (_) => PublicUserProfileScreen(
+                                          userId: product.sellerId,
+                                        ),
                                       ),
                                     ),
                                     child: Text(
@@ -577,9 +576,9 @@ class ProductDetailScreen extends StatelessWidget {
                 onPressed: () {
                   final error = appState.addToCart(product);
                   if (error != null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(error)),
-                    );
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(error)));
                     return;
                   }
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -627,9 +626,9 @@ class ProductDetailScreen extends StatelessWidget {
                     onPressed: () {
                       final error = appState.addToCart(product);
                       if (error != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(error)),
-                        );
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text(error)));
                         return;
                       }
                       Navigator.push(

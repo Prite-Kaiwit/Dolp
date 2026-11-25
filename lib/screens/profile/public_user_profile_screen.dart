@@ -139,9 +139,9 @@ class PublicUserProfileScreen extends StatelessWidget {
                               ? appState.unblockUser(user.id)
                               : appState.blockUser(user.id);
                           if (error != null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(error)),
-                            );
+                            ScaffoldMessenger.of(
+                              context,
+                            ).showSnackBar(SnackBar(content: Text(error)));
                           }
                         },
                         icon: const Icon(Icons.block_outlined),
