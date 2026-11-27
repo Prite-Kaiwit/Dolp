@@ -203,7 +203,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                         builder: (_) => ReportScreen(
                           targetUserId: peerUserId,
                           targetName: peerName,
-                          productId: conversation.productId,
+                          productId: conversation.isShopInquiry
+                              ? null
+                              : conversation.productId,
                         ),
                       ),
                     );

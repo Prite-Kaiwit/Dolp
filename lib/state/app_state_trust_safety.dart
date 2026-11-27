@@ -178,6 +178,7 @@ extension AppStateTrustSafety on AppState {
     String? orderId,
     String? productId,
   }) {
+    if (productId != null && productId.isEmpty) productId = null;
     final sessionError = _expireSuspendedSession();
     if (sessionError != null) return sessionError;
     if (!isLoggedIn) return 'เข้าสู่ระบบก่อนส่งรายงาน';

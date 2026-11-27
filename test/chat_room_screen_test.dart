@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moor_market/models/product.dart';
+import 'package:moor_market/models/report.dart';
 import 'package:moor_market/screens/chat/chat_room_screen.dart';
 import 'package:moor_market/state/app_state.dart';
 import 'package:moor_market/widgets/shop_badge.dart';
@@ -52,6 +53,25 @@ void main() {
       expect(field.controller!.text, 'ร่าง');
     },
   );
+
+  testWidgets('reporting a shop from an inquiry room succeeds', (tester) async {
+    final appState = AppState();
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
+    final shop = appState.users.firstWhere((u) => u.phone == '0800000011');
+    final conversation = appState.openShopInquiry(shop.id)!;
+    expect(conversation.productId, isEmpty);
+    final before = appState.reports.length;
+    expect(
+      appState.submitReport(
+        reportedUserId: shop.id,
+        reason: ReportReason.values.first,
+        detail: 'ทดสอบรายงานร้านค้า',
+        productId: conversation.productId,
+      ),
+      isNull,
+    );
+    expect(appState.reports.length, before + 1);
+  });
 
   testWidgets('product chat still shows product strip and meetup button', (
     tester,
