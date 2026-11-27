@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../models/user.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import 'phone_otp_screen.dart';
+import 'shop_setup_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -16,6 +18,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   bool _agreedToTerms = false;
+  AccountType _accountType = AccountType.person;
 
   bool get _formIsValid {
     final phone = _phoneController.text.trim();
@@ -32,6 +35,73 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
+  void _continue() {
+    final name = _nameController.text.trim();
+    final phone = _phoneController.text.trim();
+    if (_accountType == AccountType.person) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PhoneOtpScreen(name: name, phone: phone),
+        ),
+      );
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (setupContext) => ShopSetupScreen(
+          mode: ShopSetupMode.register,
+          onSubmitted: (profile) => Navigator.push(
+            setupContext,
+            MaterialPageRoute(
+              builder: (_) => PhoneOtpScreen(
+                name: name,
+                phone: phone,
+                accountType: AccountType.shop,
+                shop: profile,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _typeCard(AccountType type, String label, IconData icon) {
+    final selected = _accountType == type;
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => setState(() => _accountType = type),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.aquaPale : AppColors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: selected ? AppColors.oceanBlue : AppColors.grayLine,
+              width: selected ? 2 : 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, color: AppColors.oceanBlue),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,9 +114,30 @@ class _SignUpScreenState extends State<SignUpScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'ชื่อที่แสดง',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                Row(
+                  children: [
+                    _typeCard(
+                      AccountType.person,
+                      'บุคคลทั่วไป',
+                      Icons.person_outline_rounded,
+                    ),
+                    const SizedBox(width: 12),
+                    _typeCard(
+                      AccountType.shop,
+                      'ร้านค้า',
+                      Icons.storefront_outlined,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  _accountType == AccountType.shop
+                      ? 'ชื่อเจ้าของบัญชี'
+                      : 'ชื่อที่แสดง',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
                 ),
                 const SizedBox(height: 6),
                 TextFormField(
@@ -131,20 +222,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     onPressed: _formIsValid
                         ? () {
                             if (!_formKey.currentState!.validate()) return;
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => PhoneOtpScreen(
-                                  name: _nameController.text.trim(),
-                                  phone: _phoneController.text.trim(),
-                                ),
-                              ),
-                            );
+                            _continue();
                           }
                         : null,
-                    child: const Text(
-                      'ลงทะเบียนและรับรหัส OTP',
-                      style: TextStyle(
+                    child: Text(
+                      _accountType == AccountType.shop
+                          ? 'ถัดไป: ตั้งค่าร้าน'
+                          : 'ลงทะเบียนและรับรหัส OTP',
+                      style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),

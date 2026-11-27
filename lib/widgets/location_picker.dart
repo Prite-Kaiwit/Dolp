@@ -20,6 +20,7 @@ class LocationPicker extends StatefulWidget {
   final bool showExactAddressField;
   final bool showPrivacyNotice;
   final String locationLabelTitle;
+  final String title;
   final ValueChanged<LocationSelection> onChanged;
 
   const LocationPicker({
@@ -30,6 +31,7 @@ class LocationPicker extends StatefulWidget {
     this.showExactAddressField = true,
     this.showPrivacyNotice = true,
     this.locationLabelTitle = 'ย่านโดยประมาณ',
+    this.title = 'ตำแหน่งสินค้า',
     required this.onChanged,
   });
 
@@ -92,9 +94,9 @@ class _LocationPickerState extends State<LocationPicker> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'ตำแหน่งสินค้า',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        Text(
+          widget.title,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
         ),
         const SizedBox(height: 8),
         OutlinedButton.icon(

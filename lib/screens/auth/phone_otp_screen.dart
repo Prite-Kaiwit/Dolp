@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../auth/phone_auth_service.dart';
+import '../../models/shop_profile.dart';
+import '../../models/user.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../main_navigation_screen.dart';
@@ -11,8 +13,16 @@ import 'location_permission_screen.dart';
 class PhoneOtpScreen extends StatefulWidget {
   final String phone;
   final String? name;
+  final AccountType accountType;
+  final ShopProfile? shop;
 
-  const PhoneOtpScreen({super.key, required this.phone, this.name});
+  const PhoneOtpScreen({
+    super.key,
+    required this.phone,
+    this.name,
+    this.accountType = AccountType.person,
+    this.shop,
+  });
 
   bool get isRegistration => name != null;
 
@@ -126,6 +136,8 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
         name: widget.name!,
         phone: widget.phone,
         authUid: authUid,
+        accountType: widget.accountType,
+        shop: widget.shop,
       );
       if (!registered) {
         setState(() {

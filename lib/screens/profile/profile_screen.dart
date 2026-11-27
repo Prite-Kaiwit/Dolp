@@ -7,6 +7,7 @@ import '../../state/app_state.dart';
 import '../home/my_listings_screen.dart';
 import '../order/order_history_screen.dart';
 import '../admin/admin_dashboard_screen.dart';
+import '../auth/shop_setup_screen.dart';
 import '../auth/splash_onboarding_screen.dart';
 import 'area_alert_settings_screen.dart';
 import 'blocked_users_screen.dart';
@@ -100,7 +101,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        user.name,
+                        user.displayName,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -227,6 +228,35 @@ class ProfileScreen extends StatelessWidget {
                   },
                 ),
                 if (!isGuest) ...[
+                  if (user.isShop)
+                    _buildMenuItem(
+                      icon: Icons.storefront_outlined,
+                      title: 'แก้ไขข้อมูลร้าน',
+                      subtitle: 'ชื่อร้าน หมวดสินค้า ที่ตั้ง และเวลาเปิด-ปิด',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) => ShopSetupScreen(
+                            mode: ShopSetupMode.edit,
+                            initial: user.shop,
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    _buildMenuItem(
+                      icon: Icons.storefront_outlined,
+                      title: 'เปลี่ยนเป็นร้านค้า',
+                      subtitle: 'ให้ผู้ซื้อค้นหาและสอบถามร้านของคุณ',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) => const ShopSetupScreen(
+                            mode: ShopSetupMode.convert,
+                          ),
+                        ),
+                      ),
+                    ),
                   _buildMenuItem(
                     icon: Icons.notifications_active_outlined,
                     title: 'แจ้งเตือนในพื้นที่',
