@@ -8,10 +8,17 @@ import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/custom_search_bar.dart';
 import '../../widgets/product_card.dart';
+import '../../widgets/shop_result_card.dart';
+import '../auth/login_screen.dart';
+import '../chat/chat_room_screen.dart';
+import '../profile/shop_profile_screen.dart';
 import 'product_detail_screen.dart';
 
 class SearchFilterScreen extends StatefulWidget {
-  const SearchFilterScreen({super.key});
+  /// Source of "now" for shop opening status; defaults to [DateTime.now].
+  final DateTime Function()? clock;
+
+  const SearchFilterScreen({super.key, this.clock});
 
   @override
   State<SearchFilterScreen> createState() => _SearchFilterScreenState();
@@ -29,6 +36,9 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
   double _radiusKm = kDefaultRadiusKm;
   RangeValues _priceRange = _fullPriceRange;
   SortBy _sortBy = SortBy.nearest;
+  bool _shopsMode = false;
+  bool _openNowOnly = false;
+  SellerKind _sellerKind = SellerKind.all;
 
   @override
   void dispose() {
@@ -51,6 +61,19 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                 controller: _searchController,
                 onChanged: (_) => setState(() {}),
                 onFilterTap: _openFilterModal,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: SegmentedButton<bool>(
+                showSelectedIcon: false,
+                segments: const [
+                  ButtonSegment(value: false, label: Text('สินค้า')),
+                  ButtonSegment(value: true, label: Text('ร้านค้า')),
+                ],
+                selected: {_shopsMode},
+                onSelectionChanged: (value) =>
+                    setState(() => _shopsMode = value.first),
               ),
             ),
             SizedBox(
@@ -84,50 +107,77 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 children: [
-                  Row(
-                    children: [
-                      const Text(
-                        'เรียงตาม',
-                        style: TextStyle(
-                          color: AppColors.graySecondary,
-                          fontSize: 12,
+                  if (_shopsMode)
+                    Row(
+                      children: [
+                        FilterChip(
+                          label: const Text('เปิดอยู่ตอนนี้'),
+                          selected: _openNowOnly,
+                          selectedColor: AppColors.aquaPale,
+                          backgroundColor: AppColors.grayBg,
+                          labelStyle: const TextStyle(
+                            color: AppColors.deepNavy,
+                            fontSize: 12,
+                          ),
+                          showCheckmark: false,
+                          onSelected: (value) =>
+                              setState(() => _openNowOnly = value),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      DropdownButton<SortBy>(
-                        value: _sortBy,
-                        isDense: true,
-                        underline: const SizedBox.shrink(),
-                        items: const [
-                          DropdownMenuItem(
-                            value: SortBy.nearest,
-                            child: Text('ใกล้สุด'),
+                        const Spacer(),
+                        TextButton.icon(
+                          onPressed: _openFilterModal,
+                          icon: const Icon(Icons.tune_rounded, size: 18),
+                          label: const Text('ตัวกรอง'),
+                        ),
+                      ],
+                    )
+                  else ...[
+                    _buildSellerKindChips(),
+                    Row(
+                      children: [
+                        const Text(
+                          'เรียงตาม',
+                          style: TextStyle(
+                            color: AppColors.graySecondary,
+                            fontSize: 12,
                           ),
-                          DropdownMenuItem(
-                            value: SortBy.newest,
-                            child: Text('ใหม่สุด'),
-                          ),
-                          DropdownMenuItem(
-                            value: SortBy.priceAsc,
-                            child: Text('ราคาต่ำ-สูง'),
-                          ),
-                          DropdownMenuItem(
-                            value: SortBy.priceDesc,
-                            child: Text('ราคาสูง-ต่ำ'),
-                          ),
-                        ],
-                        onChanged: (value) {
-                          if (value != null) setState(() => _sortBy = value);
-                        },
-                      ),
-                      const Spacer(),
-                      TextButton.icon(
-                        onPressed: _openFilterModal,
-                        icon: const Icon(Icons.tune_rounded, size: 18),
-                        label: const Text('ตัวกรอง'),
-                      ),
-                    ],
-                  ),
+                        ),
+                        const SizedBox(width: 8),
+                        DropdownButton<SortBy>(
+                          value: _sortBy,
+                          isDense: true,
+                          underline: const SizedBox.shrink(),
+                          items: const [
+                            DropdownMenuItem(
+                              value: SortBy.nearest,
+                              child: Text('ใกล้สุด'),
+                            ),
+                            DropdownMenuItem(
+                              value: SortBy.newest,
+                              child: Text('ใหม่สุด'),
+                            ),
+                            DropdownMenuItem(
+                              value: SortBy.priceAsc,
+                              child: Text('ราคาต่ำ-สูง'),
+                            ),
+                            DropdownMenuItem(
+                              value: SortBy.priceDesc,
+                              child: Text('ราคาสูง-ต่ำ'),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            if (value != null) setState(() => _sortBy = value);
+                          },
+                        ),
+                        const Spacer(),
+                        TextButton.icon(
+                          onPressed: _openFilterModal,
+                          icon: const Icon(Icons.tune_rounded, size: 18),
+                          label: const Text('ตัวกรอง'),
+                        ),
+                      ],
+                    ),
+                  ],
                   _buildActiveFilters(),
                 ],
               ),
@@ -137,6 +187,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
               child: ListenableBuilder(
                 listenable: appState,
                 builder: (context, _) {
+                  if (_shopsMode) return _buildShopResults(appState);
                   final results = appState.productsNearby(
                     radiusKm: _radiusKm,
                     category: _selectedCategory == _all
@@ -149,6 +200,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                         : null,
                     query: _searchController.text,
                     sortBy: _sortBy,
+                    sellerKind: _sellerKind,
                   );
 
                   if (results.isEmpty) return _buildEmptyState();
@@ -191,6 +243,98 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
     );
   }
 
+  Widget _buildSellerKindChips() {
+    const options = [
+      (SellerKind.all, 'ทั้งหมด'),
+      (SellerKind.shops, 'เฉพาะร้านค้า'),
+      (SellerKind.people, 'เฉพาะบุคคล'),
+    ];
+    return SizedBox(
+      height: 40,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: [
+          for (final (kind, label) in options)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: FilterChip(
+                label: Text(label),
+                selected: _sellerKind == kind,
+                selectedColor: AppColors.aquaPale,
+                labelStyle: const TextStyle(
+                  color: AppColors.deepNavy,
+                  fontSize: 12,
+                ),
+                showCheckmark: false,
+                onSelected: (_) => setState(() => _sellerKind = kind),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShopResults(AppState appState) {
+    final query = _searchController.text.trim();
+    final shops = appState.shopsNearby(
+      radiusKm: _radiusKm,
+      query: query.isEmpty ? null : query,
+      category: _selectedCategory == _all ? null : _selectedCategory,
+      openNowOnly: _openNowOnly,
+      now: (widget.clock ?? DateTime.now)(),
+    );
+    if (shops.isEmpty) return _buildEmptyState(shops: true);
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: shops.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final nearby = shops[index];
+        return ShopResultCard(
+          nearbyShop: nearby,
+          onTap: () => Navigator.push<void>(
+            context,
+            MaterialPageRoute<void>(
+              builder: (_) => ShopProfileScreen(
+                shopUserId: nearby.shop.id,
+                clock: widget.clock,
+              ),
+            ),
+          ),
+          onAsk: () => _askShop(appState, nearby, query),
+        );
+      },
+    );
+  }
+
+  void _askShop(AppState appState, NearbyShop nearby, String query) {
+    if (!appState.isLoggedIn) {
+      Navigator.push<void>(
+        context,
+        MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
+      );
+      return;
+    }
+    final conversation = appState.openShopInquiry(nearby.shop.id);
+    if (conversation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ไม่สามารถเริ่มบทสนทนานี้ได้')),
+      );
+      return;
+    }
+    Navigator.push<void>(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => ChatRoomScreen(
+          conversation: conversation,
+          initialDraft: query.isEmpty
+              ? kDefaultShopInquiryDraft
+              : 'สวัสดีครับ มี $query ไหมครับ',
+        ),
+      ),
+    );
+  }
+
   Widget _buildActiveFilters() {
     final filters = <Widget>[];
     if (_radiusKm != kDefaultRadiusKm) {
@@ -209,7 +353,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
         ),
       );
     }
-    if (_selectedType != _all) {
+    if (!_shopsMode && _selectedType != _all) {
       filters.add(
         _buildActiveBadge(
           'ประเภท: $_selectedType',
@@ -217,7 +361,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
         ),
       );
     }
-    if (_priceRange != _fullPriceRange) {
+    if (!_shopsMode && _priceRange != _fullPriceRange) {
       filters.add(
         _buildActiveBadge(
           '฿${_priceRange.start.round()}–฿${_priceRange.end.round()}',
@@ -250,7 +394,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState({bool shops = false}) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -263,9 +407,11 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
               color: AppColors.graySecondary,
             ),
             const SizedBox(height: 12),
-            const Text(
-              'ไม่พบสินค้าตามเงื่อนไขที่ค้นหา',
-              style: TextStyle(
+            Text(
+              shops
+                  ? 'ไม่พบร้านค้าตามเงื่อนไขที่ค้นหา'
+                  : 'ไม่พบสินค้าตามเงื่อนไขที่ค้นหา',
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: AppColors.deepNavy,
@@ -339,55 +485,57 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                 '${_radiusKm.toInt()} กม.',
                 style: const TextStyle(color: AppColors.graySecondary),
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'ประเภทธุรกรรม',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: _types.map((type) {
-                  final selected = _selectedType == type;
-                  return ChoiceChip(
-                    label: Text(type),
-                    selected: selected,
-                    selectedColor: AppColors.aquaPale,
-                    labelStyle: TextStyle(
-                      color: AppColors.deepNavy,
-                      fontSize: 12,
-                    ),
-                    onSelected: (_) {
-                      setModalState(() => _selectedType = type);
-                      setState(() {});
-                    },
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'ช่วงราคา (฿${_priceRange.start.round()} - ฿${_priceRange.end.round()})',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
+              if (!_shopsMode) ...[
+                const SizedBox(height: 16),
+                const Text(
+                  'ประเภทธุรกรรม',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                 ),
-              ),
-              RangeSlider(
-                values: _priceRange,
-                min: _fullPriceRange.start,
-                max: _fullPriceRange.end,
-                divisions: 100,
-                activeColor: AppColors.aqua,
-                inactiveColor: AppColors.grayLine,
-                labels: RangeLabels(
-                  '฿${_priceRange.start.round()}',
-                  '฿${_priceRange.end.round()}',
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: _types.map((type) {
+                    final selected = _selectedType == type;
+                    return ChoiceChip(
+                      label: Text(type),
+                      selected: selected,
+                      selectedColor: AppColors.aquaPale,
+                      labelStyle: TextStyle(
+                        color: AppColors.deepNavy,
+                        fontSize: 12,
+                      ),
+                      onSelected: (_) {
+                        setModalState(() => _selectedType = type);
+                        setState(() {});
+                      },
+                    );
+                  }).toList(),
                 ),
-                onChanged: (values) {
-                  setModalState(() => _priceRange = values);
-                  setState(() {});
-                },
-              ),
+                const SizedBox(height: 20),
+                Text(
+                  'ช่วงราคา (฿${_priceRange.start.round()} - ฿${_priceRange.end.round()})',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                RangeSlider(
+                  values: _priceRange,
+                  min: _fullPriceRange.start,
+                  max: _fullPriceRange.end,
+                  divisions: 100,
+                  activeColor: AppColors.aqua,
+                  inactiveColor: AppColors.grayLine,
+                  labels: RangeLabels(
+                    '฿${_priceRange.start.round()}',
+                    '฿${_priceRange.end.round()}',
+                  ),
+                  onChanged: (values) {
+                    setModalState(() => _priceRange = values);
+                    setState(() {});
+                  },
+                ),
+              ],
               const SizedBox(height: 20),
               OutlinedButton(
                 onPressed: () {
@@ -419,6 +567,8 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
       _radiusKm = kDefaultRadiusKm;
       _priceRange = _fullPriceRange;
       _sortBy = SortBy.nearest;
+      _openNowOnly = false;
+      _sellerKind = SellerKind.all;
     });
   }
 

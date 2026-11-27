@@ -124,6 +124,72 @@ void main() {
     expect(find.text('เสื้อคลุมสีขาว ไซส์ M (ส่งต่อฟรี)'), findsOneWidget);
   });
 
+  Future<void> openShopsMode(
+    WidgetTester tester, {
+    DateTime Function()? clock,
+  }) async {
+    await tester.pumpWidget(
+      MaterialApp(home: SearchFilterScreen(clock: clock)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('ร้านค้า').first);
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('shops mode finds shop by listing query', (tester) async {
+    await openShopsMode(tester);
+    await tester.enterText(find.byType(TextField).first, 'สายชาร์จ');
+    await tester.pumpAndSettle();
+
+    expect(find.text('ร้านมือถือเจริญ'), findsOneWidget);
+    expect(find.text('ทักถามร้าน'), findsWidgets);
+  });
+
+  testWidgets('open-now chip hides closed shops on Sunday night', (
+    tester,
+  ) async {
+    await openShopsMode(tester, clock: () => DateTime.utc(2026, 11, 22, 14));
+    expect(find.text('ร้านมือถือเจริญ'), findsOneWidget);
+    await tester.tap(find.text('เปิดอยู่ตอนนี้'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('ร้านมือถือเจริญ'), findsNothing);
+    expect(find.text('เครื่องเขียนสมใจ'), findsNothing);
+  });
+
+  testWidgets('open-now chip shows both shops on Monday morning', (
+    tester,
+  ) async {
+    await openShopsMode(tester, clock: () => DateTime.utc(2026, 11, 23, 3));
+    await tester.tap(find.text('เปิดอยู่ตอนนี้'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('ร้านมือถือเจริญ'), findsOneWidget);
+    expect(find.text('เครื่องเขียนสมใจ'), findsOneWidget);
+    expect(find.text('ตามเวลาที่ร้านแจ้ง'), findsWidgets);
+  });
+
+  testWidgets('items mode shops-only chip hides person listings', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: SearchFilterScreen()));
+    await tester.pumpAndSettle();
+    bool isShopSeller(ProductCard c) =>
+        appState.userById(c.nearbyProduct.product.sellerId)?.isShop ?? false;
+    List<ProductCard> cards() =>
+        tester.widgetList<ProductCard>(find.byType(ProductCard)).toList();
+
+    await tester.tap(find.text('เฉพาะบุคคล'));
+    await tester.pumpAndSettle();
+    expect(cards(), isNotEmpty);
+    expect(cards().any(isShopSeller), isFalse);
+
+    await tester.tap(find.text('เฉพาะร้านค้า'));
+    await tester.pumpAndSettle();
+    expect(cards(), isNotEmpty);
+    expect(cards().every(isShopSeller), isTrue);
+  });
+
   testWidgets(
     'search defaults to nearest order and detail omits exact coords',
     (tester) async {
