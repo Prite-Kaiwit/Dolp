@@ -9,8 +9,6 @@ import '../../theme/app_theme.dart';
 import '../../widgets/custom_search_bar.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/shop_result_card.dart';
-import '../auth/login_screen.dart';
-import '../chat/chat_room_screen.dart';
 import '../profile/shop_profile_screen.dart';
 import 'product_detail_screen.dart';
 
@@ -301,37 +299,14 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
               ),
             ),
           ),
-          onAsk: () => _askShop(appState, nearby, query),
+          onAsk: () => startShopInquiry(
+            context,
+            appState,
+            nearby.shop.id,
+            draft: query.isEmpty ? null : 'สวัสดีครับ มี $query ไหมครับ',
+          ),
         );
       },
-    );
-  }
-
-  void _askShop(AppState appState, NearbyShop nearby, String query) {
-    if (!appState.isLoggedIn) {
-      Navigator.push<void>(
-        context,
-        MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
-      );
-      return;
-    }
-    final conversation = appState.openShopInquiry(nearby.shop.id);
-    if (conversation == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ไม่สามารถเริ่มบทสนทนานี้ได้')),
-      );
-      return;
-    }
-    Navigator.push<void>(
-      context,
-      MaterialPageRoute<void>(
-        builder: (_) => ChatRoomScreen(
-          conversation: conversation,
-          initialDraft: query.isEmpty
-              ? kDefaultShopInquiryDraft
-              : 'สวัสดีครับ มี $query ไหมครับ',
-        ),
-      ),
     );
   }
 

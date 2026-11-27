@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moor_market/constants/app_info.dart';
+import 'package:moor_market/screens/auth/login_screen.dart';
 import 'package:moor_market/screens/home/home_feed_screen.dart';
 import 'package:moor_market/screens/home/product_detail_screen.dart';
 import 'package:moor_market/screens/home/search_filter_screen.dart';
@@ -188,6 +189,44 @@ void main() {
     await tester.pumpAndSettle();
     expect(cards(), isNotEmpty);
     expect(cards().every(isShopSeller), isTrue);
+  });
+
+  testWidgets('guest asking a shop is sent to login without a chat', (
+    tester,
+  ) async {
+    appState.loginAsGuest();
+    final before = appState.conversations.length;
+    await openShopsMode(tester);
+    await tester.tap(find.text('ทักถามร้าน').first);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(appState.conversations.length, before);
+  });
+
+  testWidgets('shops mode does not overflow at narrow width', (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: const TextScaler.linear(1.0)),
+          child: child!,
+        ),
+        home: const SearchFilterScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    // The pre-existing items-mode sort row overflows under the wide test
+    // font at this width; only the shops-mode layout is under test here.
+    tester.takeException();
+    await tester.tap(find.text('ร้านค้า').first);
+    await tester.pumpAndSettle();
+    expect(find.text('ทักถามร้าน'), findsWidgets);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets(

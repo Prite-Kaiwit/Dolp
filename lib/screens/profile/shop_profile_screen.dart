@@ -16,6 +16,38 @@ import '../review_safety/report_screen.dart';
 
 const String kDefaultShopInquiryDraft = 'สวัสดีครับ สอบถามสินค้าหน่อยครับ';
 
+/// Starts (or reopens) an inquiry chat with a shop. Guests are sent to login.
+void startShopInquiry(
+  BuildContext context,
+  AppState appState,
+  String shopUserId, {
+  String? draft,
+}) {
+  if (!appState.isLoggedIn) {
+    Navigator.push<void>(
+      context,
+      MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
+    );
+    return;
+  }
+  final conversation = appState.openShopInquiry(shopUserId);
+  if (conversation == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('ไม่สามารถเริ่มบทสนทนานี้ได้')),
+    );
+    return;
+  }
+  Navigator.push<void>(
+    context,
+    MaterialPageRoute<void>(
+      builder: (_) => ChatRoomScreen(
+        conversation: conversation,
+        initialDraft: draft ?? kDefaultShopInquiryDraft,
+      ),
+    ),
+  );
+}
+
 const List<String> _weekdayNames = [
   'วันจันทร์',
   'วันอังคาร',
@@ -171,7 +203,12 @@ class ShopProfileScreen extends StatelessWidget {
               if (!isOwnShop) ...[
                 const SizedBox(height: 10),
                 FilledButton.icon(
-                  onPressed: () => _inquire(context, appState, user.id),
+                  onPressed: () => startShopInquiry(
+                    context,
+                    appState,
+                    user.id,
+                    draft: inquiryDraft,
+                  ),
                   icon: const Icon(Icons.chat_bubble_outline_rounded),
                   label: const Text('ทักถามร้าน'),
                 ),
@@ -350,32 +387,6 @@ class ShopProfileScreen extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-
-  void _inquire(BuildContext context, AppState appState, String shopId) {
-    if (!appState.isLoggedIn) {
-      Navigator.push<void>(
-        context,
-        MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
-      );
-      return;
-    }
-    final conversation = appState.openShopInquiry(shopId);
-    if (conversation == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ไม่สามารถเริ่มบทสนทนานี้ได้')),
-      );
-      return;
-    }
-    Navigator.push<void>(
-      context,
-      MaterialPageRoute<void>(
-        builder: (_) => ChatRoomScreen(
-          conversation: conversation,
-          initialDraft: inquiryDraft ?? kDefaultShopInquiryDraft,
-        ),
-      ),
     );
   }
 
