@@ -10,6 +10,7 @@ extension AppStateListings on AppState {
     num? maxPrice,
     String? query,
     SortBy sortBy = SortBy.nearest,
+    SellerKind sellerKind = SellerKind.all,
   }) {
     if (!radiusKm.isFinite || radiusKm < 0) {
       throw ArgumentError.value(
@@ -30,6 +31,10 @@ extension AppStateListings on AppState {
           product.sellerId == currentUser.id ||
           blockedUserIds.contains(product.sellerId)) {
         continue;
+      }
+      if (sellerKind != SellerKind.all) {
+        final sellerIsShop = userById(product.sellerId)?.isShop ?? false;
+        if (sellerIsShop != (sellerKind == SellerKind.shops)) continue;
       }
       if (normalizedCategory != null &&
           normalizedCategory.isNotEmpty &&
@@ -74,6 +79,87 @@ extension AppStateListings on AppState {
         break;
     }
     return nearby;
+  }
+
+  /// Current name of a seller, falling back to the name stored on the record.
+  String sellerDisplayName(String sellerId, String storedName) =>
+      userById(sellerId)?.displayName ?? storedName;
+
+  List<NearbyShop> shopsNearby({
+    double radiusKm = kDefaultRadiusKm,
+    String? query,
+    String? category,
+    bool openNowOnly = false,
+    DateTime? now,
+  }) {
+    if (!radiusKm.isFinite || radiusKm < 0) {
+      throw ArgumentError.value(
+        radiusKm,
+        'radiusKm',
+        'Must be a finite non-negative value.',
+      );
+    }
+    if (currentUser.isSuspended) return const [];
+
+    final normalizedQuery = query?.trim().toLowerCase() ?? '';
+    final normalizedCategory = category?.trim() ?? '';
+    final thaiTime = toThaiTime(now ?? DateTime.now());
+    final blockedUserIds = _blockedUserIdsFor(currentUser.id);
+    final results = <NearbyShop>[];
+
+    for (final user in users) {
+      if (!user.isShop ||
+          user.isSuspended ||
+          user.id == currentUser.id ||
+          blockedUserIds.contains(user.id)) {
+        continue;
+      }
+      final profile = user.shop!;
+      final distance = distanceKm(currentLocation, profile.location);
+      if (distance > radiusKm) continue;
+      final isOpen = profile.openingHours.isOpenAt(thaiTime);
+      if (openNowOnly && !isOpen) continue;
+
+      final matchingListings = products.where((product) {
+        if (product.sellerId != user.id ||
+            product.status != ListingStatus.active) {
+          return false;
+        }
+        if (normalizedCategory.isNotEmpty &&
+            product.category != normalizedCategory) {
+          return false;
+        }
+        return normalizedQuery.isEmpty ||
+            product.title.toLowerCase().contains(normalizedQuery) ||
+            product.description.toLowerCase().contains(normalizedQuery) ||
+            product.category.toLowerCase().contains(normalizedQuery);
+      }).length;
+
+      final shopMatchesQuery =
+          normalizedQuery.isEmpty ||
+          profile.shopName.toLowerCase().contains(normalizedQuery) ||
+          profile.description.toLowerCase().contains(normalizedQuery) ||
+          profile.categories.any(
+            (c) => c.toLowerCase().contains(normalizedQuery),
+          );
+      if (!shopMatchesQuery && matchingListings == 0) continue;
+      if (normalizedCategory.isNotEmpty &&
+          !profile.categories.contains(normalizedCategory) &&
+          matchingListings == 0) {
+        continue;
+      }
+
+      results.add(
+        NearbyShop(
+          shop: user,
+          distanceKm: distance,
+          isOpenNow: isOpen,
+          matchingListingCount: matchingListings,
+        ),
+      );
+    }
+    results.sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
+    return results;
   }
 
   ExactProductLocation? getExactLocationFor(

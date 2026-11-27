@@ -3,21 +3,211 @@ import 'package:moor_market/constants/app_info.dart';
 import 'package:moor_market/utils/distance.dart';
 import 'package:moor_market/models/geo_location.dart';
 import 'package:moor_market/models/product.dart';
+import 'package:moor_market/models/shop_profile.dart';
+import 'package:moor_market/models/user.dart';
 import 'package:moor_market/state/app_state.dart';
 
 void main() {
   final appState = AppState();
   late List<ProductModel> originalProducts;
+  late List<UserModel> originalUsers;
 
   setUp(() {
     originalProducts = List<ProductModel>.from(appState.products);
+    originalUsers = List<UserModel>.from(appState.users);
     appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
   });
 
   tearDown(() {
     appState.deleteProduct('nearby-own-test');
     appState.products = originalProducts;
+    for (final id in ['shop_a', 'shop_b', 'shop_c', 'shop_d']) {
+      appState.unblockUser(id);
+    }
+    appState.users = originalUsers;
     appState.loginAsGuest();
+  });
+
+  GeoLocation offset(double km) => GeoLocation(
+    appState.currentLocation.lat + km / 111.0,
+    appState.currentLocation.lng,
+  );
+
+  UserModel makeShop(
+    String id,
+    String name, {
+    double km = 1,
+    String description = '',
+    List<String> categories = const ['หนังสือ'],
+    bool suspended = false,
+    AccountType accountType = AccountType.shop,
+  }) {
+    final user = UserModel(
+      id: id,
+      name: 'owner $id',
+      accountType: accountType,
+      isSuspended: suspended,
+      shop: ShopProfile(
+        shopName: name,
+        description: description,
+        categories: categories,
+        location: offset(km),
+        openingHours: OpeningHours(
+          days: {
+            for (var d = 1; d <= 7; d++)
+              d: const DayHours(openMinute: 540, closeMinute: 1200),
+          },
+        ),
+      ),
+    );
+    appState.users.add(user);
+    return user;
+  }
+
+  void makeListing(
+    String id,
+    String sellerId,
+    String title, {
+    String category = 'หนังสือ',
+    ListingStatus status = ListingStatus.active,
+  }) {
+    appState.products.add(
+      ProductModel(
+        id: id,
+        title: title,
+        description: '',
+        price: 10,
+        type: ListingType.sell,
+        category: category,
+        condition: 'สภาพดี',
+        publicLocation: offset(1),
+        locationLabel: 'เขตเมือง',
+        imageUrl: '',
+        sellerId: sellerId,
+        sellerName: 'x',
+        sellerAreaLabel: 'เขตเมือง',
+        status: status,
+      ),
+    );
+  }
+
+  test('finds a shop by its description when it has no matching listing', () {
+    makeShop('shop_a', 'ร้านเอ', description: 'ขายสายชาร์จ');
+    final results = appState.shopsNearby(query: 'สายชาร์จ');
+    expect(results.map((r) => r.shop.id), ['shop_a']);
+    expect(results.single.matchingListingCount, 0);
+  });
+
+  test('finds a shop by a matching listing', () {
+    makeShop('shop_a', 'ร้านเอ');
+    makeListing('l1', 'shop_a', 'กล้องฟิล์ม Canon');
+    makeListing('l2', 'shop_a', 'เลนส์ canon');
+    makeListing('l3', 'shop_a', 'canon เก่า', status: ListingStatus.sold);
+    makeListing('l4', 'shop_a', 'หนังสือ');
+    final results = appState.shopsNearby(query: 'canon');
+    expect(results.map((r) => r.shop.id), ['shop_a']);
+    expect(results.single.matchingListingCount, 2);
+  });
+
+  test('query is trimmed and case-insensitive', () {
+    makeShop('shop_a', 'ร้านเอ', description: 'สายชาร์จ usb-c');
+    final results = appState.shopsNearby(query: '  USB-C ');
+    expect(results.map((r) => r.shop.id), ['shop_a']);
+  });
+
+  test('empty query returns all nearby shops sorted by distance', () {
+    makeShop('shop_a', 'ไกล', km: 3);
+    makeShop('shop_b', 'ใกล้', km: 1);
+    makeListing('l1', 'shop_b', 'อะไรก็ได้');
+    final results = appState.shopsNearby();
+    expect(results.map((r) => r.shop.id), ['shop_b', 'shop_a']);
+    expect(results.first.matchingListingCount, 1);
+    expect(results.first.distanceKm, lessThan(results.last.distanceKm));
+  });
+
+  test('excludes shops outside radius, suspended, blocked, and self', () {
+    makeShop('shop_a', 'ในรัศมี', km: 1);
+    makeShop('shop_b', 'ไกลเกิน', km: 50);
+    makeShop('shop_c', 'ถูกระงับ', km: 1, suspended: true);
+    makeShop('shop_d', 'ถูกบล็อก', km: 1);
+    makeShop('user_01', 'ร้านตัวเอง', km: 1);
+    expect(appState.blockUser('shop_d'), isNull);
+    final results = appState.shopsNearby(radiusKm: 5);
+    expect(results.map((r) => r.shop.id), ['shop_a']);
+  });
+
+  test('openNowOnly filters by Thai time', () {
+    makeShop('shop_a', 'ร้านเอ');
+    final open = appState.shopsNearby(
+      openNowOnly: true,
+      now: DateTime.utc(2026, 11, 23, 3),
+    );
+    expect(open.map((r) => r.shop.id), ['shop_a']);
+    expect(open.single.isOpenNow, isTrue);
+    expect(
+      appState.shopsNearby(
+        openNowOnly: true,
+        now: DateTime.utc(2026, 11, 23, 14),
+      ),
+      isEmpty,
+    );
+    final all = appState.shopsNearby(now: DateTime.utc(2026, 11, 23, 14));
+    expect(all.single.isOpenNow, isFalse);
+  });
+
+  test('category filter matches shop categories or matching listings', () {
+    makeShop('shop_a', 'ร้านเอ', categories: const ['หนังสือ']);
+    makeShop('shop_b', 'ร้านบี', categories: const ['อื่นๆ']);
+    makeListing('l1', 'shop_b', 'ตุ๊กตา', category: 'ของเล่น');
+    makeShop('shop_c', 'ร้านซี', categories: const ['อื่นๆ']);
+    expect(appState.shopsNearby(category: 'หนังสือ').map((r) => r.shop.id), [
+      'shop_a',
+    ]);
+    expect(appState.shopsNearby(category: 'ของเล่น').map((r) => r.shop.id), [
+      'shop_b',
+    ]);
+  });
+
+  test('productsNearby sellerKind shops / people', () {
+    makeShop('shop_a', 'ร้านเอ');
+    makeListing('l_shop', 'shop_a', 'ของร้าน');
+    final shops = appState.productsNearby(
+      radiusKm: 20,
+      sellerKind: SellerKind.shops,
+    );
+    expect(shops.map((r) => r.product.id), ['l_shop']);
+    final people = appState.productsNearby(
+      radiusKm: 20,
+      sellerKind: SellerKind.people,
+    );
+    expect(people.map((r) => r.product.id), isNot(contains('l_shop')));
+    expect(people, isNotEmpty);
+    final all = appState.productsNearby(radiusKm: 20);
+    expect(all.length, shops.length + people.length);
+  });
+
+  test('persons with incomplete shop data never appear', () {
+    makeShop('shop_a', 'ร้านไม่ครบ', categories: const []);
+    makeShop('shop_b', 'คนทั่วไป', accountType: AccountType.person);
+    makeListing('l1', 'shop_a', 'ของ');
+    expect(appState.shopsNearby(), isEmpty);
+    final shops = appState.productsNearby(
+      radiusKm: 20,
+      sellerKind: SellerKind.shops,
+    );
+    expect(shops, isEmpty);
+  });
+
+  test('sellerDisplayName uses the live name, else the stored one', () {
+    makeShop('shop_a', 'ร้านเอ');
+    expect(appState.sellerDisplayName('shop_a', 'เก่า'), 'ร้านเอ');
+    expect(appState.sellerDisplayName('nobody', 'เก่า'), 'เก่า');
+  });
+
+  test('shopsNearby is empty for a suspended current user', () {
+    makeShop('shop_a', 'ร้านเอ');
+    appState.currentUser = appState.currentUser.copyWith(isSuspended: true);
+    expect(appState.shopsNearby(), isEmpty);
   });
 
   test('seed data covers nearby radius ranges and all listing types', () {
