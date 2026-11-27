@@ -87,8 +87,8 @@ class ChatListScreen extends StatelessWidget {
                       ),
                       onForegroundImageError: (_, _) {},
                       child: Text(
-                        (peer?.name ?? conv.peerName).isNotEmpty
-                            ? (peer?.name ?? conv.peerName)[0]
+                        (peer?.displayName ?? conv.peerName).isNotEmpty
+                            ? (peer?.displayName ?? conv.peerName)[0]
                             : 'U',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
@@ -119,7 +119,7 @@ class ChatListScreen extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        peer?.name ?? conv.peerName,
+                        peer?.displayName ?? conv.peerName,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
@@ -152,7 +152,9 @@ class ChatListScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            conv.productTitle,
+                            conv.isShopInquiry
+                                ? 'สอบถามร้านค้า'
+                                : conv.productTitle,
                             style: const TextStyle(
                               fontSize: 10,
                               color: AppColors.deepNavy,
@@ -163,14 +165,15 @@ class ChatListScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          '฿${conv.productPrice.toStringAsFixed(0)}',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.deepNavy,
+                        if (!conv.isShopInquiry)
+                          Text(
+                            '฿${conv.productPrice.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.deepNavy,
+                            ),
                           ),
-                        ),
                       ],
                     ),
                     const SizedBox(height: 3),

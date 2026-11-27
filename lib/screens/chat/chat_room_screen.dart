@@ -13,6 +13,7 @@ import '../../utils/distance.dart';
 import '../../utils/meetup_sharing.dart';
 import '../../widgets/product_image.dart';
 import '../../widgets/safety_tips_sheet.dart';
+import '../../widgets/shop_badge.dart';
 import 'meetup_options_screen.dart';
 import '../profile/public_user_profile_screen.dart';
 
@@ -107,7 +108,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           orElse: () => widget.conversation,
         );
         final peer = appState.conversationPeer(conversation);
-        final peerName = peer?.name ?? conversation.peerName;
+        final peerName = peer?.displayName ?? conversation.peerName;
         final peerAvatar = peer?.avatarUrl ?? conversation.peerAvatar;
         final peerUserId = appState.currentUser.id == conversation.buyerId
             ? conversation.sellerId
@@ -148,13 +149,36 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                             PublicUserProfileScreen(userId: peerUserId),
                       ),
                     ),
-                    child: Text(
-                      peerName,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                peerName,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (peer?.isShop ?? false) ...[
+                              const SizedBox(width: 6),
+                              const ShopBadge(),
+                            ],
+                          ],
+                        ),
+                        if (conversation.isShopInquiry)
+                          const Text(
+                            'สอบถามร้านค้า',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.graySecondary,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ),
@@ -215,7 +239,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           body: SafeArea(
             child: Column(
               children: [
-                _buildProductSummary(conversation, product, agreement),
+                if (!conversation.isShopInquiry)
+                  _buildProductSummary(conversation, product, agreement),
                 Expanded(
                   child: ListView.builder(
                     controller: _scrollController,
@@ -368,7 +393,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                         await shareMeetupAgreement(
                           agreement: agreement,
                           partnerName:
-                              appState.userById(conversation.peerId)?.name ??
+                              appState
+                                  .userById(conversation.peerId)
+                                  ?.displayName ??
                               conversation.peerName,
                           productTitle: conversation.productTitle,
                         );
@@ -717,7 +744,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       builder: (context) => AlertDialog(
         title: const Text('ส่งที่อยู่จริง?'),
         content: Text(
-          'ที่อยู่นี้จะถูกส่งให้ ${peer?.name ?? conversation.peerName}',
+          'ที่อยู่นี้จะถูกส่งให้ ${peer?.displayName ?? conversation.peerName}',
         ),
         actions: [
           TextButton(

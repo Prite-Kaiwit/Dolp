@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:moor_market/models/product.dart';
 import 'package:moor_market/screens/chat/chat_room_screen.dart';
 import 'package:moor_market/state/app_state.dart';
+import 'package:moor_market/widgets/shop_badge.dart';
 
 void main() {
   testWidgets('initialDraft pre-fills the message field without sending', (
@@ -24,6 +25,46 @@ void main() {
     final field = tester.widget<TextField>(find.byType(TextField));
     expect(field.controller!.text, 'ร่างข้อความ');
     expect(conversation.messages.length, before);
+  });
+
+  testWidgets(
+    'shop inquiry room shows inquiry header, no meetup, keeps draft',
+    (tester) async {
+      final appState = AppState();
+      appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
+      final shop = appState.users.firstWhere((u) => u.phone == '0800000011');
+      final conversation = appState.openShopInquiry(shop.id)!;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ChatRoomScreen(
+            conversation: conversation,
+            initialDraft: 'ร่าง',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('สอบถามร้านค้า'), findsOneWidget);
+      expect(find.text('ร้านมือถือเจริญ'), findsWidgets);
+      expect(find.byType(ShopBadge), findsOneWidget);
+      expect(find.text('นัดรับ'), findsNothing);
+      expect(find.byKey(const ValueKey('share-exact-address')), findsNothing);
+      final field = tester.widget<TextField>(find.byType(TextField));
+      expect(field.controller!.text, 'ร่าง');
+    },
+  );
+
+  testWidgets('product chat still shows product strip and meetup button', (
+    tester,
+  ) async {
+    final appState = AppState();
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
+    final conversation = appState.openConversationForProduct('prod_1')!;
+    await tester.pumpWidget(
+      MaterialApp(home: ChatRoomScreen(conversation: conversation)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('สอบถามร้านค้า'), findsNothing);
+    expect(find.text('นัดรับ'), findsOneWidget);
   });
 
   testWidgets(
