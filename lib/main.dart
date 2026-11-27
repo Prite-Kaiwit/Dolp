@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'firebase_options.dart';
@@ -25,6 +26,10 @@ Future<PersistenceStore> _createStore() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    // Firestore rules only admit signed-in clients. dolp's own login is still
+    // a mock, so each install signs in anonymously to prove it is the app.
+    final auth = FirebaseAuth.instance;
+    if (auth.currentUser == null) await auth.signInAnonymously();
     return FirestorePersistenceStore(
       firestore: FirebaseFirestore.instance,
       local: local,

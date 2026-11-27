@@ -4,8 +4,26 @@
     {
       "name": "dolp-web",
       "runtimeExecutable": "flutter",
-      "runtimeArgs": ["run", "-d", "web-server", "--web-port", "8080"],
+      "runtimeArgs": [
+        "run",
+        "-d",
+        "web-server",
+        "--web-port",
+        "8080"
+      ],
       "port": 8080
+    },
+    {
+      "name": "dolp-web-release",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8081",
+        "--directory",
+        "build/web"
+      ],
+      "port": 8081
     }
   ]
 }

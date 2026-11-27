@@ -1,13 +1,16 @@
 rules_version = '2';
 
-// PROTOTYPE RULES. dolp still uses mock sign-in, so Firestore cannot tell
-// users apart and anyone with the app config can read and write everything.
-// Access closes automatically on the date below. Replace these rules with
-// per-user checks once Firebase Authentication is added.
+// PROTOTYPE RULES. The app signs in to Firebase anonymously before touching
+// Firestore, so these rules reject requests from outside the app (scripts,
+// scanners, direct REST calls without a sign-in token).
+//
+// dolp's own phone login is still a mock, so Firebase cannot tell dolp users
+// apart: any signed-in app install can read and write all data. Replace this
+// with per-user checks once real Firebase Authentication login is added.
 service cloud.firestore {
   match /databases/{database}/documents {
     match /{document=**} {
-      allow read, write: if request.time < timestamp.date(2027, 3, 31);
+      allow read, write: if request.auth != null;
     }
   }
 }

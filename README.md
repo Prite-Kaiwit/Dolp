@@ -5,8 +5,10 @@ and donating second-hand items. Buyers find listings within a chosen radius,
 chat with the seller, agree on a meetup, and pay cash or transfer at handover.
 
 > **Prototype only.** Shared data is stored in Cloud Firestore (Android and
-> web); the signed-in session stays on the device. Firestore rules are open
-> until 2027-03-31 because sign-in is still mocked, so use test data only.
+> web); the signed-in session stays on the device. The app signs in to
+> Firebase anonymously and Firestore rules only admit signed-in clients, but
+> dolp's own login is still mocked, so any app install can read and write all
+> data. Use test data only.
 > OTP and credentials are mocks, and admin checks run in the client.
 > See [docs/FEATURE_STATUS.md](docs/FEATURE_STATUS.md) for what is and isn't
 > implemented.
