@@ -11,7 +11,7 @@ void main() {
 
   setUp(() {
     originalProducts = List<ProductModel>.from(appState.products);
-    appState.loginWithPhoneAndPassword('0800000001', 'password123');
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
   });
 
   tearDown(() {
@@ -115,7 +115,7 @@ void main() {
   });
 
   test('exact location is visible to owner only before meetup agreements', () {
-    appState.loginWithPhoneAndPassword('0800000002', 'password123');
+    appState.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn;
     final ownerLocation = appState.getExactLocationFor('prod_1', 'user_02');
     expect(ownerLocation, isNotNull);
     expect(ownerLocation!.exactAddress, contains('ตัวอย่าง'));
@@ -130,7 +130,7 @@ void main() {
     );
     expect(appState.getExactLocationFor('prod_1', 'admin_01'), isNull);
 
-    appState.loginWithPhoneAndPassword('0800000001', 'password123');
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
     expect(appState.getExactLocationFor('prod_1', 'user_01'), isNull);
   });
 

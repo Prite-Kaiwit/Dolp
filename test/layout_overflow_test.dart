@@ -49,7 +49,7 @@ void main() {
     originalCurrentUser = appState.currentUser;
     originalSubscription = appState.areaAlertSubscriptionFor('user_01');
 
-    appState.loginWithPhoneAndPassword('0800000001', 'password123');
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
     appState.updateCurrentUserArea(
       latitude: kDefaultCenter.lat,
       longitude: kDefaultCenter.lng,
@@ -125,7 +125,8 @@ void main() {
   ) async {
     for (final width in widths) {
       for (final scale in textScales) {
-        appState.loginWithPhoneAndPassword('0800000001', 'password123');
+        appState.signInVerifiedPhone('0800000001') ==
+            PhoneSignInResult.signedIn;
         final itemWidth = (width - 44) / 2;
         await _pumpScreen(
           tester,
@@ -159,7 +160,8 @@ void main() {
   ) async {
     for (final width in widths) {
       for (final scale in textScales) {
-        appState.loginWithPhoneAndPassword('0800000001', 'password123');
+        appState.signInVerifiedPhone('0800000001') ==
+            PhoneSignInResult.signedIn;
         await _pumpScreen(tester, width, scale, const CreateListingScreen());
         await tester.ensureVisible(find.byKey(const ValueKey('listing-title')));
         await tester.enterText(
@@ -189,7 +191,8 @@ void main() {
   ) async {
     for (final width in widths) {
       for (final scale in textScales) {
-        appState.loginWithPhoneAndPassword('0800000001', 'password123');
+        appState.signInVerifiedPhone('0800000001') ==
+            PhoneSignInResult.signedIn;
         await _pumpScreen(
           tester,
           width,
@@ -206,7 +209,8 @@ void main() {
     (tester) async {
       for (final width in widths) {
         for (final scale in textScales) {
-          appState.loginWithPhoneAndPassword('0800000001', 'password123');
+          appState.signInVerifiedPhone('0800000001') ==
+              PhoneSignInResult.signedIn;
           await _pumpScreen(
             tester,
             width,
@@ -224,7 +228,8 @@ void main() {
     (tester) async {
       for (final width in widths) {
         for (final scale in textScales) {
-          appState.loginWithPhoneAndPassword('0800000001', 'password123');
+          appState.signInVerifiedPhone('0800000001') ==
+              PhoneSignInResult.signedIn;
           await _pumpScreen(tester, width, scale, const CartScreen());
           _expectNoLayoutException(tester, 'CartScreen $width/$scale');
         }
@@ -237,7 +242,8 @@ void main() {
     (tester) async {
       for (final width in widths) {
         for (final scale in textScales) {
-          appState.loginWithPhoneAndPassword('0800000001', 'password123');
+          appState.signInVerifiedPhone('0800000001') ==
+              PhoneSignInResult.signedIn;
           await _pumpScreen(tester, width, scale, const OrderHistoryScreen());
           _expectNoLayoutException(tester, 'OrderHistoryScreen $width/$scale');
         }
@@ -250,7 +256,8 @@ void main() {
     (tester) async {
       for (final width in widths) {
         for (final scale in textScales) {
-          appState.loginWithPhoneAndPassword('0800000001', 'password123');
+          appState.signInVerifiedPhone('0800000001') ==
+              PhoneSignInResult.signedIn;
           appState.updateCurrentUserArea(
             latitude: kDefaultCenter.lat,
             longitude: kDefaultCenter.lng,
@@ -276,7 +283,8 @@ void main() {
     (tester) async {
       for (final width in widths) {
         for (final scale in textScales) {
-          appState.loginWithPhoneAndPassword('0800000009', 'password123');
+          appState.signInVerifiedPhone('0800000009') ==
+              PhoneSignInResult.signedIn;
           await _pumpScreen(tester, width, scale, const AdminDashboardScreen());
           _expectNoLayoutException(
             tester,

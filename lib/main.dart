@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'auth/phone_auth_service.dart';
 import 'firebase_options.dart';
 import 'persistence/firestore_persistence_store.dart';
 import 'persistence/persistence_store.dart';
@@ -26,15 +27,17 @@ Future<PersistenceStore> _createStore() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    // Firestore rules only admit signed-in clients. dolp's own login is still
-    // a mock, so each install signs in anonymously to prove it is the app.
+    // Firestore rules only admit signed-in clients. Guests sign in
+    // anonymously; members replace that session by verifying their phone.
     final auth = FirebaseAuth.instance;
     if (auth.currentUser == null) await auth.signInAnonymously();
+    AppState.configurePhoneAuth(FirebasePhoneAuthService(auth));
     return FirestorePersistenceStore(
       firestore: FirebaseFirestore.instance,
       local: local,
     );
   } catch (error) {
+    // Without Firebase, sign-in falls back to the fixed test code 123456.
     debugPrint('Firebase unavailable, using local storage: $error');
     return local;
   }

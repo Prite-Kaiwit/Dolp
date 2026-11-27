@@ -15,18 +15,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
   bool _agreedToTerms = false;
-  bool _obscurePassword = true;
 
   bool get _formIsValid {
     final phone = _phoneController.text.trim();
     return _nameController.text.trim().isNotEmpty &&
         RegExp(r'^0\d{9}$').hasMatch(phone) &&
         !AppState().isPhoneRegistered(phone) &&
-        _passwordController.text.length >= 8 &&
-        _passwordController.text == _confirmPasswordController.text &&
         _agreedToTerms;
   }
 
@@ -34,8 +29,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -106,65 +99,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                const Text(
-                  'รหัสผ่าน',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                ),
-                const SizedBox(height: 6),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  onChanged: (_) {
-                    setState(() {});
-                    _formKey.currentState?.validate();
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'อย่างน้อย 8 ตัวอักษร',
-                    prefixIcon: const Icon(
-                      Icons.lock_outline_rounded,
-                      color: AppColors.oceanBlue,
-                    ),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                        color: AppColors.graySecondary,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
-                    ),
-                  ),
-                  validator: (value) => (value?.length ?? 0) < 8
-                      ? 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร'
-                      : null,
-                ),
-                const SizedBox(height: 16),
-
-                const Text(
-                  'ยืนยันรหัสผ่าน',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                ),
-                const SizedBox(height: 6),
-                TextFormField(
-                  controller: _confirmPasswordController,
-                  obscureText: _obscurePassword,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  onChanged: (_) => setState(() {}),
-                  decoration: const InputDecoration(
-                    hintText: 'กรอกรหัสผ่านอีกครั้ง',
-                    prefixIcon: Icon(
-                      Icons.lock_outline_rounded,
-                      color: AppColors.oceanBlue,
-                    ),
-                  ),
-                  validator: (value) => value != _passwordController.text
-                      ? 'รหัสผ่านไม่ตรงกัน'
-                      : null,
-                ),
-                const SizedBox(height: 16),
-
                 // Terms Agreement Checkbox
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,7 +137,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 builder: (_) => PhoneOtpScreen(
                                   name: _nameController.text.trim(),
                                   phone: _phoneController.text.trim(),
-                                  password: _passwordController.text,
                                 ),
                               ),
                             );

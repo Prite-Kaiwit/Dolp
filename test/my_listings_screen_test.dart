@@ -14,7 +14,7 @@ void main() {
   testWidgets('owner listings expose exact address only through owner action', (
     tester,
   ) async {
-    appState.loginWithPhoneAndPassword('0800000001', 'password123');
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
     appState.updateCurrentUserArea(
       latitude: kDefaultCenter.lat,
       longitude: kDefaultCenter.lng,
@@ -49,7 +49,7 @@ void main() {
 
     await tester.tap(find.text('ปิด'));
     await tester.pumpAndSettle();
-    appState.loginWithPhoneAndPassword('0800000002', 'password123');
+    appState.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn;
     await tester.pumpAndSettle();
     expect(find.text(listing.title), findsNothing);
     expect(
@@ -57,7 +57,7 @@ void main() {
       isNull,
     );
 
-    appState.loginWithPhoneAndPassword('0800000001', 'password123');
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
     appState.deleteProduct(listing.id);
   });
 }

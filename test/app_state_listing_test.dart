@@ -22,7 +22,7 @@ void main() {
     originalOrders = List<OrderModel>.of(appState.orders);
     originalCart = List<ProductModel>.of(appState.cartItems);
     originalNotifications = List<AppNotification>.of(appState.notifications);
-    appState.loginWithPhoneAndPassword('0800000001', 'password123');
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
     appState.updateCurrentUserArea(
       latitude: kDefaultCenter.lat,
       longitude: kDefaultCenter.lng,
@@ -35,7 +35,7 @@ void main() {
     appState.orders = originalOrders;
     appState.cartItems = originalCart;
     appState.notifications = originalNotifications;
-    appState.loginWithPhoneAndPassword('0800000001', 'password123');
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
     appState.updateCurrentUserArea(
       latitude: kDefaultCenter.lat,
       longitude: kDefaultCenter.lng,
@@ -55,7 +55,7 @@ void main() {
       appState.getExactLocationFor(listing.id, 'user_01')?.exactLat,
       exact.lat,
     );
-    appState.loginWithPhoneAndPassword('0800000002', 'password123');
+    appState.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn;
     expect(appState.getExactLocationFor(listing.id, 'user_02'), isNull);
   });
 
@@ -102,7 +102,7 @@ void main() {
         isNot(contains(listing.id)),
       );
 
-      appState.loginWithPhoneAndPassword('0800000002', 'password123');
+      appState.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn;
       appState.updateCurrentUserArea(
         latitude: kDefaultCenter.lat,
         longitude: kDefaultCenter.lng,
@@ -112,17 +112,17 @@ void main() {
         appState.productsNearby(radiusKm: 1).map((item) => item.product.id),
         contains(listing.id),
       );
-      appState.loginWithPhoneAndPassword('0800000001', 'password123');
+      appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
       appState.setListingStatus(listing.id, ListingStatus.sold);
-      appState.loginWithPhoneAndPassword('0800000002', 'password123');
+      appState.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn;
       expect(
         appState.productsNearby(radiusKm: 1).map((item) => item.product.id),
         isNot(contains(listing.id)),
       );
 
-      appState.loginWithPhoneAndPassword('0800000001', 'password123');
+      appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
       appState.setListingStatus(listing.id, ListingStatus.hidden);
-      appState.loginWithPhoneAndPassword('0800000002', 'password123');
+      appState.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn;
       expect(
         appState.productsNearby(radiusKm: 1).map((item) => item.product.id),
         isNot(contains(listing.id)),
@@ -140,21 +140,21 @@ void main() {
 
   test('deleteListing blocks products with unfinished orders', () {
     final listing = addListing(appState, kDefaultCenter);
-    appState.loginWithPhoneAndPassword('0800000002', 'password123');
+    appState.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn;
     expect(appState.addToCart(listing), isNull);
     final result = appState.createOrderForSeller(
       'user_01',
       paymentMethod: PaymentMethod.cashOnHandover,
     );
     expect(result.isSuccess, isTrue);
-    appState.loginWithPhoneAndPassword('0800000001', 'password123');
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
 
     expect(appState.deleteListing(listing.id), contains('ออเดอร์'));
     expect(
       appState.products.any((product) => product.id == listing.id),
       isTrue,
     );
-    appState.loginWithPhoneAndPassword('0800000002', 'password123');
+    appState.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn;
     expect(appState.cancelOrder(result.order!.id, 'ยกเลิกในชุดทดสอบ'), isNull);
   });
 }

@@ -82,7 +82,7 @@ void main() {
         categories: subscription.categories,
       );
     }
-    appState.loginWithPhoneAndPassword('0800000001', 'password123');
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
   });
 
   test('blocking works both ways, filters products, and can be undone', () {
@@ -396,7 +396,7 @@ void main() {
     expect(appState.currentUser.role, UserRole.guest);
     appState.loginAsGuest();
     expect(
-      appState.loginWithPhoneAndPassword('0800000002', 'password123'),
+      appState.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn,
       isFalse,
     );
     expect(appState.lastLoginError, contains('บัญชีนี้ถูกระงับ'));

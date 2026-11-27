@@ -1,41 +1,48 @@
 part of 'app_state.dart';
 
-/// Phone sign-in, registration, guest sessions, and suspension checks.
+/// Result of signing in with a phone number whose OTP has been verified.
+enum PhoneSignInResult { signedIn, needsRegistration, suspended }
+
+/// Phone OTP sign-in, registration, guest sessions, and suspension checks.
 extension AppStateAuth on AppState {
   bool isPhoneRegistered(String phone) =>
-      _credentialsByPhone.containsKey(phone);
+      users.any((user) => user.phone == phone);
 
-  bool loginWithPhoneAndPassword(String phone, String password) {
-    final credential = _credentialsByPhone[phone];
-    if (credential == null ||
-        credential.passwordHash != _passwordDigest(credential.salt, password)) {
-      lastLoginError = 'เบอร์โทรหรือรหัสผ่านไม่ถูกต้อง';
-      return false;
-    }
-
-    final userIndex = users.indexWhere((user) => user.id == credential.userId);
+  /// Signs in the account that owns [phone], after its OTP was verified by
+  /// [phoneAuth]. [authUid] is the Firebase user ID for that phone.
+  PhoneSignInResult signInVerifiedPhone(String phone, {String authUid = ''}) {
+    final userIndex = users.indexWhere((user) => user.phone == phone);
     if (userIndex == -1) {
-      throw StateError(
-        'Mock credential references a missing user: ${credential.userId}',
-      );
+      lastLoginError = 'ยังไม่มีบัญชีสำหรับเบอร์นี้ กรุณาสมัครสมาชิก';
+      return PhoneSignInResult.needsRegistration;
     }
-
     if (users[userIndex].isSuspended) {
       lastLoginError = 'บัญชีนี้ถูกระงับ ติดต่อผู้ดูแล';
-      return false;
+      return PhoneSignInResult.suspended;
     }
-    currentUser = users[userIndex];
+    var user = users[userIndex];
+    if (!user.phoneVerified ||
+        (authUid.isNotEmpty && user.authUid != authUid)) {
+      user = user.copyWith(
+        phoneVerified: true,
+        authUid: authUid.isEmpty ? null : authUid,
+      );
+      users[userIndex] = user;
+    }
+    currentUser = user;
     lastLoginError = null;
     notifyListeners();
-    return true;
+    return PhoneSignInResult.signedIn;
   }
 
-  bool registerPhoneAccount({
+  /// Creates an account for [phone] after its OTP was verified.
+  /// Returns false when the phone already has an account.
+  bool registerVerifiedPhone({
     required String name,
     required String phone,
-    required String password,
+    String authUid = '',
   }) {
-    if (_credentialsByPhone.containsKey(phone)) return false;
+    if (isPhoneRegistered(phone)) return false;
 
     final user = UserModel(
       id: 'user_${DateTime.now().microsecondsSinceEpoch}',
@@ -43,9 +50,9 @@ extension AppStateAuth on AppState {
       phone: phone,
       phoneVerified: true,
       role: UserRole.member,
+      authUid: authUid,
     );
     users.add(user);
-    _credentialsByPhone[phone] = _createCredential(user.id, password);
     currentUser = user;
     lastLoginError = null;
     notifyListeners();
@@ -75,10 +82,18 @@ extension AppStateAuth on AppState {
   }
 
   void loginAsGuest() {
+    final wasLoggedIn = isLoggedIn;
     currentUser = _guestUser();
     lastLoginError = null;
     notifyListeners();
     if (_initialized) unawaited(flush());
+    if (wasLoggedIn) {
+      unawaited(
+        phoneAuth.signOut().catchError(
+          (Object error) => debugPrint('Phone sign-out failed: $error'),
+        ),
+      );
+    }
   }
 
   bool get isCurrentUserSuspended => currentUser.isSuspended;

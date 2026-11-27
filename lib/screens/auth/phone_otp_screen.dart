@@ -1,20 +1,20 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../auth/phone_auth_service.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
+import '../main_navigation_screen.dart';
 import 'location_permission_screen.dart';
 
+/// Sends an SMS code to [phone] and checks it. With [name] set this
+/// registers a new account; without it, it signs in to an existing one.
 class PhoneOtpScreen extends StatefulWidget {
-  final String name;
   final String phone;
-  final String password;
+  final String? name;
 
-  const PhoneOtpScreen({
-    super.key,
-    required this.name,
-    required this.phone,
-    required this.password,
-  });
+  const PhoneOtpScreen({super.key, required this.phone, this.name});
+
+  bool get isRegistration => name != null;
 
   @override
   State<PhoneOtpScreen> createState() => _PhoneOtpScreenState();
@@ -29,11 +29,47 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
   Timer? _countdownTimer;
   int _resendSeconds = 60;
   String? _otpError;
+  PhoneCodeRequest? _request;
+  bool _sending = false;
+  bool _verifying = false;
 
   @override
   void initState() {
     super.initState();
-    _startCountdown();
+    _sendCode();
+  }
+
+  Future<void> _sendCode() async {
+    setState(() {
+      _sending = true;
+      _otpError = null;
+    });
+    try {
+      // A reCAPTCHA check left unanswered never completes, so give up
+      // after a while and let the user ask for a new code.
+      final request = await AppState().phoneAuth
+          .sendCode(widget.phone)
+          .timeout(
+            const Duration(seconds: 90),
+            onTimeout: () => throw const PhoneAuthFailure(
+              'ส่งรหัสไม่สำเร็จ กรุณากดส่งรหัสอีกครั้ง',
+            ),
+          );
+      if (!mounted) return;
+      setState(() {
+        _request = request;
+        _sending = false;
+      });
+      _startCountdown(notify: true);
+      if (request.autoVerifiedUid != null) await _verifyCode();
+    } on PhoneAuthFailure catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _sending = false;
+        _resendSeconds = 0;
+        _otpError = error.message;
+      });
+    }
   }
 
   void _startCountdown({bool notify = false}) {
@@ -54,33 +90,69 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
   }
 
   void _resendCode() {
-    if (_resendSeconds > 0) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('ส่งรหัส OTP ใหม่แล้ว (โหมดทดสอบ)')),
-    );
-    _startCountdown(notify: true);
+    if (_resendSeconds > 0 || _sending) return;
+    _sendCode();
   }
 
-  void _verifyCode() {
+  Future<void> _verifyCode() async {
+    final request = _request;
+    if (request == null || _verifying) return;
     final code = _otpControllers.map((controller) => controller.text).join();
-    if (code != '123456') {
-      setState(() => _otpError = 'รหัส OTP ไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง');
+    if (request.autoVerifiedUid == null && code.length != 6) {
+      setState(() => _otpError = 'กรุณากรอกรหัส OTP ให้ครบ 6 หลัก');
       return;
     }
-
-    final registered = AppState().registerPhoneAccount(
-      name: widget.name,
-      phone: widget.phone,
-      password: widget.password,
-    );
-    if (!registered) {
-      setState(() => _otpError = 'เบอร์โทรนี้มีบัญชีแล้ว กรุณาเข้าสู่ระบบ');
+    setState(() {
+      _verifying = true;
+      _otpError = null;
+    });
+    final String authUid;
+    try {
+      authUid = await AppState().phoneAuth.verifyCode(request, code);
+    } on PhoneAuthFailure catch (error) {
+      if (mounted) {
+        setState(() {
+          _verifying = false;
+          _otpError = error.message;
+        });
+      }
       return;
     }
+    if (!mounted) return;
 
+    final state = AppState();
+    if (widget.isRegistration) {
+      final registered = state.registerVerifiedPhone(
+        name: widget.name!,
+        phone: widget.phone,
+        authUid: authUid,
+      );
+      if (!registered) {
+        setState(() {
+          _verifying = false;
+          _otpError = 'เบอร์โทรนี้มีบัญชีแล้ว กรุณาเข้าสู่ระบบ';
+        });
+        return;
+      }
+    } else {
+      final result = state.signInVerifiedPhone(widget.phone, authUid: authUid);
+      if (result != PhoneSignInResult.signedIn) {
+        setState(() {
+          _verifying = false;
+          _otpError = state.lastLoginError;
+        });
+        return;
+      }
+    }
+
+    final user = state.currentUser;
+    final nextScreen =
+        user.homeLat == null || user.homeLng == null || user.homeLabel.isEmpty
+        ? const LocationPermissionScreen()
+        : const MainNavigationScreen();
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => const LocationPermissionScreen()),
+      MaterialPageRoute(builder: (_) => nextScreen),
       (route) => false,
     );
   }
@@ -133,9 +205,12 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'รหัสทดสอบ: 123456',
-                style: TextStyle(fontSize: 12, color: AppColors.graySecondary),
+              Text(
+                _sending ? 'กำลังส่งรหัส OTP...' : 'รหัสมีอายุ 5 นาที',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.graySecondary,
+                ),
               ),
               const SizedBox(height: 28),
               Row(
@@ -183,7 +258,9 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
               ],
               const SizedBox(height: 20),
               TextButton(
-                onPressed: _resendSeconds == 0 ? _resendCode : null,
+                onPressed: _resendSeconds == 0 && !_sending
+                    ? _resendCode
+                    : null,
                 child: Text(
                   _resendSeconds == 0
                       ? 'ส่งรหัสอีกครั้ง'
@@ -195,8 +272,20 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: _verifyCode,
-                  child: const Text('ยืนยันเบอร์โทรศัพท์'),
+                  onPressed: _request == null || _verifying
+                      ? null
+                      : _verifyCode,
+                  child: _verifying
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(strokeWidth: 2.5),
+                        )
+                      : Text(
+                          widget.isRegistration
+                              ? 'ยืนยันและสมัครสมาชิก'
+                              : 'ยืนยันและเข้าสู่ระบบ',
+                        ),
                 ),
               ),
             ],

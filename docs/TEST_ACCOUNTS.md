@@ -1,20 +1,21 @@
 # dolp prototype test accounts
 
-All data below is local mock data. It is not a real account system. On first
-launch the app initializes from seed fixtures; later launches restore saved
-local data instead of overwriting it.
+Sign-in uses Firebase phone authentication. The numbers below are registered
+as **test phone numbers** in the Firebase console, so no SMS is sent and the
+code is always `123456`. Sending SMS to real numbers needs the Firebase Blaze
+plan.
 
 ## Sign-in accounts
 
-| Role | Phone | Password | Notes |
+| Role | Phone | Firebase test number | Notes |
 |---|---|---|---|
-| Member / sample buyer | `0800000001` | `password123` | `user_01`; seeded with home area and enabled 5 km area alerts. |
-| Member / sample seller | `0800000002` | `password123` | `user_02`; seeded with home area. |
-| Admin | `0800000009` | `password123` | `admin_01`; admin-only screens and AppState actions. |
+| Member / sample buyer | `0800000001` | `+66 80 000 0001` | `user_01`; seeded with home area and enabled 5 km area alerts. |
+| Member / sample seller | `0800000002` | `+66 80 000 0002` | `user_02`; seeded with home area. |
+| Admin | `0800000009` | `+66 80 000 0009` | `admin_01`; admin-only screens and AppState actions. |
 
-The mock OTP shown by the OTP screen is `123456`. No SMS is sent. The other
-seeded profiles (`user_03`–`user_07`) provide sample listings, conversations,
-reviews, and orders, but have no phone credential configured for sign-in.
+Debug builds also show sample-account buttons on the login screen that skip
+the OTP step. The other seeded profiles (`user_03`–`user_07`) provide sample
+listings, conversations, reviews, and orders, but have no test number.
 
 ## Guest
 
@@ -24,10 +25,9 @@ or submit a report.
 
 ## Test cautions
 
-- These credentials are intentionally predictable and must never be reused in
-  production.
-- Mock password credentials are salted hashes in local storage; this is not
-  production authentication. Account state is stored on the device.
+- Test numbers are intentionally predictable; remove them before real use.
+- Firestore rules admit any signed-in client, so any signed-in user can still
+  read and write all data until per-user rules are added.
 - Admin role checks are not a substitute for authenticated server-side access
   control.
 - Seed fixtures can be changed by tests during a run. Reinitializing AppState

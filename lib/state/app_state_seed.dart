@@ -3,7 +3,6 @@ part of 'app_state.dart';
 /// Prototype seed data (users, listings, orders, reviews). Not used in production.
 extension _AppStateSeed on AppState {
   void _initMockData() {
-    _credentialsByPhone.clear();
     _exactLocationsByProductId.clear();
     _reservedListingPreviousStatus.clear();
     _blockedUserPairs.clear();
@@ -101,11 +100,6 @@ extension _AppStateSeed on AppState {
         successfulDeals: 150,
       ),
     ];
-    _credentialsByPhone.addAll({
-      '0800000001': _createCredential('user_01', 'password123'),
-      '0800000002': _createCredential('user_02', 'password123'),
-      '0800000009': _createCredential('admin_01', 'password123'),
-    });
     currentUser = users.first;
     _areaAlertSubscriptions['user_01'] = AreaAlertSubscription(
       userId: 'user_01',

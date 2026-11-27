@@ -36,7 +36,9 @@ void main() {
     exactAddress: 'บ้านเลขที่ 9',
     pickupType: PickupType.discussInChat,
     imageUrl: '',
-    productImages: [ProductImageData.memory(Uint8List.fromList([1, 2, 3]))],
+    productImages: [
+      ProductImageData.memory(Uint8List.fromList([1, 2, 3])),
+    ],
   );
 
   test('first device uploads seed data as one document per record', () async {
@@ -57,7 +59,10 @@ void main() {
   test('a listing made on one device shows on another device', () async {
     final db = FakeFirebaseFirestore();
     final a = await device(db);
-    expect(a.loginWithPhoneAndPassword('0800000002', 'password123'), isTrue);
+    expect(
+      a.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn,
+      isTrue,
+    );
     final product = addListing(a, 'Shared listing');
     await a.flush();
 
@@ -76,7 +81,10 @@ void main() {
     final db = FakeFirebaseFirestore();
     final a = await device(db);
     final b = await device(db);
-    expect(a.loginWithPhoneAndPassword('0800000002', 'password123'), isTrue);
+    expect(
+      a.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn,
+      isTrue,
+    );
     final product = addListing(a, 'Late listing');
     await a.flush();
 
@@ -95,7 +103,7 @@ void main() {
     );
     const payload =
         '{"schemaVersion":1,"users":[{"id":"u1","name":"A"}],'
-        '"blockedUserPairs":["u1|u2"],"credentials":{"080/1":{"userId":"u1"}}}';
+        '"blockedUserPairs":["u1|u2"],"suspendedUserReasons":{"u/1":"spam"}}';
     await store.save(payload);
     await db.collection('users').doc('u1').update({'name': 'edited'});
     await store.save(payload);
@@ -105,9 +113,9 @@ void main() {
       'edited',
     );
     expect(
-      (await db.collection('credentials').doc('080%2F1').get())
+      (await db.collection('suspendedUserReasons').doc('u%2F1').get())
           .data()?['key'],
-      '080/1',
+      'u/1',
     );
   });
 
@@ -117,9 +125,7 @@ void main() {
       firestore: db,
       local: InMemoryPersistenceStore(),
     );
-    await store.save(
-      '{"schemaVersion":1,"users":[{"id":"u1"},{"id":"u2"}]}',
-    );
+    await store.save('{"schemaVersion":1,"users":[{"id":"u1"},{"id":"u2"}]}');
     await store.save('{"schemaVersion":1,"users":[{"id":"u1"}]}');
     final users = await db.collection('users').get();
     expect(users.docs.map((doc) => doc.id), ['u1']);

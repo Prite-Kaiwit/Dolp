@@ -13,7 +13,7 @@ void main() {
   late String conversationId;
 
   setUp(() {
-    appState.loginWithPhoneAndPassword('0800000001', 'password123');
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
     appState.conversations.clear();
     appState.meetupAgreements.clear();
     conversationId = appState.openConversationForProduct('prod_1')!.id;
@@ -56,7 +56,7 @@ void main() {
     expect(appState.openConversationForProduct('prod_1')?.id, existing.id);
     expect(appState.conversations, hasLength(1));
 
-    appState.loginWithPhoneAndPassword('0800000002', 'password123');
+    appState.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn;
     expect(appState.openConversationForProduct('prod_1'), isNull);
   });
 
@@ -176,7 +176,7 @@ void main() {
       contains('ถูกตอบหรือเปลี่ยน'),
     );
     final latest = appState.meetupAgreements.last;
-    appState.loginWithPhoneAndPassword('0800000002', 'password123');
+    appState.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn;
     expect(appState.respondMeetup(latest.id, accept: true), isNull);
     expect(
       appState.respondMeetup(latest.id, accept: false),
@@ -193,7 +193,7 @@ void main() {
     );
     final proposal = appState.meetupAgreements.single;
     expect(proposal.spotLocation, isNull);
-    appState.loginWithPhoneAndPassword('0800000002', 'password123');
+    appState.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn;
     expect(appState.shareExactAddress(conversationId), isNotNull);
     expect(appState.respondMeetup(proposal.id, accept: true), isNull);
     expect(
@@ -207,17 +207,17 @@ void main() {
       'addressShare',
     );
 
-    appState.loginWithPhoneAndPassword('0800000001', 'password123');
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
     expect(appState.getExactLocationFor('prod_1', 'user_01'), isNotNull);
     expect(appState.getExactLocationFor('prod_2', 'user_01'), isNull);
-    appState.loginWithPhoneAndPassword('0800000003', 'password123');
+    appState.signInVerifiedPhone('0800000003') == PhoneSignInResult.signedIn;
     expect(appState.getExactLocationFor('prod_1', 'user_03'), isNull);
   });
 
   test(
     'missing seller address asks for manual chat entry without sharing coords',
     () {
-      appState.loginWithPhoneAndPassword('0800000002', 'password123');
+      appState.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn;
       final product = appState.addListing(
         title: 'Address omitted listing',
         description: '',
@@ -233,7 +233,7 @@ void main() {
         imageUrl: '',
         productImages: [],
       );
-      appState.loginWithPhoneAndPassword('0800000001', 'password123');
+      appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
       final conversation = appState.openConversationForProduct(product.id)!;
       expect(
         appState.proposeMeetup(
@@ -245,7 +245,7 @@ void main() {
         isNull,
       );
       final agreement = appState.meetupAgreements.last;
-      appState.loginWithPhoneAndPassword('0800000002', 'password123');
+      appState.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn;
       expect(appState.respondMeetup(agreement.id, accept: true), isNull);
       final before = appState.conversations
           .firstWhere((item) => item.id == conversation.id)
@@ -277,7 +277,7 @@ void main() {
     );
     final updated = appState.conversations.single;
     expect(appState.unreadCountFor(updated, 'user_02'), 3);
-    appState.loginWithPhoneAndPassword('0800000002', 'password123');
+    appState.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn;
     appState.markConversationRead(conversationId);
     expect(
       appState.unreadCountFor(appState.conversations.single, 'user_02'),

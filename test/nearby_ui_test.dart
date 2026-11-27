@@ -11,7 +11,7 @@ void main() {
   final appState = AppState();
 
   setUp(() {
-    appState.loginWithPhoneAndPassword('0800000001', 'password123');
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
     appState.updateCurrentUserArea(
       latitude: kDefaultCenter.lat,
       longitude: kDefaultCenter.lng,
@@ -20,7 +20,7 @@ void main() {
   });
 
   tearDown(() {
-    appState.loginWithPhoneAndPassword('0800000001', 'password123');
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
     appState.updateCurrentUserArea(
       latitude: kDefaultCenter.lat,
       longitude: kDefaultCenter.lng,
@@ -141,7 +141,7 @@ void main() {
         );
       }
 
-      appState.loginWithPhoneAndPassword('0800000002', 'password123');
+      appState.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn;
       final exact = appState.getExactLocationFor('prod_1', 'user_02')!;
       final product = appState.products.firstWhere(
         (item) => item.id == 'prod_1',

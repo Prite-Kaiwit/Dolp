@@ -19,7 +19,7 @@ void main() {
     originalCart = List<ProductModel>.of(appState.cartItems);
     originalOrders = List<OrderModel>.of(appState.orders);
     appState.cartItems.clear();
-    appState.loginWithPhoneAndPassword('0800000001', 'password123');
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
     final product = appState.products.firstWhere((item) => item.id == 'prod_6');
     expect(appState.addToCart(product), isNull);
   });
@@ -34,7 +34,7 @@ void main() {
     appState.products = originalProducts;
     appState.cartItems = originalCart;
     appState.orders = originalOrders;
-    appState.loginWithPhoneAndPassword('0800000001', 'password123');
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
   });
 
   testWidgets(
@@ -133,7 +133,7 @@ void main() {
   });
 
   testWidgets('history tabs count the current buyer orders', (tester) async {
-    appState.loginWithPhoneAndPassword('0800000001', 'password123');
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
     await tester.pumpWidget(const MaterialApp(home: OrderHistoryScreen()));
     await tester.pumpAndSettle();
 

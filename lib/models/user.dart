@@ -19,6 +19,10 @@ class UserModel {
   final bool isSuspended;
   final String? suspensionReason;
 
+  /// Firebase Authentication user ID of the phone that last verified this
+  /// account. Empty for seed accounts that have not signed in yet.
+  final String authUid;
+
   UserModel({
     required this.id,
     required this.name,
@@ -36,6 +40,7 @@ class UserModel {
     DateTime? createdAt,
     this.isSuspended = false,
     this.suspensionReason,
+    this.authUid = '',
   }) : createdAt = createdAt ?? DateTime.now();
 
   Map<String, Object?> toJson() => {
@@ -54,6 +59,7 @@ class UserModel {
     'createdAt': createdAt.toUtc().toIso8601String(),
     'isSuspended': isSuspended,
     'suspensionReason': suspensionReason,
+    'authUid': authUid,
   };
 
   factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
@@ -74,6 +80,7 @@ class UserModel {
     suspensionReason: json['suspensionReason'] is String
         ? json['suspensionReason'] as String
         : null,
+    authUid: jsonString(json['authUid']),
   );
 
   UserModel copyWith({
@@ -93,6 +100,7 @@ class UserModel {
     bool? isSuspended,
     String? suspensionReason,
     bool clearSuspensionReason = false,
+    String? authUid,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -112,6 +120,7 @@ class UserModel {
       suspensionReason: clearSuspensionReason
           ? null
           : suspensionReason ?? this.suspensionReason,
+      authUid: authUid ?? this.authUid,
     );
   }
 }

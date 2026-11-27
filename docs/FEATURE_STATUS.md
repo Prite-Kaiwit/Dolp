@@ -11,7 +11,7 @@ notifications, admin guards, and local persistence.
 
 | ID | Requirement / phase change | Status |
 |---|---|---|
-| FR-01 | Phone-based sign-in, registration, and mock OTP | Implemented for prototype. Credentials and OTP are local mocks; no SMS provider or backend. |
+| FR-01 | Phone-based sign-in, registration, and OTP | Implemented with Firebase phone authentication (Android and web). Tested with Firebase test numbers; real SMS needs the Blaze plan. Builds without Firebase accept the fixed code `123456`. |
 | FR-02 | Replace campus zones with location, distance, radius, and nearby filters | Implemented. Public listing locations are obfuscated; GPS is not allowed to override a saved home-area reference silently. |
 | FR-03 | Buyer–seller chat and meetup proposals | Implemented locally, including text, images, agreement responses, and private address sharing after an accepted agreement. |
 | FR-04 | Create, edit, hide, reserve, and browse sale/trade/donation listings | Implemented locally. Listing images may use URLs or bytes; no remote storage. |
@@ -42,9 +42,8 @@ The prototype stores structured state in local device preferences and image
 bytes in app support files on Android/iOS. Web builds persist structured state
 but keep image bytes in memory only, so image uploads do not survive a web
 reload. Local data is not synchronized, is not encrypted as a whole, and is
-not a substitute for backend storage or authorization. Mock passwords are
-salted and hashed locally; production authentication must verify credentials
-server-side. OTP state is temporary and is not persisted.
+not a substitute for backend storage or authorization. There are no passwords;
+OTP state is temporary and is not persisted.
 
 ## Verification
 

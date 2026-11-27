@@ -95,9 +95,9 @@ OTP state is temporary and is never stored.
   background.
 - Private exact listing addresses/coordinates are never serialized inside a
   `ProductModel`; they are stored only in the separate private-location map.
-- Mock passwords are stored as salted SHA-256 hashes, not plaintext. This is
-  not production-grade authentication: real credentials must be verified and
-  securely stored on a server. Local app data is not encrypted as a whole.
+- There are no passwords. Accounts are found by phone number after Firebase
+  verifies an SMS OTP, and `UserModel.authUid` records the Firebase user ID.
+  Local app data is not encrypted as a whole.
 - There is no backend synchronization, PostgreSQL integration, or real push
   notification delivery (FCM/APNs).
 

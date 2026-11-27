@@ -30,7 +30,7 @@ void main() {
     originalConversations = List<ChatConversation>.of(appState.conversations);
     originalMeetups = List<MeetupAgreement>.of(appState.meetupAgreements);
     appState.cartItems.clear();
-    appState.loginWithPhoneAndPassword('0800000001', 'password123');
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
   });
 
   tearDown(() {
@@ -42,7 +42,7 @@ void main() {
     appState.notifications = originalNotifications;
     appState.conversations = originalConversations;
     appState.meetupAgreements = originalMeetups;
-    appState.loginWithPhoneAndPassword('0800000001', 'password123');
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
   });
 
   test(
@@ -70,13 +70,13 @@ void main() {
       expect(firstOrder.order!.totalPrice, 900);
       expect(appState.cartItems.map((item) => item.id), ['prod_4']);
 
-      appState.loginWithPhoneAndPassword('0800000002', 'password123');
+      appState.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn;
       expect(
         appState.addToCart(firstSellerProducts.first),
         contains('ไม่พร้อมขาย'),
       );
 
-      appState.loginWithPhoneAndPassword('0800000001', 'password123');
+      appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
       final secondOrder = appState.createOrderForSeller(
         'user_05',
         paymentMethod: PaymentMethod.transferOnHandover,
@@ -103,9 +103,9 @@ void main() {
         isNot(contains(product.id)),
       );
 
-      appState.loginWithPhoneAndPassword('0800000002', 'password123');
+      appState.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn;
       expect(appState.addToCart(product), contains('ไม่พร้อมขาย'));
-      appState.loginWithPhoneAndPassword('0800000001', 'password123');
+      appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
       expect(appState.cancelOrder(order.id, 'เปลี่ยนใจ'), isNull);
       expect(_product(appState, product.id).status, ListingStatus.active);
 
@@ -122,7 +122,7 @@ void main() {
         isNull,
       );
       expect(_product(appState, product.id).status, ListingStatus.reserved);
-      appState.loginWithPhoneAndPassword('0800000001', 'password123');
+      appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
       expect(appState.cancelOrder(hideThenCancel.id, 'เปลี่ยนใจ'), isNull);
       expect(_product(appState, product.id).status, ListingStatus.hidden);
       appState.currentUser = appState.userById(product.sellerId)!;
@@ -130,7 +130,7 @@ void main() {
         appState.setListingStatus(product.id, ListingStatus.active),
         isNull,
       );
-      appState.loginWithPhoneAndPassword('0800000001', 'password123');
+      appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
 
       expect(appState.addToCart(product), isNull);
       final completedResult = appState.createOrderForSeller(
@@ -143,7 +143,7 @@ void main() {
       expect(appState.orders.first.status, OrderStatus.pending);
       expect(appState.orders.first.events, hasLength(1));
 
-      appState.loginWithPhoneAndPassword('0800000001', 'password123');
+      appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
       expect(appState.completeOrder(completedOrder.id), isNull);
       expect(_product(appState, product.id).status, ListingStatus.sold);
       expect(appState.orders.first.events.last.status, OrderStatus.completed);
@@ -194,7 +194,7 @@ void main() {
       appState.currentUser = appState.userById('user_03')!;
       expect(appState.respondMeetup(agreement.id, accept: true), isNull);
       expect(appState.shareExactAddress(conversation.id), isNull);
-      appState.loginWithPhoneAndPassword('0800000001', 'password123');
+      appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
       expect(appState.addToCart(_product(appState, 'prod_2')), isNull);
       final order = appState
           .createOrderForSeller(
@@ -227,7 +227,7 @@ void main() {
       appState.removeFromCart(product.id);
       expect(appState.cartItems, isEmpty);
 
-      appState.loginWithPhoneAndPassword('0800000002', 'password123');
+      appState.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn;
       expect(
         appState.addToCart(_product(appState, 'prod_1')),
         contains('ตัวเอง'),
@@ -288,7 +288,7 @@ void main() {
       expect(restored.previousStatus, isNull);
       expect(restored.events, hasLength(eventsBeforeResolve + 1));
 
-      appState.loginWithPhoneAndPassword('0800000001', 'password123');
+      appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
       expect(
         appState.disputeOrder(disputed.id, 'ปัญหาอีกครั้ง', 'รายละเอียด'),
         isNull,
@@ -437,7 +437,7 @@ void main() {
         'review-outsider',
         'seller_review_test',
       );
-      appState.loginWithPhoneAndPassword('0800000002', 'password123');
+      appState.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn;
       expect(
         appState.submitReview(
           orderId: outsider.id,
@@ -483,7 +483,7 @@ OrderModel _completeOrder(AppState state, String productId, String sellerId) {
   final order = _createOrder(state, productId, sellerId);
   state.currentUser = state.userById(sellerId)!;
   expect(state.markOrderHandedOver(order.id), isNull);
-  state.loginWithPhoneAndPassword('0800000001', 'password123');
+  state.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
   expect(state.completeOrder(order.id), isNull);
   return order;
 }

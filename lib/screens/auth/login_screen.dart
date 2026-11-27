@@ -6,6 +6,7 @@ import '../../state/app_state.dart';
 import '../../widgets/brand_logo.dart';
 import '../main_navigation_screen.dart';
 import 'location_permission_screen.dart';
+import 'phone_otp_screen.dart';
 import 'sign_up_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -16,26 +17,38 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _phoneController = TextEditingController(text: '0800000001');
-  final _passwordController = TextEditingController(text: 'password123');
-  bool _obscurePassword = true;
+  final _phoneController = TextEditingController();
 
-  void _handleLogin() {
-    _login(_phoneController.text.trim(), _passwordController.text);
+  void _requestOtp() {
+    final phone = _phoneController.text.trim();
+    String? error;
+    if (!RegExp(r'^0\d{9}$').hasMatch(phone)) {
+      error = 'กรุณากรอกเบอร์โทร 10 หลักขึ้นต้นด้วย 0';
+    } else if (!AppState().isPhoneRegistered(phone)) {
+      error = 'ยังไม่มีบัญชีสำหรับเบอร์นี้ กรุณาลงทะเบียนใหม่';
+    }
+    if (error != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error)));
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => PhoneOtpScreen(phone: phone)),
+    );
   }
 
-  void _login(String phone, String password) {
-    if (!AppState().loginWithPhoneAndPassword(phone, password)) {
+  /// Debug builds only: signs in to a seed account without an SMS code.
+  void _debugLogin(String phone) {
+    if (AppState().signInVerifiedPhone(phone) != PhoneSignInResult.signedIn) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            AppState().lastLoginError ?? 'เบอร์โทรหรือรหัสผ่านไม่ถูกต้อง',
-          ),
+          content: Text(AppState().lastLoginError ?? 'เข้าสู่ระบบไม่สำเร็จ'),
         ),
       );
       return;
     }
-
     final user = AppState().currentUser;
     final nextScreen =
         user.homeLat == null || user.homeLng == null || user.homeLabel.isEmpty
@@ -51,7 +64,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void dispose() {
     _phoneController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
@@ -103,70 +115,21 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-
-              // Password Field
+              const SizedBox(height: 8),
               const Text(
-                'รหัสผ่าน',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                'เราจะส่งรหัส OTP 6 หลักทาง SMS เพื่อยืนยันตัวตน',
+                style: TextStyle(color: AppColors.graySecondary, fontSize: 12),
               ),
-              const SizedBox(height: 6),
-              TextField(
-                controller: _passwordController,
-                obscureText: _obscurePassword,
-                decoration: InputDecoration(
-                  hintText: 'กรอกรหัสผ่าน',
-                  prefixIcon: const Icon(
-                    Icons.lock_outline_rounded,
-                    color: AppColors.oceanBlue,
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                      color: AppColors.graySecondary,
-                    ),
-                    onPressed: () =>
-                        setState(() => _obscurePassword = !_obscurePassword),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              // Forgot Password
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'กรุณาติดต่อศูนย์ช่วยเหลือเพื่อรีเซ็ตรหัสผ่าน',
-                        ),
-                      ),
-                    );
-                  },
-                  child: const Text(
-                    'ลืมรหัสผ่าน?',
-                    style: TextStyle(
-                      color: AppColors.oceanBlue,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
 
               // Login Button
               SizedBox(
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: _handleLogin,
+                  onPressed: _requestOtp,
                   child: const Text(
-                    'เข้าสู่ระบบ',
+                    'ขอรหัส OTP',
                     style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -207,8 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           Expanded(
                             child: OutlinedButton(
-                              onPressed: () =>
-                                  _login('0800000001', 'password123'),
+                              onPressed: () => _debugLogin('0800000001'),
                               style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 8,
@@ -229,8 +191,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: OutlinedButton(
-                              onPressed: () =>
-                                  _login('0800000009', 'password123'),
+                              onPressed: () => _debugLogin('0800000009'),
                               style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 8,

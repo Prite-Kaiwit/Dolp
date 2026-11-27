@@ -23,6 +23,7 @@ import '../models/pickup_point.dart';
 import '../models/report.dart';
 import '../utils/distance.dart';
 import '../utils/json_helpers.dart';
+import '../auth/phone_auth_service.dart';
 import '../persistence/in_memory_persistence_store.dart';
 import '../persistence/persistence_store.dart';
 
@@ -58,24 +59,6 @@ class _PrivateProductLocation {
   });
 }
 
-class _MockCredential {
-  final String userId;
-  final String salt;
-  final String passwordHash;
-
-  const _MockCredential({
-    required this.userId,
-    required this.salt,
-    required this.passwordHash,
-  });
-
-  Map<String, String> toJson() => {
-    'userId': userId,
-    'salt': salt,
-    'passwordHash': passwordHash,
-  };
-}
-
 class AdminQueryResult<T> {
   final T? value;
   final String? error;
@@ -91,9 +74,11 @@ class AdminQueryResult<T> {
 class AppState extends ChangeNotifier with WidgetsBindingObserver {
   static AppState? _instance;
   static PersistenceStore? _configuredStore;
+  static PhoneAuthService? _configuredPhoneAuth;
 
   factory AppState() => _instance ??= AppState._internal(
     _configuredStore ?? InMemoryPersistenceStore(),
+    _configuredPhoneAuth ?? LocalPhoneAuthService(),
   );
 
   static void configurePersistenceStore(PersistenceStore store) {
@@ -105,17 +90,29 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _configuredStore = store;
   }
 
-  @visibleForTesting
-  factory AppState.createForTesting({required PersistenceStore store}) =>
-      AppState._internal(store);
+  static void configurePhoneAuth(PhoneAuthService service) {
+    if (_instance != null) {
+      throw StateError('Phone auth must be configured before AppState access.');
+    }
+    _configuredPhoneAuth = service;
+  }
 
-  AppState._internal(PersistenceStore store) : _store = store {
+  @visibleForTesting
+  factory AppState.createForTesting({
+    required PersistenceStore store,
+    PhoneAuthService? phoneAuth,
+  }) => AppState._internal(store, phoneAuth ?? LocalPhoneAuthService());
+
+  AppState._internal(PersistenceStore store, this.phoneAuth) : _store = store {
     _initMockData();
   }
 
   static const int schemaVersion = 1;
   static const Duration _saveDebounce = Duration(milliseconds: 300);
   final PersistenceStore _store;
+
+  /// Sends and checks SMS codes for sign-in and registration.
+  final PhoneAuthService phoneAuth;
   Timer? _saveTimer;
   Timer? _remoteReloadTimer;
   StreamSubscription<void>? _remoteChangesSubscription;
@@ -124,8 +121,6 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   String? lastPersistenceError;
   String? _persistenceWarning;
 
-  // Mock-only credentials; never use plaintext passwords outside this prototype.
-  final Map<String, _MockCredential> _credentialsByPhone = {};
   List<UserModel> users = [];
   UserModel currentUser = UserModel(
     id: 'guest_01',
@@ -431,10 +426,6 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       'schemaVersion': schemaVersion,
       'currentUserId': isLoggedIn ? currentUser.id : null,
       'users': users.map((user) => user.toJson()).toList(),
-      'credentials': {
-        for (final entry in _credentialsByPhone.entries)
-          entry.key: entry.value.toJson(),
-      },
       'products': persistedProducts.map((item) => item.toJson()).toList(),
       'privateProductLocations': {
         for (final entry in _exactLocationsByProductId.entries)
@@ -502,28 +493,6 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         .map((id) => products.where((product) => product.id == id).firstOrNull)
         .whereType<ProductModel>()
         .toList();
-
-    _credentialsByPhone.clear();
-    final credentialData = jsonObject(data['credentials']);
-    for (final entry in credentialData.entries) {
-      final value = jsonObject(entry.value);
-      final userId = jsonString(value['userId']);
-      if (userId.isEmpty) continue;
-      final salt = jsonString(value['salt']);
-      final storedHash = jsonString(value['passwordHash']);
-      if (salt.isNotEmpty && storedHash.isNotEmpty) {
-        _credentialsByPhone[entry.key] = _MockCredential(
-          userId: userId,
-          salt: salt,
-          passwordHash: storedHash,
-        );
-      } else if (value['password'] is String) {
-        _credentialsByPhone[entry.key] = _createCredential(
-          userId,
-          value['password'] as String,
-        );
-      }
-    }
 
     _exactLocationsByProductId.clear();
     for (final entry in jsonObject(data['privateProductLocations']).entries) {
@@ -665,21 +634,4 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     reviewCount: 0,
     successfulDeals: 0,
   );
-
-  // This salted hash is only mock credential handling; production passwords
-  // must be hashed and verified by a trusted server.
-  _MockCredential _createCredential(String userId, String password) {
-    final random = math.Random.secure();
-    final salt = base64UrlEncode(
-      List<int>.generate(16, (_) => random.nextInt(256)),
-    );
-    return _MockCredential(
-      userId: userId,
-      salt: salt,
-      passwordHash: _passwordDigest(salt, password),
-    );
-  }
-
-  String _passwordDigest(String salt, String password) =>
-      sha256.convert(utf8.encode('$salt:$password')).toString();
 }

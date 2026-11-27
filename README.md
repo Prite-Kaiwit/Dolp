@@ -9,13 +9,13 @@ chat with the seller, agree on a meetup, and pay cash or transfer at handover.
 > Firebase anonymously and Firestore rules only admit signed-in clients, but
 > dolp's own login is still mocked, so any app install can read and write all
 > data. Use test data only.
-> OTP and credentials are mocks, and admin checks run in the client.
+> Sign-in uses Firebase phone OTP; admin checks still run in the client.
 > See [docs/FEATURE_STATUS.md](docs/FEATURE_STATUS.md) for what is and isn't
 > implemented.
 
 ## Features
 
-- Phone sign-in and registration (mock OTP `123456`), plus guest browsing
+- Phone sign-in and registration with Firebase SMS OTP, plus guest browsing
 - Nearby listings by distance/radius on an OpenStreetMap map; public listing
   locations are offset ~100–300 m for privacy
 - Sale, trade, and donation listings with photos
@@ -36,7 +36,7 @@ flutter pub get
 flutter run
 ```
 
-Test accounts (password `password123`): member `0800000001`, seller
+Test accounts (Firebase test numbers, OTP `123456`): member `0800000001`, seller
 `0800000002`, admin `0800000009`. Details in
 [docs/TEST_ACCOUNTS.md](docs/TEST_ACCOUNTS.md).
 

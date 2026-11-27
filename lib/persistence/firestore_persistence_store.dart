@@ -40,7 +40,6 @@ class FirestorePersistenceStore implements PersistenceStore {
 
   /// Envelope keys that hold maps; each entry becomes one document.
   static const mapCollections = [
-    'credentials',
     'privateProductLocations',
     'reservedListingPreviousStatus',
     'suspendedUserReasons',
@@ -48,7 +47,10 @@ class FirestorePersistenceStore implements PersistenceStore {
   ];
 
   /// Envelope keys that hold lists of strings; each string is one document.
-  static const setCollections = ['blockedUserPairs', 'safetyTipsAcknowledgedBy'];
+  static const setCollections = [
+    'blockedUserPairs',
+    'safetyTipsAcknowledgedBy',
+  ];
 
   /// Envelope keys kept only on this device.
   static const localOnlyKeys = [
@@ -210,10 +212,7 @@ class FirestorePersistenceStore implements PersistenceStore {
       final map = data[name] as Map? ?? const {};
       result[name] = {
         for (final entry in map.entries)
-          docId(entry.key as String): {
-            'key': entry.key,
-            'value': entry.value,
-          },
+          docId(entry.key as String): {'key': entry.key, 'value': entry.value},
       };
     }
     for (final name in setCollections) {

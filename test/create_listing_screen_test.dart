@@ -19,7 +19,7 @@ void main() {
   );
 
   setUp(() {
-    appState.loginWithPhoneAndPassword('0800000001', 'password123');
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
     appState.updateCurrentUserArea(
       latitude: kDefaultCenter.lat,
       longitude: kDefaultCenter.lng,

@@ -9,7 +9,7 @@ void main() {
     'meetup response and address sharing are visible to the correct side',
     (tester) async {
       final appState = AppState();
-      appState.loginWithPhoneAndPassword('0800000001', 'password123');
+      appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
       appState.conversations.clear();
       appState.meetupAgreements.clear();
       final conversation = appState.openConversationForProduct('prod_1')!;
@@ -30,7 +30,7 @@ void main() {
       expect(find.text('ขอเปลี่ยน'), findsNothing);
       expect(find.byKey(const ValueKey('share-exact-address')), findsNothing);
 
-      appState.loginWithPhoneAndPassword('0800000002', 'password123');
+      appState.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn;
       await tester.pumpAndSettle();
       expect(find.text('ตกลง'), findsOneWidget);
       expect(find.text('ขอเปลี่ยน'), findsOneWidget);
@@ -38,7 +38,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('share-exact-address')), findsOneWidget);
 
-      appState.loginWithPhoneAndPassword('0800000001', 'password123');
+      appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('share-exact-address')), findsNothing);
 

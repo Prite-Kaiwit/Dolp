@@ -23,7 +23,7 @@ void main() {
       expect(state.users, isNotEmpty);
 
       expect(
-        state.loginWithPhoneAndPassword('0800000002', 'password123'),
+        state.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn,
         isTrue,
       );
       final product = state.addListing(
@@ -49,7 +49,7 @@ void main() {
         'บ้านเลขที่ 123',
       );
       expect(
-        state.loginWithPhoneAndPassword('0800000001', 'password123'),
+        state.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn,
         isTrue,
       );
       final conversation = state.openConversationForProduct(product.id)!;
@@ -73,13 +73,13 @@ void main() {
       );
       final meetup = state.meetupAgreements.last;
       expect(
-        state.loginWithPhoneAndPassword('0800000002', 'password123'),
+        state.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn,
         isTrue,
       );
       expect(state.respondMeetup(meetup.id, accept: true), isNull);
       expect(state.shareExactAddress(conversation.id), isNull);
       expect(
-        state.loginWithPhoneAndPassword('0800000001', 'password123'),
+        state.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn,
         isTrue,
       );
       expect(
@@ -116,7 +116,7 @@ void main() {
       );
 
       expect(
-        state.loginWithPhoneAndPassword('0800000002', 'password123'),
+        state.signInVerifiedPhone('0800000002') == PhoneSignInResult.signedIn,
         isTrue,
       );
       final blockedProduct = state.addListing(
@@ -135,7 +135,7 @@ void main() {
         productImages: const [],
       );
       expect(
-        state.loginWithPhoneAndPassword('0800000001', 'password123'),
+        state.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn,
         isTrue,
       );
       expect(state.addToCart(blockedProduct), isNull);
@@ -160,12 +160,12 @@ void main() {
           .order!;
       expect(state.blockUser('user_02'), isNull);
       expect(
-        state.loginWithPhoneAndPassword('0800000009', 'password123'),
+        state.signInVerifiedPhone('0800000009') == PhoneSignInResult.signedIn,
         isTrue,
       );
       expect(state.suspendUser('user_03', 'Review test'), isNull);
       expect(
-        state.loginWithPhoneAndPassword('0800000001', 'password123'),
+        state.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn,
         isTrue,
       );
       expect(
@@ -189,7 +189,7 @@ void main() {
 
       await state.flush();
       final saved = jsonDecode(store.payload!) as Map<String, dynamic>;
-      expect(jsonEncode(saved['credentials']), isNot(contains('password123')));
+      expect(saved.containsKey('credentials'), isFalse);
       final savedProduct =
           (saved['products'] as List).firstWhere(
                 (item) => (item as Map)['id'] == product.id,
@@ -244,7 +244,8 @@ void main() {
         isNull,
       );
       expect(
-        restored.loginWithPhoneAndPassword('0800000002', 'password123'),
+        restored.signInVerifiedPhone('0800000002') ==
+            PhoneSignInResult.signedIn,
         isTrue,
       );
       expect(
@@ -254,7 +255,8 @@ void main() {
         'อีกหนึ่งที่อยู่จริง',
       );
       expect(
-        restored.loginWithPhoneAndPassword('0800000001', 'password123'),
+        restored.signInVerifiedPhone('0800000001') ==
+            PhoneSignInResult.signedIn,
         isTrue,
       );
       expect(
@@ -300,15 +302,18 @@ void main() {
   );
 
   test(
-    'seed only fills an empty store; credentials and session survive restart',
+    'seed only fills an empty store; accounts and session survive restart',
     () async {
       final store = InMemoryPersistenceStore();
       final initial = await _newState(store);
       final originalCount = initial.products.length;
       expect(initial.currentUser.role.name, 'guest');
-      expect(initial.loginWithPhoneAndPassword('0800000001', 'wrong'), isFalse);
       expect(
-        initial.loginWithPhoneAndPassword('0800000001', 'password123'),
+        initial.signInVerifiedPhone('0899999999'),
+        PhoneSignInResult.needsRegistration,
+      );
+      expect(
+        initial.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn,
         isTrue,
       );
       initial.products.first = initial.products.first.copyWith(
@@ -321,11 +326,8 @@ void main() {
       expect(restored.products, hasLength(originalCount));
       expect(restored.products.first.title, 'User edit');
       expect(
-        restored.loginWithPhoneAndPassword('0800000001', 'wrong'),
-        isFalse,
-      );
-      expect(
-        restored.loginWithPhoneAndPassword('0800000001', 'password123'),
+        restored.signInVerifiedPhone('0800000001') ==
+            PhoneSignInResult.signedIn,
         isTrue,
       );
       restored.loginAsGuest();
@@ -335,14 +337,15 @@ void main() {
       final loggedOut = await _newState(store);
       expect(loggedOut.currentUser.role.name, 'guest');
       expect(
-        loggedOut.loginWithPhoneAndPassword('0800000001', 'password123'),
+        loggedOut.signInVerifiedPhone('0800000001') ==
+            PhoneSignInResult.signedIn,
         isTrue,
       );
       expect(
-        loggedOut.registerPhoneAccount(
+        loggedOut.registerVerifiedPhone(
           name: 'New user',
           phone: '0800000999',
-          password: 'new-password',
+          authUid: 'firebase-uid-999',
         ),
         isTrue,
       );
@@ -351,13 +354,10 @@ void main() {
 
       final registered = await _newState(store);
       expect(registered.currentUser.phone, '0800000999');
+      expect(registered.currentUser.authUid, 'firebase-uid-999');
       expect(
-        registered.loginWithPhoneAndPassword('0800000999', 'new-password'),
-        isTrue,
-      );
-      expect(
-        registered.loginWithPhoneAndPassword('0800000999', 'wrong'),
-        isFalse,
+        registered.signInVerifiedPhone('0800000999'),
+        PhoneSignInResult.signedIn,
       );
       registered.dispose();
     },
@@ -373,10 +373,8 @@ void main() {
       final products = data['products'] as List;
       (products.first as Map<String, dynamic>)['type'] = 'futureListingType';
       (products.first as Map<String, dynamic>)['title'] = null;
-      final credentials = data['credentials'] as Map<String, dynamic>;
-      credentials['0800000001'] = {
-        'userId': 'user_01',
-        'password': 'legacy-password',
+      data['credentials'] = {
+        '0800000001': {'userId': 'user_01', 'password': 'legacy-password'},
       };
       store.payload = jsonEncode(data);
       seeded.dispose();
@@ -388,11 +386,12 @@ void main() {
         (jsonDecode(store.payload!) as Map<String, dynamic>)['schemaVersion'],
         AppState.schemaVersion,
       );
-      expect(
-        migrated.loginWithPhoneAndPassword('0800000001', 'legacy-password'),
-        isTrue,
-      );
+      // Old password credentials are dropped on the next save.
       expect(store.payload, isNot(contains('legacy-password')));
+      expect(
+        migrated.signInVerifiedPhone('0800000001'),
+        PhoneSignInResult.signedIn,
+      );
       migrated.dispose();
 
       store.payload = '{broken';
@@ -410,7 +409,7 @@ void main() {
     () async {
       final store = InMemoryPersistenceStore();
       final state = await _newState(store);
-      state.loginWithPhoneAndPassword('0800000001', 'password123');
+      state.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
       state.updateCurrentUserArea(
         latitude: 12.5,
         longitude: 102.5,
@@ -469,7 +468,8 @@ void main() {
         ..failure = StateError('disk full');
       final unavailableStore = AppState.createForTesting(store: failingStore);
       await unavailableStore.initialize();
-      unavailableStore.loginWithPhoneAndPassword('0800000001', 'password123');
+      unavailableStore.signInVerifiedPhone('0800000001') ==
+          PhoneSignInResult.signedIn;
       await unavailableStore.flush();
       expect(unavailableStore.lastPersistenceError, contains('disk full'));
       unavailableStore.dispose();
@@ -481,7 +481,7 @@ void main() {
     () async {
       final store = InMemoryPersistenceStore();
       final state = await _newState(store);
-      state.loginWithPhoneAndPassword('0800000009', 'password123');
+      state.signInVerifiedPhone('0800000009') == PhoneSignInResult.signedIn;
       expect(state.suspendUser('user_01', 'Policy review'), isNull);
       state.currentUser = state.userById('user_01')!;
       state.notifyListeners();
@@ -493,7 +493,8 @@ void main() {
       expect(restored.takePersistenceWarning(), contains('ถูกระงับ'));
       expect(restored.takePersistenceWarning(), isNull);
       expect(
-        restored.loginWithPhoneAndPassword('0800000001', 'password123'),
+        restored.signInVerifiedPhone('0800000001') ==
+            PhoneSignInResult.signedIn,
         isFalse,
       );
       restored.dispose();

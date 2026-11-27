@@ -16,7 +16,7 @@ void main() {
 
   tearDown(() {
     appState.users = originalUsers;
-    appState.loginWithPhoneAndPassword('0800000001', 'password123');
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
     appState.updateAreaAlertSubscription(
       enabled: true,
       radiusKm: 5,
