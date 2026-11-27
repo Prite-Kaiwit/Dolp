@@ -29,7 +29,7 @@ notifications, admin guards, and local persistence.
 |---|---|
 | Privacy | Public product coordinates are offset by about 100–300 m, within a 500 m preview radius. Exact listing location/address is held in an AppState private map and may be shared to the accepted meetup partner only. No exact-address navigation feature is provided. |
 | Security | Prototype-only. Mock credentials use local salted hashes and admin checks run in the client; neither is suitable for production authorization. |
-| Persistence | Partially implemented on-device with schema-versioned local JSON. Data does not sync, use PostgreSQL, or encrypt the complete stored payload. |
+| Persistence | Shared data syncs through Cloud Firestore (project `dolp-app-1696-9fd78`), one document per record, via `FirestorePersistenceStore`. The signed-in user, cart and ID sequences stay on-device. Builds without Firebase config (Windows, macOS, Linux, iOS) fall back to local JSON. |
 | Auditability | Order status changes record `OrderEvent`; report decisions record the admin and resolution time. Records persist locally but are not server-audited. |
 | Compatibility | Flutter analysis and 86 tests pass. Android debug APK and web builds pass. Pixel 6 and full physical-device validation remain outstanding. |
 | Accessibility | Ocean-blue brand theme and contrast tests exist. Screen-reader and physical display validation remain outstanding. |

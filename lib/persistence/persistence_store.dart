@@ -8,4 +8,7 @@ abstract interface class PersistenceStore {
   Future<void> saveImage(String key, Uint8List bytes);
   Future<Uint8List?> loadImage(String key);
   Future<void> deleteUnreferencedImages(Set<String> referencedKeys);
+
+  /// Fires when data changed on another device. Local-only stores never fire.
+  Stream<void> get remoteChanges;
 }

@@ -117,6 +117,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   static const Duration _saveDebounce = Duration(milliseconds: 300);
   final PersistenceStore _store;
   Timer? _saveTimer;
+  Timer? _remoteReloadTimer;
+  StreamSubscription<void>? _remoteChangesSubscription;
   Future<void> _writeQueue = Future<void>.value();
   bool _initialized = false;
   String? lastPersistenceError;
@@ -192,6 +194,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> initialize() async {
     if (_initialized) return;
     WidgetsBinding.instance.addObserver(this);
+    _remoteChangesSubscription = _store.remoteChanges.listen(
+      (_) => _scheduleRemoteReload(),
+    );
     String? raw;
     try {
       raw = await _store.load();
@@ -284,6 +289,34 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     await _writeQueue;
   }
 
+  static const Duration _remoteReloadDebounce = Duration(milliseconds: 500);
+
+  void _scheduleRemoteReload() {
+    _remoteReloadTimer?.cancel();
+    _remoteReloadTimer = Timer(
+      _remoteReloadDebounce,
+      () => unawaited(reloadFromStore()),
+    );
+  }
+
+  /// Saves this device's pending edits, then reloads data changed elsewhere.
+  Future<void> reloadFromStore() async {
+    if (!_initialized) return;
+    await flush();
+    try {
+      final raw = await _store.load();
+      if (raw == null) return;
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map<String, dynamic>) return;
+      await _restoreFromJson(_migrate(decoded));
+      lastPersistenceError = null;
+      notifyListeners();
+    } catch (error, stackTrace) {
+      lastPersistenceError = '$error';
+      debugPrint('Remote reload failed: $error\n$stackTrace');
+    }
+  }
+
   Future<bool> resetSampleData() async {
     if (!kDebugMode) return false;
     try {
@@ -304,6 +337,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   @override
   void dispose() {
     _saveTimer?.cancel();
+    _remoteReloadTimer?.cancel();
+    unawaited(_remoteChangesSubscription?.cancel());
     if (_initialized) WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

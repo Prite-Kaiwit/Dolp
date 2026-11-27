@@ -52,4 +52,7 @@ class InMemoryPersistenceStore implements PersistenceStore {
   Future<void> deleteUnreferencedImages(Set<String> referencedKeys) async {
     images.removeWhere((key, _) => !referencedKeys.contains(key));
   }
+
+  @override
+  Stream<void> get remoteChanges => const Stream.empty();
 }

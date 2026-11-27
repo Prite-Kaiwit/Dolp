@@ -52,4 +52,7 @@ class SharedPreferencesPersistenceStore implements PersistenceStore {
   Future<void> deleteUnreferencedImages(Set<String> referencedKeys) async {
     if (!kIsWeb) await _media.deleteUnreferenced(referencedKeys);
   }
+
+  @override
+  Stream<void> get remoteChanges => const Stream.empty();
 }

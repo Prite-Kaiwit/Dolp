@@ -1,0 +1,25 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "dolp-app-1696-9fd78",
+          "appId": "1:239870805025:android:17c7a9eb7c97940d5f4f60",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "dolp-app-1696-9fd78",
+          "configurations": {
+            "android": "1:239870805025:android:17c7a9eb7c97940d5f4f60",
+            "web": "1:239870805025:web:7d5d2b45b24eddb95f4f60"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}
