@@ -97,6 +97,9 @@ class ChatConversation {
   final Map<String, int> unreadByUser;
   final List<ChatMessage> messages;
 
+  /// A chat with a shop that is not about any specific listing.
+  bool get isShopInquiry => productId.isEmpty;
+
   ChatConversation({
     required this.id,
     required this.peerId,

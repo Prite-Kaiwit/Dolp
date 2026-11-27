@@ -5,6 +5,7 @@ import 'package:moor_market/constants/chat_limits.dart';
 import 'package:moor_market/models/geo_location.dart';
 import 'package:moor_market/models/meetup_agreement.dart';
 import 'package:moor_market/models/product.dart';
+import 'package:moor_market/models/shop_profile.dart';
 import 'package:moor_market/models/user.dart';
 import 'package:moor_market/state/app_state.dart';
 
@@ -265,6 +266,115 @@ void main() {
       );
     },
   );
+
+  group('shop inquiry chats', () {
+    final addedUserIds = <String>[];
+
+    UserModel addShop(String id, {bool suspended = false, bool shop = true}) {
+      final user = UserModel(
+        id: id,
+        name: 'owner $id',
+        phone: '09${id.hashCode.abs() % 100000000}',
+        isSuspended: suspended,
+        accountType: shop ? AccountType.shop : AccountType.person,
+        shop: shop
+            ? ShopProfile(
+                shopName: 'ร้าน $id',
+                categories: const ['ของใช้ในบ้าน'],
+                location: GeoLocation(12.61, 102.10),
+                openingHours: const OpeningHours(
+                  days: {1: DayHours(openMinute: 540, closeMinute: 1080)},
+                ),
+              )
+            : null,
+      );
+      appState.users.add(user);
+      addedUserIds.add(id);
+      return user;
+    }
+
+    tearDown(() {
+      appState.users.removeWhere((user) => addedUserIds.contains(user.id));
+      addedUserIds.clear();
+      appState.unblockUser('shop_t1');
+    });
+
+    test('opens and reuses a shop inquiry', () {
+      final shop = addShop('shop_t1');
+      final first = appState.openShopInquiry(shop.id)!;
+      expect(first.isShopInquiry, isTrue);
+      expect(first.productId, '');
+      expect(first.sellerId, shop.id);
+      expect(first.buyerId, 'user_01');
+      expect(first.peerName, 'ร้าน shop_t1');
+      expect(first.messages.single.type.name, 'system');
+      expect(appState.openShopInquiry(shop.id)!.id, first.id);
+      expect(appState.conversations, hasLength(2));
+      expect(appState.conversations.first.id, first.id);
+    });
+
+    test(
+      'refuses inquiry to self, non-shop, blocked, suspended shop, and guest',
+      () {
+        final shop = addShop('shop_t1');
+        final person = addShop('person_t1', shop: false);
+        final suspended = addShop('shop_t2', suspended: true);
+        expect(appState.openShopInquiry('user_01'), isNull);
+        expect(appState.openShopInquiry(person.id), isNull);
+        expect(appState.openShopInquiry('missing'), isNull);
+        expect(appState.openShopInquiry(suspended.id), isNull);
+        appState.blockUser(shop.id);
+        expect(appState.openShopInquiry(shop.id), isNull);
+        appState.unblockUser(shop.id);
+        appState.currentUser = UserModel(
+          id: 'guest_01',
+          name: 'ผู้เยี่ยมชม',
+          role: UserRole.guest,
+        );
+        expect(appState.openShopInquiry('user_02'), isNull);
+        expect(appState.openShopInquiry(shop.id), isNull);
+        expect(appState.conversations, hasLength(1));
+      },
+    );
+
+    test('a shop cannot open an inquiry with itself', () {
+      final shop = addShop('shop_t1');
+      appState.currentUser = shop;
+      expect(appState.openShopInquiry(shop.id), isNull);
+    });
+
+    test('meetup and address sharing are refused in inquiry chats', () {
+      final shop = addShop('shop_t1');
+      final chat = appState.openShopInquiry(shop.id)!;
+      const message = 'แชทสอบถามร้านยังไม่มีสินค้าสำหรับนัดรับ';
+      expect(
+        appState.proposeMeetup(
+          conversationId: chat.id,
+          pickupType: PickupType.sellerHome,
+          placeLabel: '',
+          scheduledAt: DateTime.now().add(const Duration(days: 1)),
+        ),
+        message,
+      );
+      expect(appState.shareExactAddress(chat.id), message);
+      expect(appState.meetupAgreements, isEmpty);
+    });
+
+    test('inquiry chat appears in conversationsForCurrentUser for both', () {
+      final shop = addShop('shop_t1');
+      final chat = appState.openShopInquiry(shop.id)!;
+      expect(
+        appState.conversationsForCurrentUser.map((c) => c.id),
+        contains(chat.id),
+      );
+      appState.currentUser = shop;
+      expect(
+        appState.conversationsForCurrentUser.map((c) => c.id),
+        contains(chat.id),
+      );
+      expect(appState.sendTextMessage(chat.id, 'มีของใหม่ไหม'), isNull);
+    });
+  });
 
   test('unread count tracks all message types and clears when opened', () {
     final conversation = appState.conversations.single;

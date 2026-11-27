@@ -2,6 +2,9 @@ part of 'app_state.dart';
 
 /// Conversations, messages, meetup agreements, and address sharing.
 extension AppStateChat on AppState {
+  static const _inquiryNoMeetupMessage =
+      'แชทสอบถามร้านยังไม่มีสินค้าสำหรับนัดรับ';
+
   ChatConversation? openConversationForProduct(String productId) {
     if (_expireSuspendedSession() != null) return null;
     if (!isLoggedIn) return null;
@@ -40,6 +43,55 @@ extension AppStateChat on AppState {
       lastMessage: 'อย่าโอนเงินก่อนเห็นสินค้า และนัดในที่สาธารณะถ้าเป็นไปได้',
       lastMessageTime: now,
       unreadByUser: {currentUser.id: 0, seller.id: 0},
+      messages: [
+        ChatMessage(
+          id: _nextChatId('msg'),
+          senderId: 'system',
+          text: 'อย่าโอนเงินก่อนเห็นสินค้า และนัดในที่สาธารณะถ้าเป็นไปได้',
+          timestamp: now,
+          isMe: false,
+          isSystemPrompt: true,
+          type: ChatMessageType.system,
+        ),
+      ],
+    );
+    conversations.insert(0, conversation);
+    notifyListeners();
+    return conversation;
+  }
+
+  ChatConversation? openShopInquiry(String shopUserId) {
+    if (_expireSuspendedSession() != null) return null;
+    if (!isLoggedIn) return null;
+    final shop = userById(shopUserId);
+    if (shop == null || !shop.isShop || shop.id == currentUser.id) return null;
+    if (shop.isSuspended || areUsersBlocked(currentUser.id, shop.id)) {
+      return null;
+    }
+
+    final existing = conversations.where(
+      (conversation) =>
+          conversation.productId.isEmpty &&
+          conversation.buyerId == currentUser.id &&
+          conversation.sellerId == shop.id,
+    );
+    if (existing.isNotEmpty) return existing.first;
+
+    final now = DateTime.now();
+    final conversation = ChatConversation(
+      id: _nextChatId('chat'),
+      peerId: shop.id,
+      peerName: shop.displayName,
+      peerAvatar: shop.avatarUrl,
+      buyerId: currentUser.id,
+      sellerId: shop.id,
+      productId: '',
+      productTitle: '',
+      productPrice: 0,
+      productImageUrl: '',
+      lastMessage: 'อย่าโอนเงินก่อนเห็นสินค้า และนัดในที่สาธารณะถ้าเป็นไปได้',
+      lastMessageTime: now,
+      unreadByUser: {currentUser.id: 0, shop.id: 0},
       messages: [
         ChatMessage(
           id: _nextChatId('msg'),
@@ -199,6 +251,7 @@ extension AppStateChat on AppState {
         )) {
       return 'วันนัดต้องอยู่ภายใน $kMeetupMaxDaysAhead วันข้างหน้า';
     }
+    if (conversation.isShopInquiry) return _inquiryNoMeetupMessage;
     final product = products
         .where((item) => item.id == conversation.productId)
         .firstOrNull;
@@ -350,6 +403,7 @@ extension AppStateChat on AppState {
     if (areUsersBlocked(conversation.buyerId, conversation.sellerId)) {
       return 'ส่งที่อยู่ไม่ได้เนื่องจากผู้ใช้บล็อกกัน';
     }
+    if (conversation.isShopInquiry) return _inquiryNoMeetupMessage;
     final product = products
         .where((item) => item.id == conversation.productId)
         .firstOrNull;
@@ -439,7 +493,9 @@ extension AppStateChat on AppState {
         userId: recipient,
         type: AppNotificationType.newMessage,
         title: 'มีข้อความใหม่จาก ${currentUser.name}',
-        body: 'มีข้อความใหม่ในแชท ${conversation.productTitle}',
+        body: conversation.isShopInquiry
+            ? 'มีข้อความสอบถามใหม่'
+            : 'มีข้อความใหม่ในแชท ${conversation.productTitle}',
         refType: 'chat',
         refId: conversation.id,
         aggregateKey: conversation.id,
