@@ -230,10 +230,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                       value: 'block',
                       child: Text('บล็อกผู้ใช้'),
                     ),
-                  const PopupMenuItem(
-                    value: 'safety',
-                    child: Text('คำแนะนำก่อนนัดรับ'),
-                  ),
+                  if (!conversation.isShopInquiry)
+                    const PopupMenuItem(
+                      value: 'safety',
+                      child: Text('คำแนะนำก่อนนัดรับ'),
+                    ),
                 ],
               ),
             ],
@@ -263,7 +264,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                       style: TextStyle(color: AppColors.warningDark),
                     ),
                   ),
-                if (!blocked && _quickResponses.isNotEmpty)
+                if (!blocked &&
+                    !conversation.isShopInquiry &&
+                    _quickResponses.isNotEmpty)
                   SizedBox(
                     height: 38,
                     child: ListView(

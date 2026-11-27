@@ -63,7 +63,7 @@ class _ShopSetupScreenState extends State<ShopSetupScreen> {
     return ShopProfile(
       shopName: _nameController.text.trim(),
       description: _descriptionController.text.trim(),
-      categories: _categories,
+      categories: List.of(_categories),
       location: location,
       locationLabel: _locationLabel,
       openingHours: _hours,
@@ -188,6 +188,11 @@ class _ShopSetupScreenState extends State<ShopSetupScreen> {
                   _location = selection.exactLocation;
                   _locationLabel = selection.locationLabel;
                 }),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'ที่ตั้งร้านจะแสดงต่อผู้ซื้อ',
+                style: TextStyle(fontSize: 12, color: AppColors.graySecondary),
               ),
               const SizedBox(height: 16),
               const Text(

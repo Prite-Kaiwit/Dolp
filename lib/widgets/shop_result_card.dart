@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/nearby_shop.dart';
 import '../theme/app_theme.dart';
+import '../utils/distance.dart';
 import 'shop_badge.dart';
 
 /// Search result row for a nearby shop.
@@ -10,11 +11,15 @@ class ShopResultCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onAsk;
 
+  /// Whether a search query is active; only then are matching listings counted.
+  final bool hasQuery;
+
   const ShopResultCard({
     super.key,
     required this.nearbyShop,
     required this.onTap,
     required this.onAsk,
+    this.hasQuery = false,
   });
 
   @override
@@ -22,8 +27,8 @@ class ShopResultCard extends StatelessWidget {
     final shop = nearbyShop.shop;
     final profile = shop.shop;
     final open = nearbyShop.isOpenNow;
-    final statusColor = open ? Colors.green.shade700 : Colors.red.shade700;
-    final detail = nearbyShop.matchingListingCount > 0
+    final statusColor = open ? AppColors.success : AppColors.error;
+    final detail = hasQuery && nearbyShop.matchingListingCount > 0
         ? 'มีสินค้าตรงคำค้น ${nearbyShop.matchingListingCount} รายการ'
         : 'ร้านขาย: ${(profile?.categories ?? const <String>[]).join(', ')}';
 
@@ -61,7 +66,7 @@ class ShopResultCard extends StatelessWidget {
                 runSpacing: 2,
                 children: [
                   Text(
-                    '${nearbyShop.distanceKm.toStringAsFixed(1)} กม.',
+                    formatDistance(nearbyShop.distanceKm),
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.graySecondary,

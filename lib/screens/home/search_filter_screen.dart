@@ -290,12 +290,16 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
         final nearby = shops[index];
         return ShopResultCard(
           nearbyShop: nearby,
+          hasQuery: query.isNotEmpty,
           onTap: () => Navigator.push<void>(
             context,
             MaterialPageRoute<void>(
               builder: (_) => ShopProfileScreen(
                 shopUserId: nearby.shop.id,
                 clock: widget.clock,
+                inquiryDraft: query.isEmpty
+                    ? null
+                    : 'สวัสดีครับ มี $query ไหมครับ',
               ),
             ),
           ),
