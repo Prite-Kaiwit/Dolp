@@ -38,7 +38,7 @@ class _RateReviewScreenState extends State<RateReviewScreen> {
         ? widget.order.sellerId
         : widget.order.buyerId;
     final reviewee = appState.userById(revieweeId);
-    final revieweeName = reviewee?.name ?? revieweeId;
+    final revieweeName = reviewee?.displayName ?? revieweeId;
 
     return Scaffold(
       appBar: AppBar(title: const Text('ให้คะแนนและรีวิว')),

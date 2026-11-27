@@ -31,7 +31,7 @@ extension AppStateChat on AppState {
     final conversation = ChatConversation(
       id: _nextChatId('chat'),
       peerId: seller.id,
-      peerName: seller.name,
+      peerName: seller.displayName,
       peerAvatar: seller.avatarUrl,
       buyerId: currentUser.id,
       sellerId: seller.id,
@@ -492,7 +492,7 @@ extension AppStateChat on AppState {
       _notifyUser(
         userId: recipient,
         type: AppNotificationType.newMessage,
-        title: 'มีข้อความใหม่จาก ${currentUser.name}',
+        title: 'มีข้อความใหม่จาก ${currentUser.displayName}',
         body: conversation.isShopInquiry
             ? 'มีข้อความสอบถามใหม่'
             : 'มีข้อความใหม่ในแชท ${conversation.productTitle}',

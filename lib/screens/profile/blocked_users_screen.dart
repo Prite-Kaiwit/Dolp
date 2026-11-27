@@ -26,7 +26,7 @@ class BlockedUsersScreen extends StatelessWidget {
                   backgroundColor: AppColors.aquaPale,
                   child: Icon(Icons.person_outline, color: AppColors.deepNavy),
                 ),
-                title: Text(user.name),
+                title: Text(user.displayName),
                 trailing: TextButton(
                   onPressed: () {
                     final error = appState.unblockUser(user.id);

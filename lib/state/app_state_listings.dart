@@ -240,7 +240,7 @@ extension AppStateListings on AppState {
       imageUrl: imageUrl,
       productImages: List.unmodifiable(productImages),
       sellerId: currentUser.id,
-      sellerName: currentUser.name,
+      sellerName: currentUser.displayName,
       sellerAreaLabel: locationLabel.trim().isNotEmpty
           ? locationLabel.trim()
           : currentUser.homeLabel,

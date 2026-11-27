@@ -54,7 +54,7 @@ Future<void> shareOrderMeetupPlan(AppState appState, OrderModel order) async {
     ShareParams(
       text: meetupPlanText(
         productTitle: title,
-        partnerName: partner?.name ?? 'คู่ค้า',
+        partnerName: partner?.displayName ?? 'คู่ค้า',
         placeLabel: place,
         scheduledAt: order.agreedTime ?? order.createdAt,
       ),

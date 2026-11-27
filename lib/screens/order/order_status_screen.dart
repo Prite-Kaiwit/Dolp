@@ -105,7 +105,7 @@ class OrderStatusScreen extends StatelessWidget {
                                   ),
                                 ),
                           child: Text(
-                            '${isBuyer ? 'ผู้ขาย' : 'ผู้ซื้อ'}: ${otherUser?.name ?? otherUserId}',
+                            '${isBuyer ? 'ผู้ขาย' : 'ผู้ซื้อ'}: ${otherUser?.displayName ?? otherUserId}',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               color: AppColors.deepNavy,
@@ -232,7 +232,7 @@ class OrderStatusScreen extends StatelessWidget {
                         builder: (_) => ReportScreen(
                           orderId: order.id,
                           targetUserId: otherUserId,
-                          targetName: otherUser?.name ?? otherUserId,
+                          targetName: otherUser?.displayName ?? otherUserId,
                         ),
                       ),
                     ),

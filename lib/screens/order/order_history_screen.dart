@@ -186,7 +186,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
                               ),
                             ),
                             Text(
-                              'คู่รายการ: ${otherParty?.name ?? otherPartyId}',
+                              'คู่รายการ: ${otherParty?.displayName ?? otherPartyId}',
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: AppColors.graySecondary,

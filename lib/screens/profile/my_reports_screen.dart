@@ -32,7 +32,7 @@ class MyReportsScreen extends StatelessWidget {
             itemBuilder: (context, index) => _ReportCard(
               report: reports[index],
               reportedUserName:
-                  appState.userById(reports[index].reportedUserId)?.name ??
+                  appState.userById(reports[index].reportedUserId)?.displayName ??
                   'ผู้ใช้ที่ไม่พบในระบบ',
             ),
           );

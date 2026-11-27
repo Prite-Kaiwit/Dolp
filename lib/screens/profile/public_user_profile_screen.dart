@@ -179,7 +179,7 @@ class PublicUserProfileScreen extends StatelessWidget {
                     child: ListTile(
                       title: Row(
                         children: [
-                          Text(reviewer?.name ?? 'ผู้ใช้ชุมชน'),
+                          Text(reviewer?.displayName ?? 'ผู้ใช้ชุมชน'),
                           const SizedBox(width: 8),
                           const Icon(
                             Icons.star_rounded,

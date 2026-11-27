@@ -139,7 +139,7 @@ extension AppStateOrders on AppState {
       userId: sellerId,
       type: AppNotificationType.orderStatusChanged,
       title: 'มีคำสั่งซื้อใหม่',
-      body: '${currentUser.name} ตกลงซื้อสินค้า ${order.items.length} รายการ',
+      body: '${currentUser.displayName} ตกลงซื้อสินค้า ${order.items.length} รายการ',
       refType: 'order',
       refId: order.id,
     );
@@ -413,8 +413,8 @@ extension AppStateOrders on AppState {
       id: _nextChatId('chat'),
       peerId: currentUser.id == order.buyerId ? order.sellerId : order.buyerId,
       peerName: currentUser.id == order.buyerId
-          ? seller?.name ?? product.sellerName
-          : buyer?.name ?? 'ผู้ซื้อ',
+          ? seller?.displayName ?? product.sellerName
+          : buyer?.displayName ?? 'ผู้ซื้อ',
       peerAvatar: currentUser.id == order.buyerId
           ? seller?.avatarUrl ?? ''
           : buyer?.avatarUrl ?? '',

@@ -72,7 +72,7 @@ class ProfileScreen extends StatelessWidget {
                             foregroundImage: NetworkImage(user.avatarUrl),
                             onForegroundImageError: (_, _) {},
                             child: Text(
-                              user.name.isNotEmpty ? user.name[0] : 'U',
+                              user.displayName.isNotEmpty ? user.displayName[0] : 'U',
                               style: const TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
