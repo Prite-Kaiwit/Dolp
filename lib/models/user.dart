@@ -1,6 +1,9 @@
 import '../utils/json_helpers.dart';
+import 'shop_profile.dart';
 
 enum UserRole { guest, member, admin }
+
+enum AccountType { person, shop }
 
 class UserModel {
   final String id;
@@ -23,6 +26,9 @@ class UserModel {
   /// account. Empty for seed accounts that have not signed in yet.
   final String authUid;
 
+  final AccountType accountType;
+  final ShopProfile? shop;
+
   UserModel({
     required this.id,
     required this.name,
@@ -41,7 +47,16 @@ class UserModel {
     this.isSuspended = false,
     this.suspensionReason,
     this.authUid = '',
+    this.accountType = AccountType.person,
+    this.shop,
   }) : createdAt = createdAt ?? DateTime.now();
+
+  /// True only for a shop account whose profile is complete; anything else
+  /// behaves as a person.
+  bool get isShop =>
+      accountType == AccountType.shop && shop != null && shop!.isComplete;
+
+  String get displayName => isShop ? shop!.shopName : name;
 
   Map<String, Object?> toJson() => {
     'id': id,
@@ -60,6 +75,8 @@ class UserModel {
     'isSuspended': isSuspended,
     'suspensionReason': suspensionReason,
     'authUid': authUid,
+    'accountType': accountType.name,
+    'shop': shop?.toJson(),
   };
 
   factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
@@ -81,6 +98,14 @@ class UserModel {
         ? json['suspensionReason'] as String
         : null,
     authUid: jsonString(json['authUid']),
+    accountType: jsonEnum(
+      AccountType.values,
+      json['accountType'],
+      AccountType.person,
+    ),
+    shop: json['shop'] is Map<String, dynamic>
+        ? ShopProfile.fromJson(json['shop'] as Map<String, dynamic>)
+        : null,
   );
 
   UserModel copyWith({
@@ -101,6 +126,8 @@ class UserModel {
     String? suspensionReason,
     bool clearSuspensionReason = false,
     String? authUid,
+    AccountType? accountType,
+    ShopProfile? shop,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -121,6 +148,8 @@ class UserModel {
           ? null
           : suspensionReason ?? this.suspensionReason,
       authUid: authUid ?? this.authUid,
+      accountType: accountType ?? this.accountType,
+      shop: shop ?? this.shop,
     );
   }
 }

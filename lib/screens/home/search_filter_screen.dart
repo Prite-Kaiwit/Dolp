@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../constants/app_info.dart';
+import '../../constants/categories.dart';
 import '../../models/nearby_product.dart';
 import '../../models/product.dart';
 import '../../state/app_state.dart';
@@ -19,15 +20,7 @@ class SearchFilterScreen extends StatefulWidget {
 class _SearchFilterScreenState extends State<SearchFilterScreen> {
   static const _all = 'ทั้งหมด';
   static const _fullPriceRange = RangeValues(0, 1000000);
-  static const _categories = [
-    _all,
-    'หนังสือ',
-    'อุปกรณ์และเครื่องเขียน',
-    'เสื้อผ้า & เครื่องแต่งกาย',
-    'ไอที & อิเล็กทรอนิกส์',
-    'ของใช้ในบ้าน & เฟอร์นิเจอร์',
-    'ของสะสม & กีฬา',
-  ];
+  static const _categories = [_all, ...kListingCategories];
   static const _types = [_all, 'ขาย', 'แลกเปลี่ยน', 'บริจาค/ฟรี'];
 
   final TextEditingController _searchController = TextEditingController();

@@ -13,6 +13,7 @@ import 'package:moor_market/models/pickup_point.dart';
 import 'package:moor_market/models/product.dart';
 import 'package:moor_market/models/product_image_data.dart';
 import 'package:moor_market/models/report.dart';
+import 'package:moor_market/models/shop_profile.dart';
 import 'package:moor_market/models/review.dart';
 import 'package:moor_market/models/user.dart';
 
@@ -287,5 +288,59 @@ void main() {
     expect(json, isNot(contains('exactLng')));
     expect(json, isNot(contains('privateLocation')));
     expect(json, isNot(contains('"bytes"')));
+  });
+
+  test('user JSON without account fields loads as person', () {
+    final u = UserModel.fromJson({'id': 'u1', 'name': 'ก'});
+    expect(u.accountType, AccountType.person);
+    expect(u.shop, isNull);
+    expect(u.isShop, isFalse);
+    expect(u.displayName, 'ก');
+  });
+
+  test('shop user with malformed shop JSON behaves as person', () {
+    final u = UserModel.fromJson({
+      'id': 'u1',
+      'name': 'ก',
+      'accountType': 'shop',
+      'shop': 'oops',
+    });
+    expect(u.isShop, isFalse);
+    expect(u.displayName, 'ก');
+  });
+
+  test('shop user round trip keeps shop and displayName', () {
+    final shop = ShopProfile(
+      shopName: 'ร้านมือสอง',
+      categories: const ['หนังสือ'],
+      location: GeoLocation(13.75, 100.5),
+      openingHours: OpeningHours(
+        days: {1: const DayHours(openMinute: 540, closeMinute: 1200)},
+      ),
+    );
+    final u = UserModel(
+      id: 'u1',
+      name: 'ก',
+      accountType: AccountType.shop,
+      shop: shop,
+    );
+    final copy = UserModel.fromJson(
+      jsonDecode(jsonEncode(u.toJson())) as Map<String, dynamic>,
+    );
+    expect(copy.isShop, isTrue);
+    expect(copy.displayName, 'ร้านมือสอง');
+    expect(copy.shop!.toJson(), shop.toJson());
+    expect(copy.copyWith(accountType: AccountType.person).isShop, isFalse);
+  });
+
+  test('incomplete shop profile behaves as person', () {
+    final u = UserModel(
+      id: 'u1',
+      name: 'ก',
+      accountType: AccountType.shop,
+      shop: ShopProfile(shopName: 'x', location: GeoLocation(0, 0)),
+    );
+    expect(u.isShop, isFalse);
+    expect(u.displayName, 'ก');
   });
 }

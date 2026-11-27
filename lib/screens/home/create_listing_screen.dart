@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../constants/categories.dart';
 import '../../constants/listing_limits.dart';
 import '../../models/geo_location.dart';
 import '../../models/product.dart';
@@ -32,14 +33,7 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
   final _tradeForController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _imagePicker = ImagePicker();
-  final _categories = const [
-    'หนังสือ',
-    'อุปกรณ์และเครื่องเขียน',
-    'เสื้อผ้า & เครื่องแต่งกาย',
-    'ไอที & อิเล็กทรอนิกส์',
-    'ของใช้ในบ้าน & เฟอร์นิเจอร์',
-    'ของสะสม & กีฬา',
-  ];
+  final _categories = kListingCategories;
   final _conditions = const [
     'ใหม่เอี่ยม (100% ยังไม่แกะกล่อง)',
     'สภาพดีมาก (95%)',
