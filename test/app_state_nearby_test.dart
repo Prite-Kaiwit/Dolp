@@ -15,6 +15,8 @@ void main() {
   setUp(() {
     originalProducts = List<ProductModel>.from(appState.products);
     originalUsers = List<UserModel>.from(appState.users);
+    // Seed now includes sample shops; these tests use only their own shops.
+    appState.users = originalUsers.where((user) => !user.isShop).toList();
     appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
   });
 
@@ -211,7 +213,7 @@ void main() {
   });
 
   test('seed data covers nearby radius ranges and all listing types', () {
-    expect(appState.products, hasLength(15));
+    expect(appState.products, hasLength(20));
     expect(
       appState.products.map((product) => product.type).toSet(),
       containsAll(ListingType.values),

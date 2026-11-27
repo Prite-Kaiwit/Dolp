@@ -521,6 +521,34 @@ void main() {
       restored.dispose();
     },
   );
+
+  test('seed contains two complete shops', () async {
+    final state = await _newState(InMemoryPersistenceStore());
+    final shop1 = state.userById('shop_01');
+    final shop2 = state.userById('shop_02');
+    expect(shop1?.isShop, isTrue);
+    expect(shop2?.isShop, isTrue);
+    expect(shop1!.phone, '0800000011');
+    expect(shop2!.phone, '0800000012');
+    expect(
+      state.products.where(
+        (p) => p.sellerId == 'shop_01' && p.status == ListingStatus.active,
+      ),
+      hasLength(3),
+    );
+    expect(
+      state.products.where(
+        (p) => p.sellerId == 'shop_02' && p.status == ListingStatus.active,
+      ),
+      hasLength(2),
+    );
+    final nearby = state.shopsNearby(radiusKm: 5);
+    expect(
+      nearby.map((s) => s.shop.id),
+      containsAll(['shop_01', 'shop_02']),
+    );
+    state.dispose();
+  });
 }
 
 Future<AppState> _newState(InMemoryPersistenceStore store) async {
