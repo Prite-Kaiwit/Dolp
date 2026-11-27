@@ -174,27 +174,38 @@ class ProductCard extends StatelessWidget {
                           final isShop =
                               appState.userById(product.sellerId)?.isShop ??
                               false;
-                          return Row(
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  appState.sellerDisplayName(
-                                    product.sellerId,
-                                    product.sellerName,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.graySecondary,
+                          // The badge keeps its natural width (capped to the
+                          // row); the seller name takes the leftover space.
+                          return LayoutBuilder(
+                            builder: (context, constraints) => Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    appState.sellerDisplayName(
+                                      product.sellerId,
+                                      product.sellerName,
+                                    ),
+                                    key: const ValueKey('product-card-seller'),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.graySecondary,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              if (isShop) ...[
-                                const SizedBox(width: 4),
-                                const Flexible(child: ShopBadge()),
+                                if (isShop) ...[
+                                  const SizedBox(width: 4),
+                                  ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxWidth: (constraints.maxWidth - 4)
+                                          .clamp(0.0, double.infinity),
+                                    ),
+                                    child: const ShopBadge(),
+                                  ),
+                                ],
                               ],
-                            ],
+                            ),
                           );
                         },
                       );

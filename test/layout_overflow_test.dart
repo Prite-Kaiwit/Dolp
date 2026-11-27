@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moor_market/constants/app_info.dart';
 import 'package:moor_market/models/area_alert_subscription.dart';
@@ -21,6 +22,7 @@ import 'package:moor_market/screens/profile/shop_profile_screen.dart';
 import 'package:moor_market/screens/review_safety/report_screen.dart';
 import 'package:moor_market/state/app_state.dart';
 import 'package:moor_market/widgets/product_card.dart';
+import 'package:moor_market/widgets/shop_badge.dart';
 import 'package:moor_market/widgets/shop_result_card.dart';
 
 void main() {
@@ -378,6 +380,34 @@ void main() {
           ),
         );
         _expectNoLayoutException(tester, 'shop ProductCard $width/$scale');
+        final row = tester.getSize(
+          find.byKey(const ValueKey('product-card-seller')),
+        );
+        final badgeLabel = find.descendant(
+          of: find.byType(ShopBadge),
+          matching: find.text('ร้านค้า'),
+        );
+        final paragraph = tester.renderObject<RenderParagraph>(badgeLabel);
+        final rowWidth = tester.getSize(find.byType(LayoutBuilder).last).width;
+        // Badge chrome: 2*6 padding + 2 border + 11 icon + 3 gap.
+        final naturalBadge =
+            paragraph.getMaxIntrinsicWidth(double.infinity) + 12 + 2 + 11 + 3;
+        if (naturalBadge <= rowWidth - 4) {
+          // The badge fits at its natural size, so it must not be ellipsized.
+          expect(
+            paragraph.didExceedMaxLines,
+            isFalse,
+            reason: 'badge label ellipsized $width/$scale',
+          );
+        }
+        final badgeWidth = tester.getSize(find.byType(ShopBadge)).width;
+        // The name takes all space the badge leaves (the test font is far
+        // wider than real fonts, so "more than half" is not testable here).
+        expect(
+          row.width,
+          closeTo((rowWidth - 4 - badgeWidth).clamp(0.0, rowWidth), 0.01),
+          reason: 'name takes leftover $width/$scale',
+        );
       }
     }
   });
