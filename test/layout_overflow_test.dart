@@ -7,16 +7,21 @@ import 'package:moor_market/models/meetup_agreement.dart';
 import 'package:moor_market/models/nearby_product.dart';
 import 'package:moor_market/models/order.dart';
 import 'package:moor_market/models/product.dart';
+import 'package:moor_market/models/shop_profile.dart';
 import 'package:moor_market/models/user.dart';
 import 'package:moor_market/screens/admin/admin_dashboard_screen.dart';
+import 'package:moor_market/screens/auth/shop_setup_screen.dart';
 import 'package:moor_market/screens/chat/chat_room_screen.dart';
 import 'package:moor_market/screens/home/create_listing_screen.dart';
+import 'package:moor_market/screens/home/search_filter_screen.dart';
 import 'package:moor_market/screens/order/cart_screen.dart';
 import 'package:moor_market/screens/order/order_history_screen.dart';
 import 'package:moor_market/screens/profile/area_alert_settings_screen.dart';
+import 'package:moor_market/screens/profile/shop_profile_screen.dart';
 import 'package:moor_market/screens/review_safety/report_screen.dart';
 import 'package:moor_market/state/app_state.dart';
 import 'package:moor_market/widgets/product_card.dart';
+import 'package:moor_market/widgets/shop_result_card.dart';
 
 void main() {
   final appState = AppState();
@@ -38,6 +43,8 @@ void main() {
 
   late ProductModel stressProduct;
   late ChatConversation conversation;
+  late UserModel stressShop;
+  late ProductModel stressShopProduct;
 
   setUp(() {
     originalProducts = List<ProductModel>.of(appState.products);
@@ -71,7 +78,52 @@ void main() {
       sellerAreaLabel: longArea,
       favoriteCount: 999999,
     );
-    appState.products = [...originalProducts, stressProduct];
+    stressShop = UserModel(
+      id: 'layout-overflow-shop',
+      name: longArea,
+      phone: '0800000099',
+      phoneVerified: true,
+      homeLat: kDefaultCenter.lat,
+      homeLng: kDefaultCenter.lng,
+      homeLabel: longArea,
+      role: UserRole.member,
+      accountType: AccountType.shop,
+      shop: ShopProfile(
+        shopName: longTitle,
+        description: List.filled(40, 'Shop description').join(' '),
+        categories: const [
+          'หนังสือ',
+          'ไอที & อิเล็กทรอนิกส์',
+          'เสื้อผ้า & แฟชั่น',
+        ],
+        location: kDefaultCenter,
+        locationLabel: longArea,
+        openingHours: OpeningHours(
+          days: {
+            for (var day = 1; day <= 7; day++)
+              day: const DayHours(openMinute: 9 * 60, closeMinute: 20 * 60),
+          },
+        ),
+      ),
+    );
+    stressShopProduct = ProductModel(
+      id: 'layout-overflow-shop-product',
+      title: longTitle,
+      description: '',
+      price: 999999,
+      type: ListingType.sell,
+      category: 'หนังสือ',
+      condition: 'สภาพดี',
+      publicLocation: kDefaultCenter,
+      locationLabel: longArea,
+      imageUrl: '',
+      sellerId: stressShop.id,
+      sellerName: longTitle,
+      sellerAreaLabel: longArea,
+      favoriteCount: 999999,
+    );
+    appState.users = [...originalUsers, stressShop];
+    appState.products = [...originalProducts, stressProduct, stressShopProduct];
     appState.cartItems = [stressProduct];
     conversation = appState.openConversationForProduct(stressProduct.id)!;
     expect(
@@ -294,6 +346,139 @@ void main() {
       }
     },
   );
+
+  testWidgets('stress shop-seller ProductCard at narrow widths and scales', (
+    tester,
+  ) async {
+    for (final width in widths) {
+      for (final scale in textScales) {
+        appState.signInVerifiedPhone('0800000001') ==
+            PhoneSignInResult.signedIn;
+        final itemWidth = (width - 44) / 2;
+        await _pumpScreen(
+          tester,
+          width,
+          scale,
+          Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: itemWidth,
+                height:
+                    itemWidth /
+                    productCardGridAspectRatio(TextScaler.linear(scale)),
+                child: ProductCard(
+                  nearbyProduct: NearbyProduct(
+                    product: stressShopProduct,
+                    distanceKm: 9.9,
+                  ),
+                  onTap: () {},
+                ),
+              ),
+            ),
+          ),
+        );
+        _expectNoLayoutException(tester, 'shop ProductCard $width/$scale');
+      }
+    }
+  });
+
+  testWidgets('stress ShopResultCard at narrow widths and large text scales', (
+    tester,
+  ) async {
+    for (final width in widths) {
+      for (final scale in textScales) {
+        await _pumpScreen(
+          tester,
+          width,
+          scale,
+          Scaffold(
+            body: Padding(
+              padding: const EdgeInsets.all(16),
+              child: ShopResultCard(
+                nearbyShop: NearbyShop(
+                  shop: stressShop,
+                  distanceKm: 9.9,
+                  isOpenNow: true,
+                  matchingListingCount: 999,
+                ),
+                onTap: () {},
+                onAsk: () {},
+              ),
+            ),
+          ),
+        );
+        _expectNoLayoutException(tester, 'ShopResultCard $width/$scale');
+      }
+    }
+  });
+
+  testWidgets('stress shop setup at narrow widths and large text scales', (
+    tester,
+  ) async {
+    for (final mode in ShopSetupMode.values) {
+      for (final width in widths) {
+        for (final scale in textScales) {
+          await _pumpScreen(
+            tester,
+            width,
+            scale,
+            ShopSetupScreen(mode: mode, initial: stressShop.shop),
+          );
+          _expectNoLayoutException(
+            tester,
+            'ShopSetupScreen $mode $width/$scale',
+          );
+        }
+      }
+    }
+  });
+
+  testWidgets('stress shop storefront at narrow widths and large text scales', (
+    tester,
+  ) async {
+    for (final width in widths) {
+      for (final scale in textScales) {
+        appState.signInVerifiedPhone('0800000001') ==
+            PhoneSignInResult.signedIn;
+        await _pumpScreen(
+          tester,
+          width,
+          scale,
+          ShopProfileScreen(shopUserId: stressShop.id),
+        );
+        _expectNoLayoutException(tester, 'ShopProfileScreen $width/$scale');
+        await _pumpScreen(
+          tester,
+          width,
+          scale,
+          const ShopProfileScreen(shopUserId: 'shop_01'),
+        );
+        _expectNoLayoutException(
+          tester,
+          'seed ShopProfileScreen $width/$scale',
+        );
+      }
+    }
+  });
+
+  testWidgets('stress search shops mode at narrow widths and text scales', (
+    tester,
+  ) async {
+    for (final width in widths) {
+      for (final scale in textScales) {
+        appState.signInVerifiedPhone('0800000001') ==
+            PhoneSignInResult.signedIn;
+        await _pumpScreen(tester, width, scale, const SearchFilterScreen());
+        // Items-mode sort row overflow predates shops; only shops mode is
+        // under test here.
+        tester.takeException();
+        await tester.tap(find.text('ร้านค้า').first);
+        await tester.pumpAndSettle();
+        expect(find.byType(ShopResultCard), findsWidgets);
+        _expectNoLayoutException(tester, 'Search shops mode $width/$scale');
+      }
+    }
+  });
 }
 
 Future<void> _pumpScreen(

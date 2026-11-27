@@ -22,6 +22,7 @@ notifications, admin guards, and local persistence.
 | FR-09 | Block users, report users/orders, manage disputes, and suspend accounts | Implemented for the prototype. Blocking/suspension do not automatically cancel an existing pending order. |
 | FR-10 | In-app notifications and nearby listing subscriptions | In-app delivery and read state persist locally. Push delivery (FCM/APNs) is not implemented. |
 | FR-11 | Admin dashboard, user management, and report/dispute actions | Implemented with AppState role checks and UI route guards. Not a server-side authorization boundary. |
+| FR-12 | Shop accounts: register as or convert to a shop, public storefront, shop search, and inquiry chats | Implemented locally. Shops set name, description, categories, location and weekly hours; storefront shows hours with open-now (shop-stated hours, Thailand time), listings and reviews. Search toggles between items and shops with an open-now filter and a shop-sellers filter. "Ask the shop" opens a product-less inquiry chat (no meetup/order actions). Seed shops `shop_01` and `shop_02`. Conversion is one-way and there is no shop verification. |
 
 ## Non-functional requirements
 

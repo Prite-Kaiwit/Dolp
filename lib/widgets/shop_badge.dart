@@ -20,12 +20,16 @@ class ShopBadge extends StatelessWidget {
         children: [
           Icon(Icons.storefront_outlined, size: 11, color: AppColors.oceanBlue),
           SizedBox(width: 3),
-          Text(
-            'ร้านค้า',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: AppColors.oceanBlue,
+          Flexible(
+            child: Text(
+              'ร้านค้า',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: AppColors.oceanBlue,
+              ),
             ),
           ),
         ],

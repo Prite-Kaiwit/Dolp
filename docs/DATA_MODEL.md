@@ -10,7 +10,19 @@ backend/PostgreSQL and the complete payload is not encrypted.
 - **`UserModel`**: `id`, `name`, `phone`, `phoneVerified`, optional private
   home coordinates and `homeLabel`, avatar, computed `rating`/`reviewCount`,
   `successfulDeals`, `role` (`guest`, `member`, `admin`), `createdAt`,
-  `isSuspended`, and optional `suspensionReason`.
+  `isSuspended`, and optional `suspensionReason`. `accountType`
+  (`person` default, or `shop`) and an optional `ShopProfile? shop`. The
+  computed `isShop` is true only for a shop account with a complete profile, so
+  stored `shop` data without a profile is treated as a person; `displayName` is
+  the shop name for shops and `name` otherwise. Old JSON without these fields
+  loads as a person.
+- **`ShopProfile`**: `shopName`, `description`, `categories`, `location`
+  (`GeoLocation`) and `locationLabel`, and `openingHours`. It lives on the user
+  document; there is no separate shop collection.
+- **`OpeningHours`** / **`DayHours`**: per-weekday (`DateTime.weekday`, 1–7)
+  open/close minutes since midnight; a close at or before the open time means
+  the shop closes after midnight. Open-now is computed in Thailand time and
+  reflects the hours the shop stated.
 - **`ReportModel`**: reporter/reported user IDs, optional order/product IDs,
   typed reason and detail, status (`open`, `dismissed`, `actioned`), creation
   time, optional admin ID/note, and resolution time.
@@ -27,6 +39,8 @@ backend/PostgreSQL and the complete payload is not encrypted.
   field.
 - **`GeoLocation`**: validated latitude/longitude value object.
 - **`NearbyProduct`**: product plus calculated distance.
+- **`NearbyShop`**: shop user plus distance, open-now status, and the number of
+  its active listings matching the search.
 - **`SuggestedSpot`** (`PickupPointModel` typedef): public suggested place
   identity, label/description, coordinates, type, active flag, and hours.
 - **`ProductImageData`**: either a URL or `Uint8List` memory data.
@@ -37,7 +51,9 @@ backend/PostgreSQL and the complete payload is not encrypted.
 
 ## Conversations and meetups
 
-- **`ChatConversation`**: one buyer/seller/product thread, product snapshot,
+- **`ChatConversation`**: one buyer/seller/product thread (an empty
+  `productId` marks a shop inquiry chat, `isShopInquiry`, which has no meetup
+  or order actions), product snapshot,
   peer display data, last message/time, per-user unread counters, and messages.
 - **`ChatMessage`**: sender, text, timestamp, type (`text`, `image`,
   `meetupProposal`, `addressShare`, `system`), optional image bytes, meetup ID,

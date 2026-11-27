@@ -189,13 +189,16 @@ class ShopProfileScreen extends StatelessWidget {
                     color: isOpen ? AppColors.success : AppColors.error,
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    isOpen
-                        ? 'เปิดอยู่ · ตามเวลาที่ร้านแจ้ง'
-                        : 'ปิดอยู่ · ตามเวลาที่ร้านแจ้ง',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: isOpen ? AppColors.success : AppColors.error,
+                  Flexible(
+                    child: Text(
+                      isOpen
+                          ? 'เปิดอยู่ · ตามเวลาที่ร้านแจ้ง'
+                          : 'ปิดอยู่ · ตามเวลาที่ร้านแจ้ง',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isOpen ? AppColors.success : AppColors.error,
+                      ),
                     ),
                   ),
                 ],
@@ -234,10 +237,13 @@ class ShopProfileScreen extends StatelessWidget {
                           child: Row(
                             children: [
                               Expanded(child: Text(_weekdayNames[day - 1])),
-                              Text(
-                                _hoursLabel(shop.openingHours.days[day]),
-                                style: const TextStyle(
-                                  color: AppColors.graySecondary,
+                              Flexible(
+                                child: Text(
+                                  _hoursLabel(shop.openingHours.days[day]),
+                                  textAlign: TextAlign.end,
+                                  style: const TextStyle(
+                                    color: AppColors.graySecondary,
+                                  ),
                                 ),
                               ),
                             ],

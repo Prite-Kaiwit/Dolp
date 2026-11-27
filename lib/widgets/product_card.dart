@@ -192,7 +192,7 @@ class ProductCard extends StatelessWidget {
                               ),
                               if (isShop) ...[
                                 const SizedBox(width: 4),
-                                const ShopBadge(),
+                                const Flexible(child: ShopBadge()),
                               ],
                             ],
                           );
