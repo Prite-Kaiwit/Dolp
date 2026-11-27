@@ -41,8 +41,14 @@ extension AppStateAuth on AppState {
     required String name,
     required String phone,
     String authUid = '',
+    AccountType accountType = AccountType.person,
+    ShopProfile? shop,
   }) {
     if (isPhoneRegistered(phone)) return false;
+    final isShopAccount = accountType == AccountType.shop;
+    if (isShopAccount && (shop == null || validateShopProfile(shop) != null)) {
+      return false;
+    }
 
     final user = UserModel(
       id: 'user_${DateTime.now().microsecondsSinceEpoch}',
@@ -51,12 +57,54 @@ extension AppStateAuth on AppState {
       phoneVerified: true,
       role: UserRole.member,
       authUid: authUid,
+      accountType: accountType,
+      shop: isShopAccount ? shop : null,
+      homeLat: isShopAccount ? shop!.location.lat : null,
+      homeLng: isShopAccount ? shop!.location.lng : null,
+      homeLabel: isShopAccount ? shop!.locationLabel : '',
     );
     users.add(user);
     currentUser = user;
     lastLoginError = null;
     notifyListeners();
     return true;
+  }
+
+  /// Turns the signed-in person account into a shop. Listings, orders and
+  /// chats stay as they are. Returns a Thai error message, or null on success.
+  String? convertCurrentUserToShop(ShopProfile shop) {
+    if (!isLoggedIn) return 'กรุณาเข้าสู่ระบบก่อน';
+    final suspended = _expireSuspendedSession();
+    if (suspended != null) return suspended;
+    if (currentUser.accountType == AccountType.shop) {
+      return 'บัญชีนี้เป็นร้านค้าอยู่แล้ว';
+    }
+    return _applyShopProfile(shop, accountType: AccountType.shop);
+  }
+
+  /// Edits the signed-in shop's profile. Returns a Thai error or null.
+  String? updateShopProfile(ShopProfile shop) {
+    if (!isLoggedIn) return 'กรุณาเข้าสู่ระบบก่อน';
+    final suspended = _expireSuspendedSession();
+    if (suspended != null) return suspended;
+    if (!currentUser.isShop) return 'บัญชีนี้ไม่ใช่ร้านค้า';
+    return _applyShopProfile(shop);
+  }
+
+  String? _applyShopProfile(ShopProfile shop, {AccountType? accountType}) {
+    final error = validateShopProfile(shop);
+    if (error != null) return error;
+    currentUser = currentUser.copyWith(
+      accountType: accountType,
+      shop: shop,
+      homeLat: shop.location.lat,
+      homeLng: shop.location.lng,
+      homeLabel: shop.locationLabel,
+    );
+    final userIndex = users.indexWhere((user) => user.id == currentUser.id);
+    if (userIndex != -1) users[userIndex] = currentUser;
+    notifyListeners();
+    return null;
   }
 
   void updateCurrentUserArea({

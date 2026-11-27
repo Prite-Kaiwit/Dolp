@@ -22,6 +22,8 @@ import '../models/meetup_agreement.dart';
 import '../models/pickup_point.dart';
 import '../models/report.dart';
 import '../utils/distance.dart';
+import '../utils/shop_validation.dart';
+import '../models/shop_profile.dart';
 import '../utils/json_helpers.dart';
 import '../auth/phone_auth_service.dart';
 import '../persistence/in_memory_persistence_store.dart';
