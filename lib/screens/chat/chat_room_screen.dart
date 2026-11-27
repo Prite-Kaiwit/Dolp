@@ -120,8 +120,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               children: [
                 CircleAvatar(
                   radius: 18,
-                  backgroundImage: NetworkImage(peerAvatar),
-                  onBackgroundImageError: (_, _) {},
+                  foregroundImage: NetworkImage(peerAvatar),
+                  onForegroundImageError: (_, _) {},
                   child: Text(peerName.isNotEmpty ? peerName[0] : 'U'),
                 ),
                 const SizedBox(width: 10),
@@ -509,8 +509,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           if (!isMe) ...[
             CircleAvatar(
               radius: 14,
-              backgroundImage: NetworkImage(peerAvatar),
-              onBackgroundImageError: (_, _) {},
+              foregroundImage: NetworkImage(peerAvatar),
+              onForegroundImageError: (_, _) {},
               child: Text(
                 peerName.isNotEmpty ? peerName[0] : 'U',
                 style: const TextStyle(fontSize: 10),

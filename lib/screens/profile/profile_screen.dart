@@ -68,8 +68,8 @@ class ProfileScreen extends StatelessWidget {
                           CircleAvatar(
                             radius: 42,
                             backgroundColor: AppColors.aquaPale,
-                            backgroundImage: NetworkImage(user.avatarUrl),
-                            onBackgroundImageError: (_, _) {},
+                            foregroundImage: NetworkImage(user.avatarUrl),
+                            onForegroundImageError: (_, _) {},
                             child: Text(
                               user.name.isNotEmpty ? user.name[0] : 'U',
                               style: const TextStyle(

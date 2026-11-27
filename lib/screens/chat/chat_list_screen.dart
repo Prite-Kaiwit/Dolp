@@ -82,10 +82,10 @@ class ChatListScreen extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 26,
-                      backgroundImage: NetworkImage(
+                      foregroundImage: NetworkImage(
                         peer?.avatarUrl ?? conv.peerAvatar,
                       ),
-                      onBackgroundImageError: (_, _) {},
+                      onForegroundImageError: (_, _) {},
                       child: Text(
                         (peer?.name ?? conv.peerName).isNotEmpty
                             ? (peer?.name ?? conv.peerName)[0]
