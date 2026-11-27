@@ -5,6 +5,27 @@ import 'package:moor_market/screens/chat/chat_room_screen.dart';
 import 'package:moor_market/state/app_state.dart';
 
 void main() {
+  testWidgets('initialDraft pre-fills the message field without sending', (
+    tester,
+  ) async {
+    final appState = AppState();
+    appState.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn;
+    final conversation = appState.openConversationForProduct('prod_1')!;
+    final before = conversation.messages.length;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ChatRoomScreen(
+          conversation: conversation,
+          initialDraft: 'ร่างข้อความ',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.controller!.text, 'ร่างข้อความ');
+    expect(conversation.messages.length, before);
+  });
+
   testWidgets(
     'meetup response and address sharing are visible to the correct side',
     (tester) async {

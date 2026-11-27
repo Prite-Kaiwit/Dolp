@@ -109,7 +109,10 @@ class CartScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              first.sellerName,
+                              appState.sellerDisplayName(
+                                first.sellerId,
+                                first.sellerName,
+                              ),
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,

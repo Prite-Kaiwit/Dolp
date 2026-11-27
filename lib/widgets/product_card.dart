@@ -3,11 +3,13 @@ import '../models/nearby_product.dart';
 import '../models/product.dart';
 import '../theme/app_theme.dart';
 import '../utils/distance.dart';
+import '../state/app_state.dart';
 import 'order_status_badge.dart';
 import 'product_image.dart';
+import 'shop_badge.dart';
 
 double productCardGridAspectRatio(TextScaler textScaler) =>
-    textScaler.scale(1) > 1.3 ? 0.44 : 0.46;
+    textScaler.scale(1) > 1.3 ? 0.38 : 0.41;
 
 class ProductCard extends StatelessWidget {
   final NearbyProduct nearbyProduct;
@@ -159,6 +161,44 @@ class ProductCard extends StatelessWidget {
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 4),
+
+                  // Seller name (live) and shop badge
+                  Builder(
+                    builder: (context) {
+                      final appState = AppState();
+                      return ListenableBuilder(
+                        listenable: appState,
+                        builder: (context, _) {
+                          final isShop =
+                              appState.userById(product.sellerId)?.isShop ??
+                              false;
+                          return Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  appState.sellerDisplayName(
+                                    product.sellerId,
+                                    product.sellerName,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.graySecondary,
+                                  ),
+                                ),
+                              ),
+                              if (isShop) ...[
+                                const SizedBox(width: 4),
+                                const ShopBadge(),
+                              ],
+                            ],
+                          );
+                        },
+                      );
+                    },
                   ),
                   const SizedBox(height: 4),
 

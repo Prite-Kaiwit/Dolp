@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../review_safety/report_screen.dart';
+import 'shop_profile_screen.dart';
 
 class PublicUserProfileScreen extends StatelessWidget {
   final String userId;
@@ -22,6 +23,7 @@ class PublicUserProfileScreen extends StatelessWidget {
             body: const Center(child: Text('ไม่พบข้อมูลผู้ใช้นี้')),
           );
         }
+        if (user.isShop) return ShopProfileScreen(shopUserId: user.id);
         final reviews = appState.reviewsForUser(user.id).take(10).toList();
         final isOwnProfile = appState.currentUser.id == user.id;
         return Scaffold(

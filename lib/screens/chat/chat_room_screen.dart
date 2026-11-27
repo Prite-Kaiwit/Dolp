@@ -19,7 +19,14 @@ import '../profile/public_user_profile_screen.dart';
 class ChatRoomScreen extends StatefulWidget {
   final ChatConversation conversation;
 
-  const ChatRoomScreen({super.key, required this.conversation});
+  /// Pre-fills the message box once when the screen opens; never auto-sent.
+  final String? initialDraft;
+
+  const ChatRoomScreen({
+    super.key,
+    required this.conversation,
+    this.initialDraft,
+  });
 
   @override
   State<ChatRoomScreen> createState() => _ChatRoomScreenState();
@@ -38,9 +45,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   @override
   void initState() {
     super.initState();
+    final draft = widget.initialDraft;
+    if (draft != null) _textController.text = draft;
     _textController.addListener(_onTextChanged);
-    AppState().ensureConversationSafetyMessage(widget.conversation.id);
-    AppState().markConversationRead(widget.conversation.id);
+    // Deferred: these notify listeners, which must not happen while the
+    // route that opened this screen is still building.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      AppState().ensureConversationSafetyMessage(widget.conversation.id);
+      AppState().markConversationRead(widget.conversation.id);
+    });
   }
 
   @override

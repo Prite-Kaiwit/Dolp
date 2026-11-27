@@ -11,6 +11,8 @@ import '../auth/login_screen.dart';
 import '../order/cart_screen.dart';
 import '../review_safety/report_screen.dart';
 import '../profile/public_user_profile_screen.dart';
+import '../profile/shop_profile_screen.dart';
+import '../../widgets/shop_badge.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final ProductModel product;
@@ -25,6 +27,11 @@ class ProductDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = AppState();
+    final sellerName = appState.sellerDisplayName(
+      product.sellerId,
+      product.sellerName,
+    );
+    final isShopSeller = appState.userById(product.sellerId)?.isShop ?? false;
     final productDistance =
         nearbyDistanceKm ??
         distanceKm(appState.currentLocation, product.publicLocation);
@@ -51,7 +58,7 @@ class ProductDetailScreen extends StatelessWidget {
                 MaterialPageRoute(
                   builder: (_) => ReportScreen(
                     targetUserId: product.sellerId,
-                    targetName: product.sellerName,
+                    targetName: sellerName,
                     productId: product.id,
                   ),
                 ),
@@ -275,9 +282,7 @@ class ProductDetailScreen extends StatelessWidget {
                           radius: 24,
                           backgroundColor: AppColors.aquaPale,
                           child: Text(
-                            product.sellerName.isNotEmpty
-                                ? product.sellerName[0]
-                                : 'U',
+                            sellerName.isNotEmpty ? sellerName[0] : 'U',
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -296,13 +301,17 @@ class ProductDetailScreen extends StatelessWidget {
                                     onTap: () => Navigator.push(
                                       context,
                                       MaterialPageRoute<void>(
-                                        builder: (_) => PublicUserProfileScreen(
-                                          userId: product.sellerId,
-                                        ),
+                                        builder: (_) => isShopSeller
+                                            ? ShopProfileScreen(
+                                                shopUserId: product.sellerId,
+                                              )
+                                            : PublicUserProfileScreen(
+                                                userId: product.sellerId,
+                                              ),
                                       ),
                                     ),
                                     child: Text(
-                                      product.sellerName,
+                                      sellerName,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 14,
@@ -311,6 +320,10 @@ class ProductDetailScreen extends StatelessWidget {
                                     ),
                                   ),
                                   const SizedBox(width: 4),
+                                  if (isShopSeller) ...[
+                                    const ShopBadge(),
+                                    const SizedBox(width: 4),
+                                  ],
                                   const Icon(
                                     Icons.check_circle_rounded,
                                     size: 14,

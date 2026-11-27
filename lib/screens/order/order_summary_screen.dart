@@ -36,7 +36,10 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
               child: Text('รายการนี้ไม่มีสินค้าในตะกร้าแล้ว'),
             );
           }
-          final sellerName = items.first.sellerName;
+          final sellerName = appState.sellerDisplayName(
+            widget.sellerId,
+            items.first.sellerName,
+          );
           final total = items.fold<double>(0, (sum, item) => sum + item.price);
           final meetup = appState.acceptedMeetupForSeller(
             widget.sellerId,
