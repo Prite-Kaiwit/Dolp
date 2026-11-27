@@ -500,8 +500,12 @@ void main() {
             PhoneSignInResult.signedIn;
         await _pumpScreen(tester, width, scale, const SearchFilterScreen());
         // Items-mode sort row overflow predates shops; only shops mode is
-        // under test here.
-        tester.takeException();
+        // under test here; anything else must still fail.
+        final known = tester.takeException();
+        if (known != null) {
+          expect(known, isA<FlutterError>());
+          expect(known.toString(), contains('overflowed'));
+        }
         await tester.tap(find.text('ร้านค้า').first);
         await tester.pumpAndSettle();
         expect(find.byType(ShopResultCard), findsWidgets);

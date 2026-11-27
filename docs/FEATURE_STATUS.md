@@ -22,7 +22,7 @@ notifications, admin guards, and local persistence.
 | FR-09 | Block users, report users/orders, manage disputes, and suspend accounts | Implemented for the prototype. Blocking/suspension do not automatically cancel an existing pending order. |
 | FR-10 | In-app notifications and nearby listing subscriptions | In-app delivery and read state persist locally. Push delivery (FCM/APNs) is not implemented. |
 | FR-11 | Admin dashboard, user management, and report/dispute actions | Implemented with AppState role checks and UI route guards. Not a server-side authorization boundary. |
-| FR-12 | Shop accounts: register as or convert to a shop, public storefront, shop search, and inquiry chats | Implemented locally. Shops set name, description, categories, location and weekly hours; storefront shows hours with open-now (shop-stated hours, Thailand time), listings and reviews. Search toggles between items and shops with an open-now filter and a shop-sellers filter. "Ask the shop" opens a product-less inquiry chat (no meetup/order actions). Seed shops `shop_01` and `shop_02`. Conversion is one-way and there is no shop verification. |
+| FR-12 | Shop accounts: register as or convert to a shop, public storefront, shop search, and inquiry chats | Implemented locally. Shops set name, description, categories, location and weekly hours; storefront shows hours with open-now (shop-stated hours, Thailand time), listings and reviews. Search toggles between items and shops with an open-now filter and a shop-sellers filter. "Ask the shop" opens a product-less inquiry chat (no meetup/order actions). Seed shops `shop_01` and `shop_02`. Conversion is one-way and there is no shop verification. Rollout: devices on a build from before shop accounts rewrite user documents without `accountType`/`shop` when they sync to Firestore, erasing shop data; update every tester device to this build before creating shops. |
 
 ## Non-functional requirements
 
@@ -32,7 +32,7 @@ notifications, admin guards, and local persistence.
 | Security | Prototype-only. Firestore rules require Firebase anonymous sign-in, which blocks access from outside the app but cannot tell dolp users apart. Mock credentials use local salted hashes and admin checks run in the client; neither is suitable for production authorization. |
 | Persistence | Shared data syncs through Cloud Firestore (project `dolp-app-1696-9fd78`), one document per record, via `FirestorePersistenceStore`. The signed-in user, cart and ID sequences stay on-device. Builds without Firebase config (Windows, macOS, Linux, iOS) fall back to local JSON. |
 | Auditability | Order status changes record `OrderEvent`; report decisions record the admin and resolution time. Records persist locally but are not server-audited. |
-| Compatibility | Flutter analysis and 86 tests pass. Android debug APK and web builds pass. Pixel 6 and full physical-device validation remain outstanding. |
+| Compatibility | Flutter analysis and 168 tests pass. Android debug APK and web builds pass. Pixel 6 and full physical-device validation remain outstanding. |
 | Accessibility | Ocean-blue brand theme and contrast tests exist. Screen-reader and physical display validation remain outstanding. |
 | Scalability/performance | No backend, pagination, or load testing. Data sets are small local prototype fixtures. |
 | Notifications | Nearby and transactional notifications are generated locally and persist on-device. Delivery while the app is closed is not supported. |
@@ -51,7 +51,7 @@ OTP state is temporary and is not persisted.
 For this snapshot:
 - `flutter pub get` succeeds.
 - `flutter analyze` reports no issues.
-- `flutter test` passes all 86 tests.
+- `flutter test` passes all 168 tests.
 - `flutter build apk --debug` and `flutter build web` succeed.
 - Full physical-device interaction, permission prompts, real GPS, push delivery,
   SMS OTP, and server authorization remain environment/backend work rather than

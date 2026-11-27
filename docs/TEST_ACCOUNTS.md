@@ -12,11 +12,11 @@ plan.
 | Member / sample buyer | `0800000001` | `+66 80 000 0001` | `user_01`; seeded with home area and enabled 5 km area alerts. |
 | Member / sample seller | `0800000002` | `+66 80 000 0002` | `user_02`; seeded with home area. |
 | Admin | `0800000009` | `+66 80 000 0009` | `admin_01`; admin-only screens and AppState actions. |
-| Shop | `0800000011` | `+66 80 000 0011` | `shop_01` (ร้านมือถือเจริญ); sample shop, open daily 09:00-20:00. Register as a Firebase test number to sign in by OTP; otherwise use the debug sample buttons. |
-| Shop | `0800000012` | `+66 80 000 0012` | `shop_02` (เครื่องเขียนสมใจ); sample shop, Mon-Sat 08:30-18:00. Register as a Firebase test number to sign in by OTP; otherwise use the debug sample buttons. |
+| Shop | `0800000011` | `+66 80 000 0011` | `shop_01` (ร้านมือถือเจริญ); sample shop, open daily 09:00-20:00. Register as a Firebase test number to sign in by OTP (no debug sample button). Seed shops exist only on a fresh install or after "รีเซ็ตข้อมูลตัวอย่าง" (`resetSampleData`). |
+| Shop | `0800000012` | `+66 80 000 0012` | `shop_02` (เครื่องเขียนสมใจ); sample shop, Mon-Sat 08:30-18:00. Register as a Firebase test number to sign in by OTP (no debug sample button). Seed shops exist only on a fresh install or after "รีเซ็ตข้อมูลตัวอย่าง" (`resetSampleData`). |
 
 Debug builds also show sample-account buttons on the login screen that skip
-the OTP step. The other seeded profiles (`user_03`–`user_07`) provide sample
+the OTP step, but only for `0800000001` and `0800000009`. The other seeded profiles (`user_03`–`user_07`) provide sample
 listings, conversations, reviews, and orders, but have no test number.
 
 ## Guest

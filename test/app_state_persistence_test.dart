@@ -522,6 +522,32 @@ void main() {
     },
   );
 
+  test('restart keeps shop profile and shop inquiry conversation', () async {
+    final store = InMemoryPersistenceStore();
+    final state = await _newState(store);
+    expect(
+      state.signInVerifiedPhone('0800000001') == PhoneSignInResult.signedIn,
+      isTrue,
+    );
+    final inquiry = state.openShopInquiry('shop_01')!;
+    expect(inquiry.isShopInquiry, isTrue);
+    await state.flush();
+    state.dispose();
+
+    final restored = await _newState(store);
+    final shop = restored.userById('shop_01')!;
+    expect(shop.isShop, isTrue);
+    expect(shop.shop, isNotNull);
+    expect(shop.shop!.isComplete, isTrue);
+    expect(shop.displayName, shop.shop!.shopName);
+    final restoredInquiry = restored.conversations.firstWhere(
+      (c) => c.id == inquiry.id,
+    );
+    expect(restoredInquiry.isShopInquiry, isTrue);
+    expect(restoredInquiry.sellerId, 'shop_01');
+    restored.dispose();
+  });
+
   test('seed contains two complete shops', () async {
     final state = await _newState(InMemoryPersistenceStore());
     final shop1 = state.userById('shop_01');
@@ -543,10 +569,7 @@ void main() {
       hasLength(2),
     );
     final nearby = state.shopsNearby(radiusKm: 5);
-    expect(
-      nearby.map((s) => s.shop.id),
-      containsAll(['shop_01', 'shop_02']),
-    );
+    expect(nearby.map((s) => s.shop.id), containsAll(['shop_01', 'shop_02']));
     state.dispose();
   });
 }

@@ -18,7 +18,10 @@ backend/PostgreSQL and the complete payload is not encrypted.
   loads as a person.
 - **`ShopProfile`**: `shopName`, `description`, `categories`, `location`
   (`GeoLocation`) and `locationLabel`, and `openingHours`. It lives on the user
-  document; there is no separate shop collection.
+  document; there is no separate shop collection. Rollout: devices on a build
+  from before shop accounts rewrite user documents without `accountType`/`shop`
+  when they sync to Firestore, erasing shop data; update every tester device to
+  this build before creating shops.
 - **`OpeningHours`** / **`DayHours`**: per-weekday (`DateTime.weekday`, 1–7)
   open/close minutes since midnight; a close at or before the open time means
   the shop closes after midnight. Open-now is computed in Thailand time and

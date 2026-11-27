@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:moor_market/models/nearby_product.dart';
 import 'package:moor_market/screens/auth/login_screen.dart';
 import 'package:moor_market/screens/chat/chat_room_screen.dart';
+import 'package:moor_market/screens/order/order_status_screen.dart';
 import 'package:moor_market/screens/profile/public_user_profile_screen.dart';
 import 'package:moor_market/screens/profile/shop_profile_screen.dart';
 import 'package:moor_market/state/app_state.dart';
@@ -102,6 +103,43 @@ void main() {
     await tester.pump();
     expect(find.text('ร้านชื่อใหม่'), findsOneWidget);
     expect(product.sellerName, storedName);
+  });
+
+  testWidgets('order status shows the shop name for a shop seller', (
+    tester,
+  ) async {
+    final index = appState.orders.indexWhere((o) => o.id == 'ORD-2026-0901');
+    final original = appState.orders[index];
+    final userIndex = appState.users.indexWhere((u) => u.id == 'shop_01');
+    final originalUser = appState.users[userIndex];
+    appState.users[userIndex] = originalUser.copyWith(name: 'เจ้าของส่วนตัว');
+    addTearDown(() => appState.users[userIndex] = originalUser);
+    final owner = appState.userById('shop_01')!;
+    appState.orders[index] = original.copyWith(sellerId: 'shop_01');
+    addTearDown(() => appState.orders[index] = original);
+
+    await tester.pumpWidget(
+      const MaterialApp(home: OrderStatusScreen(orderId: 'ORD-2026-0901')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('ผู้ขาย: ${owner.shop!.shopName}'), findsOneWidget);
+    expect(owner.name, isNot(owner.shop!.shopName));
+    expect(find.textContaining(owner.name), findsNothing);
+  });
+
+  testWidgets('shop inquiry chat hides product quick replies and meetup tips', (
+    tester,
+  ) async {
+    final inquiry = appState.openShopInquiry('shop_01')!;
+    await tester.pumpWidget(
+      MaterialApp(home: ChatRoomScreen(conversation: inquiry)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(ActionChip), findsNothing);
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+    expect(find.text('รายงานผู้ใช้'), findsOneWidget);
+    expect(find.text('คำแนะนำก่อนนัดรับ'), findsNothing);
   });
 
   testWidgets('guest tapping inquiry button lands on login', (tester) async {
