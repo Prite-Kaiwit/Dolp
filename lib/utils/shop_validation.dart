@@ -22,6 +22,9 @@ String? validateShopProfile(ShopProfile shop) {
     return 'หมวดสินค้าไม่ถูกต้อง';
   }
   if (shop.openingHours.isEmpty) return 'กรุณาระบุเวลาเปิดอย่างน้อย 1 วัน';
+  if (shop.openingHours.days.values.any((d) => d.openMinute == d.closeMinute)) {
+    return 'เวลาเปิดและปิดต้องไม่ตรงกัน';
+  }
   if (shop.locationLabel.trim().isEmpty) return 'กรุณาเลือกที่ตั้งร้าน';
   return null;
 }

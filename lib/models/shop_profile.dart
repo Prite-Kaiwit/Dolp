@@ -16,10 +16,17 @@ class DayHours {
     'closeMinute': closeMinute,
   };
 
-  factory DayHours.fromJson(Map<String, dynamic> json) => DayHours(
-    openMinute: jsonInt(json['openMinute']).clamp(0, 1439),
-    closeMinute: jsonInt(json['closeMinute']).clamp(0, 1439),
-  );
+  /// Returns null when either minute is missing or not a number, so a
+  /// malformed day is dropped instead of reading as 00:00-00:00.
+  static DayHours? tryFromJson(Map<String, dynamic> json) {
+    final open = json['openMinute'];
+    final close = json['closeMinute'];
+    if (open is! num || close is! num) return null;
+    return DayHours(
+      openMinute: open.toInt().clamp(0, 1439),
+      closeMinute: close.toInt().clamp(0, 1439),
+    );
+  }
 
   @override
   bool operator ==(Object other) =>
@@ -70,7 +77,8 @@ class OpeningHours {
       final value = entry.value;
       if (weekday == null || weekday < 1 || weekday > 7) continue;
       if (value is! Map<String, dynamic>) continue;
-      days[weekday] = DayHours.fromJson(value);
+      final day = DayHours.tryFromJson(value);
+      if (day != null) days[weekday] = day;
     }
     return OpeningHours(days: days);
   }

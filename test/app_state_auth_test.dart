@@ -163,6 +163,18 @@ void main() {
       );
     });
 
+    test('shop-typed account with incomplete profile can still convert', () {
+      final index = appState.users.indexWhere((u) => u.id == 'user_02');
+      appState.users[index] = appState.users[index].copyWith(
+        accountType: AccountType.shop,
+      );
+      appState.signInVerifiedPhone('0800000002');
+      expect(appState.currentUser.accountType, AccountType.shop);
+      expect(appState.currentUser.isShop, isFalse);
+      expect(appState.convertCurrentUserToShop(validShop()), isNull);
+      expect(appState.currentUser.isShop, isTrue);
+    });
+
     test('guest cannot convert', () {
       appState.loginAsGuest();
       expect(appState.convertCurrentUserToShop(validShop()), isNotNull);

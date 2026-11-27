@@ -76,7 +76,7 @@ extension AppStateAuth on AppState {
     if (!isLoggedIn) return 'กรุณาเข้าสู่ระบบก่อน';
     final suspended = _expireSuspendedSession();
     if (suspended != null) return suspended;
-    if (currentUser.accountType == AccountType.shop) {
+    if (currentUser.isShop) {
       return 'บัญชีนี้เป็นร้านค้าอยู่แล้ว';
     }
     return _applyShopProfile(shop, accountType: AccountType.shop);
